@@ -309,6 +309,16 @@ export default function JobFormPage() {
           <Textarea label="증상 (고객 설명)" value={job.symptom} onChange={(v) => setJ('symptom', v)} placeholder="고객이 말한 증상을 입력하세요" />
         </Section>
 
+        {/* ── 새 의뢰 저장 버튼 ── */}
+        {isNew && (
+          <button
+            onClick={handleSave}
+            className="w-full py-4 bg-gray-900 text-white text-base font-semibold rounded-xl"
+          >
+            저장
+          </button>
+        )}
+
         {/* ── 편집 모드 전용 필드 ── */}
         {!isNew && (
           <>
