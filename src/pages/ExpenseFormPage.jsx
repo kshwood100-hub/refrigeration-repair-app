@@ -206,7 +206,7 @@ export default function ExpenseFormPage() {
           {/* 항목 추가 버튼 - 항목 아래 */}
           <button
             onClick={addItem}
-            className="w-full mt-3 py-2.5 border border-dashed border-gray-300 rounded-xl text-sm text-gray-500 flex items-center justify-center gap-1.5 active:bg-gray-50"
+            className="w-full mt-3 py-2.5 border border-dashed border-gray-300 rounded-xl text-sm text-gray-500 flex items-center justify-center gap-1.5 bg-gray-50 active:bg-gray-100"
           >
             <Plus size={14} strokeWidth={2} />
             항목 추가
