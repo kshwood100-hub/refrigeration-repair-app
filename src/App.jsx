@@ -22,6 +22,9 @@ import RefrigerationBasicsPage from './pages/RefrigerationBasicsPage'
 import DiagnosisResultPage from './pages/DiagnosisResultPage'
 import BusinessCardPage from './pages/BusinessCardPage'
 import CustomerDetailPage from './pages/CustomerDetailPage'
+import ExpensePage from './pages/ExpensePage'
+import ExpenseFormPage from './pages/ExpenseFormPage'
+import ExpenseDetailPage from './pages/ExpenseDetailPage'
 
 export default function App() {
   useEffect(() => {
@@ -54,6 +57,10 @@ export default function App() {
           <Route path="/basics" element={<RefrigerationBasicsPage />} />
           <Route path="/business-cards" element={<BusinessCardPage />} />
           <Route path="/customers/:id" element={<CustomerDetailPage />} />
+          <Route path="/expenses" element={<ExpensePage />} />
+          <Route path="/expenses/new" element={<ExpenseFormPage />} />
+          <Route path="/expenses/:id" element={<ExpenseDetailPage />} />
+          <Route path="/expenses/:id/edit" element={<ExpenseFormPage />} />
         </Routes>
       </main>
       <BottomNav />

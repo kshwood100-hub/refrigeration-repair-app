@@ -1,10 +1,11 @@
 import { NavLink } from 'react-router-dom'
-import { Home, ScanSearch, Wrench, BookOpen, Settings } from 'lucide-react'
+import { Home, ScanSearch, Wrench, BookOpen, Settings, Receipt } from 'lucide-react'
 
 const navItems = [
   { to: '/',          label: '홈',     Icon: Home },
   { to: '/diagnosis', label: '진단',   Icon: ScanSearch },
   { to: '/service',   label: '수리의뢰', Icon: Wrench },
+  { to: '/expenses',  label: '경비내역', Icon: Receipt },
   { to: '/knowhow',   label: '노하우',  Icon: BookOpen },
   { to: '/settings',  label: '설정',   Icon: Settings },
 ]
