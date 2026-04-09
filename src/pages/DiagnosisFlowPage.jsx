@@ -131,7 +131,7 @@ export default function DiagnosisFlowPage() {
                 <button
                   key={i}
                   onClick={() => handleAnswer(c.next)}
-                  className="w-full py-3.5 px-4 bg-white border-2 border-gray-200 text-gray-800 font-medium rounded-2xl text-sm text-left active:bg-gray-50 active:border-blue-400"
+                  className="w-full py-3.5 px-4 bg-white border-2 border-gray-300 text-gray-800 font-medium rounded-2xl text-sm text-left active:bg-gray-50 active:border-blue-400"
                 >
                   {c.label}
                 </button>
@@ -183,7 +183,7 @@ export default function DiagnosisFlowPage() {
           </div>
 
           {/* 진단명 */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-3">
+          <div className="bg-white border border-gray-300 rounded-2xl p-4 mb-3">
             <div className="text-lg font-bold text-gray-900">{lf(node, 'title')}</div>
           </div>
 

@@ -38,7 +38,7 @@ export default function DiagnosisPage() {
         <h2 className="text-base font-semibold text-gray-900">{t('diagnosis.title')}</h2>
         <Link
           to="/flow-edit"
-          className="flex items-center gap-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-lg px-3 py-1.5 active:bg-gray-50"
+          className="flex items-center gap-1.5 text-xs font-medium text-gray-600 border border-gray-300 rounded-lg px-3 py-1.5 active:bg-gray-50"
         >
           <Pencil size={12} strokeWidth={1.5} />
           진단편집
@@ -53,7 +53,7 @@ export default function DiagnosisPage() {
           const bg    = mapped?.bg    ?? '#F3F4F6'
           const color = mapped?.color ?? '#6B7280'
           return (
-            <div key={cat.id} className="flex items-center gap-2 px-4 py-3 bg-white border border-gray-100 rounded-xl shadow-sm">
+            <div key={cat.id} className="flex items-center gap-2 px-4 py-3 bg-white border border-gray-300 rounded-xl shadow-sm">
               <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: bg }}>
                 <Icon size={18} strokeWidth={1.5} style={{ color }} />
               </div>
@@ -62,7 +62,7 @@ export default function DiagnosisPage() {
               </Link>
               <Link
                 to={`/diagnosis/${cat.id}/results`}
-                className="text-xs text-gray-500 border border-gray-200 rounded-lg px-2.5 py-1.5 shrink-0 active:bg-gray-50 whitespace-nowrap"
+                className="text-xs text-gray-500 border border-gray-300 rounded-lg px-2.5 py-1.5 shrink-0 active:bg-gray-50 whitespace-nowrap"
               >
                 참고
               </Link>
@@ -74,10 +74,10 @@ export default function DiagnosisPage() {
         })}
       </div>
 
-      <div className="mt-5 pt-4 border-t border-gray-100">
+      <div className="mt-5 pt-4 border-t border-gray-300">
         <Link
           to="/symptoms"
-          className="flex items-center justify-center gap-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-xl py-3 active:bg-gray-50"
+          className="flex items-center justify-center gap-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-xl py-3 active:bg-gray-50"
         >
           <List size={15} strokeWidth={1.5} />
           {t('diagnosis.browseList')}

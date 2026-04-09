@@ -122,7 +122,7 @@ export default function ExpenseFormPage() {
       <div className="space-y-4">
 
         {/* 기본 정보 */}
-        <div className="bg-white rounded-xl border border-gray-100 p-4 space-y-3">
+        <div className="bg-white rounded-xl border border-gray-300 p-4 space-y-3">
           <p className="text-xs font-semibold text-gray-500">기본 정보</p>
           <div>
             <label className="text-xs text-gray-400 block mb-1">제목 (선택)</label>
@@ -130,7 +130,7 @@ export default function ExpenseFormPage() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="예) 3월 현장 출장 경비"
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-gray-400"
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg outline-none focus:border-gray-400"
             />
           </div>
           <div>
@@ -139,7 +139,7 @@ export default function ExpenseFormPage() {
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-gray-400"
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg outline-none focus:border-gray-400"
             />
           </div>
           <div>
@@ -147,7 +147,7 @@ export default function ExpenseFormPage() {
             <select
               value={jobId}
               onChange={(e) => setJobId(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-gray-400 bg-white"
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg outline-none focus:border-gray-400 bg-white"
             >
               <option value="">연결 안 함</option>
               {(jobs ?? []).map((j) => {
@@ -163,12 +163,12 @@ export default function ExpenseFormPage() {
         </div>
 
         {/* 경비 항목 */}
-        <div className="bg-white rounded-xl border border-gray-100 p-4">
+        <div className="bg-white rounded-xl border border-gray-300 p-4">
           <p className="text-xs font-semibold text-gray-500 mb-3">경비 항목</p>
 
           <div className="space-y-3">
             {items.map((item, idx) => (
-              <div key={idx} className="border border-gray-100 rounded-xl p-3 space-y-2">
+              <div key={idx} className="border border-gray-300 rounded-xl p-3 space-y-2">
                 <div className="flex items-center justify-between">
                   <select
                     value={item.category}
@@ -187,7 +187,7 @@ export default function ExpenseFormPage() {
                   value={item.description}
                   onChange={(e) => setItem(idx, 'description', e.target.value)}
                   placeholder="내역 (예: 왕복 120km, 4시간 작업)"
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-gray-400"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg outline-none focus:border-gray-400"
                 />
                 <div className="relative">
                   <input
@@ -195,7 +195,7 @@ export default function ExpenseFormPage() {
                     value={item.amount}
                     onChange={(e) => setItem(idx, 'amount', e.target.value)}
                     placeholder="금액"
-                    className="w-full px-3 py-2 pr-8 text-sm border border-gray-200 rounded-lg outline-none focus:border-gray-400"
+                    className="w-full px-3 py-2 pr-8 text-sm border border-gray-300 rounded-lg outline-none focus:border-gray-400"
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">원</span>
                 </div>
@@ -213,26 +213,26 @@ export default function ExpenseFormPage() {
           </button>
 
           {/* 합계 */}
-          <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center">
+          <div className="mt-4 pt-3 border-t border-gray-300 flex justify-between items-center">
             <span className="text-sm font-semibold text-gray-600">합계</span>
             <span className="text-lg font-bold text-gray-900">{total.toLocaleString()}원</span>
           </div>
         </div>
 
         {/* 메모 */}
-        <div className="bg-white rounded-xl border border-gray-100 p-4">
+        <div className="bg-white rounded-xl border border-gray-300 p-4">
           <label className="text-xs font-semibold text-gray-500 block mb-2">메모</label>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="특이사항, 영수증 번호 등"
             rows={3}
-            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-gray-400 resize-none"
+            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg outline-none focus:border-gray-400 resize-none"
           />
         </div>
 
         {/* 영수증 사진 */}
-        <div className="bg-white rounded-xl border border-gray-100 p-4">
+        <div className="bg-white rounded-xl border border-gray-300 p-4">
           <p className="text-xs font-semibold text-gray-500 mb-3">영수증 사진</p>
           <input ref={fileRef} type="file" accept="image/*" capture="environment" multiple className="hidden" onChange={handlePhoto} />
           <div className="flex gap-2 flex-wrap">

@@ -26,7 +26,7 @@ export default function ChecklistPage() {
             <button
               key={tmpl.id}
               onClick={() => { setSelected(tmpl); setChecked({}) }}
-              className="w-full flex items-center gap-4 px-4 py-3.5 bg-white border border-gray-100 rounded-xl shadow-sm text-left active:bg-gray-50"
+              className="w-full flex items-center gap-4 px-4 py-3.5 bg-white border border-gray-300 rounded-xl shadow-sm text-left active:bg-gray-50"
             >
               <div className="flex-1">
                 <span className="text-xs font-medium text-gray-400 block mb-0.5">{tmpl.category}</span>
@@ -59,7 +59,7 @@ export default function ChecklistPage() {
       </div>
 
       {/* 진행률 */}
-      <div className="bg-white border border-gray-100 rounded-xl px-4 py-3 shadow-sm mb-4">
+      <div className="bg-white border border-gray-300 rounded-xl px-4 py-3 shadow-sm mb-4">
         <div className="flex justify-between text-xs text-gray-500 mb-2">
           <span>진행률</span>
           <span className="font-semibold text-gray-800">{doneCount} / {total}</span>
@@ -89,7 +89,7 @@ export default function ChecklistPage() {
             className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl border text-left transition-colors ${
               checked[i]
                 ? 'bg-gray-900 border-gray-900'
-                : 'bg-white border-gray-100 shadow-sm'
+                : 'bg-white border-gray-300 shadow-sm'
             }`}
           >
             <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${

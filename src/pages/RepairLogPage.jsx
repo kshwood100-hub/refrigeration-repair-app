@@ -73,7 +73,7 @@ export default function RepairLogPage() {
 
       <div className="space-y-3">
         {logs?.map((log) => (
-          <div key={log.id} className="bg-white border border-gray-200 rounded-xl p-4">
+          <div key={log.id} className="bg-white border border-gray-300 rounded-xl p-4">
             <div className="flex justify-between items-start mb-1">
               <span className="font-semibold text-gray-800">{log.equipmentName}</span>
               <span className="text-xs text-gray-400">{log.date}</span>

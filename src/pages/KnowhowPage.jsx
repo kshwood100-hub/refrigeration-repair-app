@@ -64,7 +64,7 @@ export default function KnowhowPage() {
             </button>
             <button
               onClick={() => navigate('/service')}
-              className="w-full py-3.5 bg-gray-50 text-gray-600 text-sm font-medium rounded-xl border border-gray-200"
+              className="w-full py-3.5 bg-gray-50 text-gray-600 text-sm font-medium rounded-xl border border-gray-300"
             >
               수리 의뢰에서 AI로 자동 추출
             </button>
@@ -99,7 +99,7 @@ export default function KnowhowPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="증상으로 검색 — 예) 딱딱 소리, 냉각 안됨, 트립"
-          className="w-full pl-8 pr-8 py-2.5 text-sm bg-white border border-gray-200 rounded-xl outline-none focus:border-gray-400"
+          className="w-full pl-8 pr-8 py-2.5 text-sm bg-white border border-gray-300 rounded-xl outline-none focus:border-gray-400"
         />
         {search && (
           <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
@@ -135,7 +135,7 @@ export default function KnowhowPage() {
             <button
               key={k.id}
               onClick={() => navigate(`/knowhow/${k.id}`)}
-              className="w-full bg-white border border-gray-100 rounded-xl p-4 text-left shadow-sm active:bg-gray-50"
+              className="w-full bg-white border border-gray-300 rounded-xl p-4 text-left shadow-sm active:bg-gray-50"
             >
               {/* 제목 */}
               <div className="flex items-start justify-between gap-2 mb-2">
@@ -154,7 +154,7 @@ export default function KnowhowPage() {
                   {k.category}
                 </span>
                 {k.equipType && k.equipType.split(',').slice(0, 1).map((e) => e.trim()).filter(Boolean).map((e) => (
-                  <span key={e} className="text-xs text-gray-500 bg-gray-50 border border-gray-100 px-2 py-0.5 rounded-md">
+                  <span key={e} className="text-xs text-gray-500 bg-gray-50 border border-gray-300 px-2 py-0.5 rounded-md">
                     {e}
                   </span>
                 ))}

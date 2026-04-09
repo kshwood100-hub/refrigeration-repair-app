@@ -12,7 +12,7 @@ const navItems = [
 
 export default function BottomNav() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 max-w-lg mx-auto bg-white border-t border-gray-100 flex">
+    <nav className="fixed bottom-0 left-0 right-0 max-w-lg mx-auto bg-white border-t border-gray-300 flex">
       {navItems.map(({ to, label, Icon }) => (
         <NavLink
           key={to}

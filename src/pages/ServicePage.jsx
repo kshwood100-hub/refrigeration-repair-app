@@ -65,7 +65,7 @@ export default function ServicePage() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => navigate('/business-cards')}
-            className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium border border-gray-200 text-gray-600 rounded-lg"
+            className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium border border-gray-300 text-gray-600 rounded-lg"
           >
             <CreditCard size={13} strokeWidth={1.5} />
             명함
@@ -88,7 +88,7 @@ export default function ServicePage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="고객명, 전화번호, 증상 검색"
-          className="w-full pl-8 pr-8 py-2 text-sm bg-white border border-gray-200 rounded-xl outline-none focus:border-gray-400"
+          className="w-full pl-8 pr-8 py-2 text-sm bg-white border border-gray-300 rounded-xl outline-none focus:border-gray-400"
         />
         {search && (
           <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
@@ -134,7 +134,7 @@ export default function ServicePage() {
               <button
                 key={job.id}
                 onClick={() => navigate(`/service/${job.id}`)}
-                className="w-full bg-white border border-gray-100 rounded-xl p-4 text-left active:bg-gray-50 shadow-sm"
+                className="w-full bg-white border border-gray-300 rounded-xl p-4 text-left active:bg-gray-50 shadow-sm"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">

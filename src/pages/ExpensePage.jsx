@@ -59,7 +59,7 @@ export default function ExpensePage() {
               <button
                 key={exp.id}
                 onClick={() => navigate(`/expenses/${exp.id}`)}
-                className="w-full bg-white border border-gray-100 rounded-xl p-4 text-left active:bg-gray-50 shadow-sm"
+                className="w-full bg-white border border-gray-300 rounded-xl p-4 text-left active:bg-gray-50 shadow-sm"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
@@ -95,7 +95,7 @@ export default function ExpensePage() {
             <p className="font-semibold text-gray-900 mb-1">경비 내역을 삭제하시겠습니까?</p>
             <div className="flex gap-2 mt-4">
               <button onClick={() => setDeleting(null)}
-                className="flex-1 py-2.5 text-sm font-medium border border-gray-200 rounded-xl text-gray-600">
+                className="flex-1 py-2.5 text-sm font-medium border border-gray-300 rounded-xl text-gray-600">
                 취소
               </button>
               <button onClick={() => handleDelete(deleting)}

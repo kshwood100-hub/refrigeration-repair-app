@@ -177,7 +177,7 @@ export default function JobDetailPage() {
           </button>
           <button
             onClick={() => navigate(`/service/${id}/edit`)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-lg text-gray-700"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-gray-300 rounded-lg text-gray-700"
           >
             <Pencil size={12} strokeWidth={1.5} />
             수정
@@ -188,7 +188,7 @@ export default function JobDetailPage() {
       <div className="space-y-3">
 
         {/* 고객 카드 */}
-        <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
+        <div className="bg-white border border-gray-300 rounded-xl p-4 shadow-sm">
           <div className="flex items-start justify-between gap-2">
             <div>
               <p className="font-semibold text-gray-900">{customer?.name ?? '고객 미등록'}</p>
@@ -231,7 +231,7 @@ export default function JobDetailPage() {
             <button
               onClick={() => patch({ status: 'received' })}
               className={`flex-1 py-2 rounded-xl text-xs font-medium border transition-colors ${
-                !isProgress ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-400 border-gray-200'
+                !isProgress ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-400 border-gray-300'
               }`}
             >
               접수
@@ -239,7 +239,7 @@ export default function JobDetailPage() {
             <button
               onClick={() => patch({ status: 'inprogress' })}
               className={`flex-1 py-2 rounded-xl text-xs font-medium border transition-colors ${
-                isProgress ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-400 border-gray-200'
+                isProgress ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-400 border-gray-300'
               }`}
             >
               진행
@@ -268,7 +268,7 @@ export default function JobDetailPage() {
               type="date"
               defaultValue={job.visitDate ?? ''}
               onBlur={(e) => patch({ visitDate: e.target.value })}
-              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-400"
+              className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-400"
             />
           </div>
           <div>
@@ -280,7 +280,7 @@ export default function JobDetailPage() {
                   const newH = e.target.value
                   patch({ visitTime: newH ? `${newH}:${visitM || '00'}` : '' })
                 }}
-                className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white outline-none focus:border-blue-400"
+                className="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white outline-none focus:border-blue-400"
               >
                 <option value="">시</option>
                 {HOURS.map((hh) => <option key={hh} value={hh}>{hh}시</option>)}
@@ -291,7 +291,7 @@ export default function JobDetailPage() {
                   const newM = e.target.value
                   patch({ visitTime: visitH ? `${visitH}:${newM || '00'}` : '' })
                 }}
-                className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 bg-white outline-none focus:border-blue-400"
+                className="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white outline-none focus:border-blue-400"
               >
                 <option value="">분</option>
                 {MINS.map((mm) => <option key={mm} value={mm}>{mm}분</option>)}
@@ -321,9 +321,9 @@ export default function JobDetailPage() {
                 {transcript && (
                   <div>
                     <p className="text-xs text-gray-400 mb-1">인식된 내용</p>
-                    <div className="bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm text-gray-700 whitespace-pre-wrap">{transcript}</div>
+                    <div className="bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700 whitespace-pre-wrap">{transcript}</div>
                     <div className="flex gap-2 mt-2">
-                      <button onClick={() => setTranscript('')} className="flex-1 py-2 text-sm font-medium border border-gray-200 rounded-xl text-gray-500">지우기</button>
+                      <button onClick={() => setTranscript('')} className="flex-1 py-2 text-sm font-medium border border-gray-300 rounded-xl text-gray-500">지우기</button>
                       <button onClick={handleAiClassify} disabled={classifyLoading}
                         className="flex-1 py-2 text-sm font-medium bg-gray-900 text-white rounded-xl disabled:opacity-50 flex items-center justify-center gap-1.5">
                         <Sparkles size={13} strokeWidth={1.5} />
@@ -345,7 +345,7 @@ export default function JobDetailPage() {
                     onBlur={(e) => patch({ diagnosis: e.target.value })}
                     placeholder="진단 내용을 입력하세요"
                     rows={3}
-                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-400 resize-none"
+                    className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-400 resize-none"
                   />
               }
             </Section>
@@ -360,7 +360,7 @@ export default function JobDetailPage() {
                     onBlur={(e) => patch({ materials: e.target.value })}
                     placeholder="필요한 자재를 입력하세요"
                     rows={3}
-                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-400 resize-none"
+                    className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-400 resize-none"
                   />
               }
             </Section>
@@ -375,7 +375,7 @@ export default function JobDetailPage() {
                     onBlur={(e) => patch({ workDone: e.target.value })}
                     placeholder="완료된 수리 내용을 입력하세요"
                     rows={3}
-                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-400 resize-none"
+                    className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-400 resize-none"
                   />
               }
             </Section>
@@ -387,7 +387,7 @@ export default function JobDetailPage() {
                   {job.partsCost > 0 && <InfoRow label="부품비" value={`${Number(job.partsCost).toLocaleString()} 원`} />}
                   {job.laborCost > 0 && <InfoRow label="공임비" value={`${Number(job.laborCost).toLocaleString()} 원`} />}
                   {totalCost > 0 && (
-                    <div className="flex justify-between pt-2 border-t border-gray-100 text-sm font-semibold">
+                    <div className="flex justify-between pt-2 border-t border-gray-300 text-sm font-semibold">
                       <span className="text-gray-500">합계</span>
                       <span className="text-gray-900">{totalCost.toLocaleString()} 원</span>
                     </div>
@@ -400,17 +400,17 @@ export default function JobDetailPage() {
                     <input type="number" key={`parts-${id}`} defaultValue={job.partsCost || ''}
                       onBlur={(e) => patch({ partsCost: Number(e.target.value) || 0 })}
                       placeholder="0"
-                      className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-400" />
+                      className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-400" />
                   </div>
                   <div>
                     <label className="text-xs text-gray-400 block mb-1">공임비 (원)</label>
                     <input type="number" key={`labor-${id}`} defaultValue={job.laborCost || ''}
                       onBlur={(e) => patch({ laborCost: Number(e.target.value) || 0 })}
                       placeholder="0"
-                      className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-400" />
+                      className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-400" />
                   </div>
                   {totalCost > 0 && (
-                    <div className="flex justify-between pt-2 border-t border-gray-100 text-sm font-semibold">
+                    <div className="flex justify-between pt-2 border-t border-gray-300 text-sm font-semibold">
                       <span className="text-gray-500">합계</span>
                       <span className="text-gray-900">{totalCost.toLocaleString()} 원</span>
                     </div>
@@ -454,7 +454,7 @@ export default function JobDetailPage() {
                     onBlur={(e) => patch({ notes: e.target.value })}
                     placeholder="특이사항, 주의사항 등"
                     rows={2}
-                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-400 resize-none"
+                    className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-400 resize-none"
                   />
               }
             </Section>
@@ -479,7 +479,7 @@ export default function JobDetailPage() {
 
         {/* 계약 점검 리스트 */}
         <button onClick={() => navigate('/checklist')}
-          className="w-full flex items-center justify-center gap-2 py-3 bg-white border border-gray-200 text-gray-700 text-sm font-medium rounded-xl active:bg-gray-50 shadow-sm">
+          className="w-full flex items-center justify-center gap-2 py-3 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-xl active:bg-gray-50 shadow-sm">
           <ClipboardList size={15} strokeWidth={1.5} />
           계약 점검 리스트
         </button>
@@ -493,7 +493,7 @@ export default function JobDetailPage() {
             <p className="font-semibold text-gray-900 mb-1">의뢰를 삭제하시겠습니까?</p>
             <p className="text-sm text-gray-400 mb-5">사진을 포함한 모든 데이터가 삭제됩니다.</p>
             <div className="flex gap-2">
-              <button onClick={() => setShowDelete(false)} className="flex-1 py-2.5 text-sm font-medium border border-gray-200 rounded-xl text-gray-600">취소</button>
+              <button onClick={() => setShowDelete(false)} className="flex-1 py-2.5 text-sm font-medium border border-gray-300 rounded-xl text-gray-600">취소</button>
               <button onClick={handleDelete} className="flex-1 py-2.5 text-sm font-medium bg-red-500 text-white rounded-xl">삭제</button>
             </div>
           </div>
@@ -505,7 +505,7 @@ export default function JobDetailPage() {
 
 function Section({ title, children }) {
   return (
-    <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
+    <div className="bg-white border border-gray-300 rounded-xl p-4 shadow-sm">
       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2.5">{title}</p>
       <div className="space-y-2.5">{children}</div>
     </div>

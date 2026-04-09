@@ -65,7 +65,7 @@ export default function RefrigerantSliderPage() {
       {!showPicker ? (
         <button
           onClick={() => setShowPicker(true)}
-          className="w-full flex items-center gap-3 px-4 py-3 bg-white border border-gray-200 rounded-xl mb-4 shadow-sm active:bg-gray-50"
+          className="w-full flex items-center gap-3 px-4 py-3 bg-white border border-gray-300 rounded-xl mb-4 shadow-sm active:bg-gray-50"
         >
           <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: rfg.color }} />
           <span className="font-semibold text-gray-900 flex-1 text-left">{rfg.name}</span>
@@ -75,8 +75,8 @@ export default function RefrigerantSliderPage() {
           <ChevronDown size={14} strokeWidth={1.5} className="text-gray-400 shrink-0" />
         </button>
       ) : (
-        <div className="mb-4 bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-          <div className="flex items-center gap-2 px-3 py-2.5 border-b border-gray-100">
+        <div className="mb-4 bg-white border border-gray-300 rounded-xl overflow-hidden shadow-sm">
+          <div className="flex items-center gap-2 px-3 py-2.5 border-b border-gray-300">
             <Search size={14} strokeWidth={1.5} className="text-gray-400 shrink-0" />
             <input
               autoFocus
@@ -168,7 +168,7 @@ export default function RefrigerantSliderPage() {
       {/* 온도 → 압력 */}
       {mode === 't2p' && (
         <div className="space-y-3">
-          <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+          <div className="bg-white border border-gray-300 rounded-2xl p-4 shadow-sm">
             <p className="text-xs font-medium text-gray-400 mb-3">온도 (°C)</p>
             <div className="flex items-center gap-3 mb-3">
               <button
@@ -203,7 +203,7 @@ export default function RefrigerantSliderPage() {
             </div>
           </div>
 
-          <div className="bg-white border border-gray-100 rounded-2xl p-5 text-center shadow-sm">
+          <div className="bg-white border border-gray-300 rounded-2xl p-5 text-center shadow-sm">
             <p className="text-xs font-medium text-gray-400 mb-2">포화압력</p>
             <div className="text-5xl font-bold mb-1" style={{ color: rfg.color }}>
               {calculatedPressure.toFixed(unit.decimals)}
@@ -218,7 +218,7 @@ export default function RefrigerantSliderPage() {
       {/* 압력 → 온도 */}
       {mode === 'p2t' && (
         <div className="space-y-3">
-          <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+          <div className="bg-white border border-gray-300 rounded-2xl p-4 shadow-sm">
             <p className="text-xs font-medium text-gray-400 mb-2">압력 ({unitLabel})</p>
             <input
               type="number"
@@ -234,7 +234,7 @@ export default function RefrigerantSliderPage() {
             </p>
           </div>
 
-          <div className="bg-white border border-gray-100 rounded-2xl p-5 text-center shadow-sm">
+          <div className="bg-white border border-gray-300 rounded-2xl p-5 text-center shadow-sm">
             <p className="text-xs font-medium text-gray-400 mb-2">포화온도</p>
             <div className="text-5xl font-bold mb-1" style={{ color: rfg.color }}>
               {calculatedTemp !== null ? calculatedTemp.toFixed(1) : '—'}
@@ -257,7 +257,7 @@ export default function RefrigerantSliderPage() {
         </button>
 
         {showTable && (
-          <div className="mt-2 rounded-xl border border-gray-100 overflow-hidden shadow-sm">
+          <div className="mt-2 rounded-xl border border-gray-300 overflow-hidden shadow-sm">
             <div className="grid grid-cols-2 px-4 py-2 text-xs font-semibold text-white"
               style={{ backgroundColor: rfg.color }}>
               <span>온도 (°C)</span>
@@ -295,7 +295,7 @@ function RefInfo({ rfg }) {
   }[info.group] ?? '#6B7280'
 
   return (
-    <div className="bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm">
+    <div className="bg-white border border-gray-300 rounded-xl overflow-hidden shadow-sm">
       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-4 py-2.5 border-b border-gray-50">
         냉매 정보
       </p>

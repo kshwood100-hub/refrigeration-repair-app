@@ -70,7 +70,7 @@ export default function CustomerDetailPage() {
       <div className="space-y-3">
 
         {/* 고객 정보 카드 */}
-        <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
+        <div className="bg-white border border-gray-300 rounded-xl p-4 shadow-sm">
           <p className="text-lg font-bold text-gray-900 mb-1">{customer.name}</p>
           {customer.phone && (
             <a
@@ -101,15 +101,15 @@ export default function CustomerDetailPage() {
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5 px-1">명함</p>
             <div className="space-y-2">
               {cards.map((card) => (
-                <div key={card.id} className="bg-white border border-gray-100 rounded-xl p-3 shadow-sm flex gap-3 items-start">
+                <div key={card.id} className="bg-white border border-gray-300 rounded-xl p-3 shadow-sm flex gap-3 items-start">
                   {card.dataUrl ? (
                     <img
                       src={card.dataUrl}
                       alt="명함"
-                      className="w-20 h-12 object-cover rounded-lg border border-gray-100 shrink-0 bg-gray-50"
+                      className="w-20 h-12 object-cover rounded-lg border border-gray-300 shrink-0 bg-gray-50"
                     />
                   ) : (
-                    <div className="w-20 h-12 rounded-lg border border-gray-100 bg-gray-50 flex items-center justify-center shrink-0">
+                    <div className="w-20 h-12 rounded-lg border border-gray-300 bg-gray-50 flex items-center justify-center shrink-0">
                       <CreditCard size={18} strokeWidth={1} className="text-gray-300" />
                     </div>
                   )}
@@ -131,7 +131,7 @@ export default function CustomerDetailPage() {
             <span className="text-xs text-gray-400">{(jobs ?? []).length}건</span>
           </div>
           {(!jobs || jobs.length === 0) ? (
-            <div className="bg-white border border-gray-100 rounded-xl p-6 text-center shadow-sm">
+            <div className="bg-white border border-gray-300 rounded-xl p-6 text-center shadow-sm">
               <p className="text-xs text-gray-400">수리 이력이 없습니다</p>
             </div>
           ) : (
@@ -142,7 +142,7 @@ export default function CustomerDetailPage() {
                   <button
                     key={job.id}
                     onClick={() => navigate(`/service/${job.id}`)}
-                    className="w-full bg-white border border-gray-100 rounded-xl p-3.5 text-left shadow-sm active:bg-gray-50"
+                    className="w-full bg-white border border-gray-300 rounded-xl p-3.5 text-left shadow-sm active:bg-gray-50"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
@@ -185,7 +185,7 @@ export default function CustomerDetailPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => setShowDelete(false)}
-                className="flex-1 py-2.5 text-sm font-medium border border-gray-200 rounded-xl text-gray-600"
+                className="flex-1 py-2.5 text-sm font-medium border border-gray-300 rounded-xl text-gray-600"
               >
                 취소
               </button>

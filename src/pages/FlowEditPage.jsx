@@ -178,7 +178,7 @@ export default function FlowEditPage() {
         </div>
         <div className="space-y-2">
           {categories.map((cat) => (
-            <div key={cat.id} className="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-xl">
+            <div key={cat.id} className="flex items-center gap-3 p-3 bg-white border border-gray-300 rounded-xl">
               <button onClick={() => openCatNodes(cat)} className="flex items-center gap-3 flex-1 text-left">
                 <span className="text-2xl">{cat.icon}</span>
                 <div>
@@ -259,7 +259,7 @@ export default function FlowEditPage() {
           {/* 노드 카드 */}
           <button
             onClick={() => editNode(node)}
-            className="w-full text-left flex items-start gap-1.5 py-1.5 px-2 rounded-lg active:bg-gray-100 border border-transparent hover:border-gray-200"
+            className="w-full text-left flex items-start gap-1.5 py-1.5 px-2 rounded-lg active:bg-gray-100 border border-transparent hover:border-gray-300"
           >
             <span className={`text-xs font-semibold px-1.5 py-0.5 rounded shrink-0 ${typeBadge(node.type)}`}>
               {typeLabel(node.type)}
@@ -272,7 +272,7 @@ export default function FlowEditPage() {
 
           {/* 자식 분기 */}
           {node.type === 'question' && (
-            <div className="ml-3 border-l border-gray-200 pl-2 mt-0.5 space-y-0.5">
+            <div className="ml-3 border-l border-gray-300 pl-2 mt-0.5 space-y-0.5">
               <div>
                 <div className="text-xs text-gray-400 mt-1">✓ 예</div>
                 {node.yes
@@ -288,7 +288,7 @@ export default function FlowEditPage() {
             </div>
           )}
           {node.type === 'multi' && (
-            <div className="ml-3 border-l border-gray-200 pl-2 mt-0.5 space-y-0.5">
+            <div className="ml-3 border-l border-gray-300 pl-2 mt-0.5 space-y-0.5">
               {(node.choices ?? []).map((c, i) => (
                 <div key={i}>
                   <div className="text-xs text-gray-400 mt-1">▸ {c.label || `선택지 ${i + 1}`}</div>
@@ -322,7 +322,7 @@ export default function FlowEditPage() {
             </button>
           </div>
         ) : (
-          <div className="bg-white border border-gray-200 rounded-xl p-3">
+          <div className="bg-white border border-gray-300 rounded-xl p-3">
             {cat?.startNode && nodesMap[cat.startNode]
               ? <TreeNode nodeId={cat.startNode} depth={0} path={[]} />
               : (
@@ -360,9 +360,9 @@ export default function FlowEditPage() {
         {/* 노드 ID */}
         <div className="mb-4 flex items-center gap-2">
           <span className="text-xs text-gray-400">ID</span>
-          <span className="flex-1 text-xs font-mono text-gray-500 bg-gray-50 border border-gray-200 rounded px-2 py-1">{form.nodeId}</span>
+          <span className="flex-1 text-xs font-mono text-gray-500 bg-gray-50 border border-gray-300 rounded px-2 py-1">{form.nodeId}</span>
           {!selNodeId && (
-            <button onClick={() => upd('nodeId', genNodeId())} className="text-xs text-gray-400 border border-gray-200 rounded px-2 py-1">
+            <button onClick={() => upd('nodeId', genNodeId())} className="text-xs text-gray-400 border border-gray-300 rounded px-2 py-1">
               재생성
             </button>
           )}
@@ -403,7 +403,7 @@ export default function FlowEditPage() {
               <label className="text-xs font-medium text-gray-500 mb-2 block">선택지 항목</label>
               <div className="space-y-2 mb-2">
                 {(form.choices ?? []).map((c, i) => (
-                  <div key={i} className="flex gap-2 items-center bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                  <div key={i} className="flex gap-2 items-center bg-gray-50 border border-gray-300 rounded-lg px-3 py-2">
                     <input
                       className="flex-1 text-sm bg-transparent outline-none"
                       placeholder={`선택지 ${i + 1}`}
@@ -467,7 +467,7 @@ export default function FlowEditPage() {
               <label className="text-xs font-medium text-gray-500 mb-1 block">경고 등급 (선택)</label>
               <div className="flex gap-2">
                 {[
-                  { v: '', label: '없음', cls: 'bg-white text-gray-400 border-gray-200' },
+                  { v: '', label: '없음', cls: 'bg-white text-gray-400 border-gray-300' },
                   { v: 'caution', label: '주의', cls: 'bg-orange-50 text-orange-600 border-orange-300' },
                   { v: 'danger', label: '위험', cls: 'bg-red-50 text-red-600 border-red-400' },
                 ].map(({ v, label, cls }) => (
@@ -475,7 +475,7 @@ export default function FlowEditPage() {
                     key={v}
                     onClick={() => upd('warningLevel', v)}
                     className={`flex-1 py-2 rounded-lg text-sm font-bold border transition-colors ${
-                      (form.warningLevel ?? '') === v ? cls + ' ring-2 ring-offset-1 ring-current' : 'bg-white text-gray-400 border-gray-200'
+                      (form.warningLevel ?? '') === v ? cls + ' ring-2 ring-offset-1 ring-current' : 'bg-white text-gray-400 border-gray-300'
                     }`}
                   >
                     {label}

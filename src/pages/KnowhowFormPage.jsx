@@ -193,9 +193,9 @@ export default function KnowhowFormPage() {
           {transcript && (
             <div>
               <p className="text-xs text-gray-400 mb-1">인식된 내용</p>
-              <div className="bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm text-gray-700 whitespace-pre-wrap">{transcript}</div>
+              <div className="bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700 whitespace-pre-wrap">{transcript}</div>
               <div className="flex gap-2 mt-2">
-                <button onClick={() => setTranscript('')} className="flex-1 py-2 text-sm font-medium border border-gray-200 rounded-xl text-gray-500">지우기</button>
+                <button onClick={() => setTranscript('')} className="flex-1 py-2 text-sm font-medium border border-gray-300 rounded-xl text-gray-500">지우기</button>
                 <button
                   onClick={handleAiClassify}
                   disabled={aiLoading}
@@ -228,7 +228,7 @@ export default function KnowhowFormPage() {
               {KNOWHOW_CATEGORIES.map((c) => (
                 <button key={c} onClick={() => set('category', c)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                    form.category === c ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-500 border-gray-200'
+                    form.category === c ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-500 border-gray-300'
                   }`}>{c}</button>
               ))}
             </div>
@@ -239,7 +239,7 @@ export default function KnowhowFormPage() {
               {LOCATIONS.map((l) => (
                 <button key={l} onClick={() => set('location', l)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                    form.location === l ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-500 border-gray-200'
+                    form.location === l ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-500 border-gray-300'
                   }`}>{l}</button>
               ))}
             </div>
@@ -340,7 +340,7 @@ export default function KnowhowFormPage() {
               <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-center">
                 <p className="text-sm font-semibold text-red-600 mb-3">정말 삭제하시겠습니까?</p>
                 <div className="flex gap-2">
-                  <button onClick={() => setShowDelete(false)} className="flex-1 py-2 text-sm font-medium bg-white border border-gray-200 rounded-lg text-gray-600">취소</button>
+                  <button onClick={() => setShowDelete(false)} className="flex-1 py-2 text-sm font-medium bg-white border border-gray-300 rounded-lg text-gray-600">취소</button>
                   <button onClick={handleDelete} className="flex-1 py-2 text-sm font-medium bg-red-500 text-white rounded-lg">삭제</button>
                 </div>
               </div>
@@ -357,7 +357,7 @@ function Section({ title, children }) {
   return (
     <div>
       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5 px-1">{title}</p>
-      <div className="bg-white border border-gray-100 rounded-xl px-4 py-3 shadow-sm space-y-3">
+      <div className="bg-white border border-gray-300 rounded-xl px-4 py-3 shadow-sm space-y-3">
         {children}
       </div>
     </div>
@@ -384,7 +384,7 @@ function ChipGroup({ label, items, field, form, set, single }) {
                 }
               }}
               className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors ${
-                isSelected ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-500 border-gray-200'
+                isSelected ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-500 border-gray-300'
               }`}
             >
               {item}

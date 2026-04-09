@@ -53,12 +53,12 @@ export default function SettingsPage() {
       {/* 압력 단위 */}
       <section className="mb-6">
         <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">압력 단위 기본값</div>
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <div className="bg-white border border-gray-300 rounded-xl overflow-hidden">
           {Object.entries(UNITS).map(([key, u], i) => (
             <button
               key={key}
               onClick={() => update({ unitKey: key })}
-              className={`w-full flex items-center justify-between px-4 py-3 active:bg-gray-50 ${i > 0 ? 'border-t border-gray-100' : ''}`}
+              className={`w-full flex items-center justify-between px-4 py-3 active:bg-gray-50 ${i > 0 ? 'border-t border-gray-300' : ''}`}
             >
               <span className="font-medium text-gray-800">{u.label}</span>
               <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
@@ -74,7 +74,7 @@ export default function SettingsPage() {
       {/* 게이지 / 절대 */}
       <section className="mb-6">
         <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">압력 표시 방식 기본값</div>
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <div className="bg-white border border-gray-300 rounded-xl overflow-hidden">
           {[
             { val: true,  label: '게이지 압력 (g)', desc: '대기압 기준 — 현장 압력계 수치' },
             { val: false, label: '절대 압력 (a)',   desc: '진공 기준 — 이론/계산용' },
@@ -82,7 +82,7 @@ export default function SettingsPage() {
             <button
               key={String(val)}
               onClick={() => update({ isGauge: val })}
-              className={`w-full flex items-center gap-3 px-4 py-3 active:bg-gray-50 ${i > 0 ? 'border-t border-gray-100' : ''}`}
+              className={`w-full flex items-center gap-3 px-4 py-3 active:bg-gray-50 ${i > 0 ? 'border-t border-gray-300' : ''}`}
             >
               <div className="flex-1 text-left">
                 <div className="font-medium text-gray-800 text-sm">{label}</div>
@@ -101,14 +101,14 @@ export default function SettingsPage() {
       {/* Claude API 키 */}
       <section className="mb-6">
         <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">AI 기능 설정</div>
-        <div className="bg-white border border-gray-200 rounded-xl px-4 py-3">
+        <div className="bg-white border border-gray-300 rounded-xl px-4 py-3">
           <label className="text-xs font-semibold text-gray-500 block mb-1">Claude API 키</label>
           <input
             type="password"
             value={settings.claudeApiKey}
             onChange={(e) => update({ claudeApiKey: e.target.value })}
             placeholder="sk-ant-api03-..."
-            className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-400"
+            className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-400"
           />
           <p className="text-xs text-gray-400 mt-1.5">
             음성 자동 분류 AI 기능에 사용됩니다.<br />
@@ -120,7 +120,7 @@ export default function SettingsPage() {
       {/* 데이터 백업 */}
       <section className="mb-6">
         <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">데이터 백업</div>
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <div className="bg-white border border-gray-300 rounded-xl overflow-hidden">
           <button
             onClick={openBackup}
             className="w-full flex items-center justify-between px-4 py-3 text-sm active:bg-gray-50"
@@ -162,10 +162,10 @@ export default function SettingsPage() {
                       </div>
                       <div className="text-xs text-gray-400 mt-0.5">{formatSize(b.size)}</div>
                     </div>
-                    <button onClick={() => downloadBackup(b)} className="p-2 text-gray-500 border border-gray-200 rounded-lg">
+                    <button onClick={() => downloadBackup(b)} className="p-2 text-gray-500 border border-gray-300 rounded-lg">
                       <Download size={14} strokeWidth={1.5} />
                     </button>
-                    <button onClick={() => handleRestore(b)} className="p-2 text-gray-500 border border-gray-200 rounded-lg">
+                    <button onClick={() => handleRestore(b)} className="p-2 text-gray-500 border border-gray-300 rounded-lg">
                       <RotateCcw size={14} strokeWidth={1.5} />
                     </button>
                   </div>
@@ -179,7 +179,7 @@ export default function SettingsPage() {
       {/* 앱 정보 */}
       <section className="mt-8">
         <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">앱 정보</div>
-        <div className="bg-white border border-gray-200 rounded-xl divide-y divide-gray-100">
+        <div className="bg-white border border-gray-300 rounded-xl divide-y divide-gray-100">
           <div className="flex justify-between px-4 py-3 text-sm">
             <span className="text-gray-600">앱 이름</span>
             <span className="font-medium text-gray-800">냉동기수리실무</span>

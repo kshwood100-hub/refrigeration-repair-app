@@ -21,7 +21,7 @@ export default function RefrigerationBasicsPage() {
 
       <div className="space-y-2">
         {REFRIGERATION_BASICS.map((item) => (
-          <div key={item.id} className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
+          <div key={item.id} className="bg-white border border-gray-300 rounded-xl shadow-sm overflow-hidden">
             <button
               onClick={() => setOpen(open === item.id ? null : item.id)}
               className="w-full flex items-center gap-3 px-4 py-3.5 text-left active:bg-gray-50"

@@ -142,7 +142,7 @@ export default function BusinessCardPage() {
         </div>
 
         {/* 명함 사진 */}
-        <div className="mb-4 rounded-xl overflow-hidden border border-gray-100 bg-gray-50 flex items-center justify-center">
+        <div className="mb-4 rounded-xl overflow-hidden border border-gray-300 bg-gray-50 flex items-center justify-center">
           <img src={photoUrl} alt="명함" className="w-full max-h-44 object-contain" />
         </div>
 
@@ -179,7 +179,7 @@ export default function BusinessCardPage() {
                   value={form[key]}
                   onChange={(e) => setField(key, e.target.value)}
                   placeholder={label}
-                  className={`w-full ${Icon ? 'pl-8' : 'pl-3'} pr-3 py-2.5 text-sm border border-gray-200 rounded-xl outline-none focus:border-gray-400 bg-white`}
+                  className={`w-full ${Icon ? 'pl-8' : 'pl-3'} pr-3 py-2.5 text-sm border border-gray-300 rounded-xl outline-none focus:border-gray-400 bg-white`}
                 />
               </div>
             </div>
@@ -189,7 +189,7 @@ export default function BusinessCardPage() {
         <div className="mt-5 flex gap-2">
           <button
             onClick={() => { setMode('list'); setPhotoUrl('') }}
-            className="flex-1 py-3 text-sm font-medium border border-gray-200 rounded-xl text-gray-600"
+            className="flex-1 py-3 text-sm font-medium border border-gray-300 rounded-xl text-gray-600"
           >
             취소
           </button>
@@ -261,17 +261,17 @@ export default function BusinessCardPage() {
             return (
               <div
                 key={card.id}
-                className="bg-white border border-gray-100 rounded-xl p-3 shadow-sm"
+                className="bg-white border border-gray-300 rounded-xl p-3 shadow-sm"
               >
                 <div className="flex items-start gap-3">
                   {card.dataUrl ? (
                     <img
                       src={card.dataUrl}
                       alt="명함"
-                      className="w-16 h-10 object-cover rounded-lg border border-gray-100 shrink-0 bg-gray-50"
+                      className="w-16 h-10 object-cover rounded-lg border border-gray-300 shrink-0 bg-gray-50"
                     />
                   ) : (
-                    <div className="w-16 h-10 rounded-lg border border-gray-100 bg-gray-50 flex items-center justify-center shrink-0">
+                    <div className="w-16 h-10 rounded-lg border border-gray-300 bg-gray-50 flex items-center justify-center shrink-0">
                       <CreditCard size={18} strokeWidth={1} className="text-gray-300" />
                     </div>
                   )}
@@ -335,7 +335,7 @@ export default function BusinessCardPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => setDeleting(null)}
-                className="flex-1 py-2.5 text-sm font-medium border border-gray-200 rounded-xl text-gray-600"
+                className="flex-1 py-2.5 text-sm font-medium border border-gray-300 rounded-xl text-gray-600"
               >
                 취소
               </button>

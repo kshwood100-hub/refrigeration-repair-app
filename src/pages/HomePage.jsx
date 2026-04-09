@@ -56,7 +56,7 @@ export default function HomePage() {
           <button onClick={() => navigate('/service')} className="text-xs text-gray-400">전체 보기</button>
         </div>
         {todayVisits.length === 0 ? (
-          <div className="bg-white border border-gray-100 rounded-xl px-4 py-5 text-center shadow-sm">
+          <div className="bg-white border border-gray-300 rounded-xl px-4 py-5 text-center shadow-sm">
             <p className="text-xs text-gray-400">오늘 예정된 방문이 없습니다</p>
           </div>
         ) : (
@@ -91,7 +91,7 @@ export default function HomePage() {
             </div>
             <button onClick={() => navigate('/service')} className="text-xs text-gray-400">전체 보기</button>
           </div>
-          <div className="bg-white border border-gray-100 rounded-xl shadow-sm divide-y divide-gray-50">
+          <div className="bg-white border border-gray-300 rounded-xl shadow-sm divide-y divide-gray-50">
             {pending.map((job) => {
               const c = customerMap[job.customerId]
               return (
@@ -123,7 +123,7 @@ export default function HomePage() {
             <Link
               key={to}
               to={to}
-              className="bg-white border border-gray-100 rounded-xl p-4 flex flex-col items-center gap-2 shadow-sm active:bg-gray-50"
+              className="bg-white border border-gray-300 rounded-xl p-4 flex flex-col items-center gap-2 shadow-sm active:bg-gray-50"
             >
               <Icon size={22} strokeWidth={1.5} className="text-gray-600" />
               <span className="text-xs font-medium text-gray-700 text-center">{label}</span>
@@ -132,7 +132,7 @@ export default function HomePage() {
         </div>
         <Link
           to="/service"
-          className="mt-2 flex items-center justify-between bg-white border border-gray-100 rounded-xl px-4 py-3.5 shadow-sm active:bg-gray-50"
+          className="mt-2 flex items-center justify-between bg-white border border-gray-300 rounded-xl px-4 py-3.5 shadow-sm active:bg-gray-50"
         >
           <div className="flex items-center gap-2">
             <Wrench size={18} strokeWidth={1.5} className="text-gray-600" />

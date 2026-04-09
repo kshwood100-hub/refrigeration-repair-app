@@ -49,7 +49,7 @@ export default function ExpenseDetailPage() {
       <div className="space-y-3">
 
         {/* 기본 정보 */}
-        <div className="bg-white rounded-xl border border-gray-100 p-4 space-y-2">
+        <div className="bg-white rounded-xl border border-gray-300 p-4 space-y-2">
           {expense.title && (
             <p className="font-semibold text-gray-900">{expense.title}</p>
           )}
@@ -60,7 +60,7 @@ export default function ExpenseDetailPage() {
         </div>
 
         {/* 경비 항목 */}
-        <div className="bg-white rounded-xl border border-gray-100 p-4">
+        <div className="bg-white rounded-xl border border-gray-300 p-4">
           <p className="text-xs font-semibold text-gray-500 mb-3">경비 항목</p>
           <div className="space-y-2">
             {(expense.items ?? []).map((item, idx) => (
@@ -77,7 +77,7 @@ export default function ExpenseDetailPage() {
               </div>
             ))}
           </div>
-          <div className="mt-3 pt-3 border-t border-gray-200 flex justify-between items-center">
+          <div className="mt-3 pt-3 border-t border-gray-300 flex justify-between items-center">
             <span className="text-sm font-semibold text-gray-600">합계</span>
             <span className="text-xl font-bold text-gray-900">{total.toLocaleString()}원</span>
           </div>
@@ -85,7 +85,7 @@ export default function ExpenseDetailPage() {
 
         {/* 메모 */}
         {expense.notes && (
-          <div className="bg-white rounded-xl border border-gray-100 p-4">
+          <div className="bg-white rounded-xl border border-gray-300 p-4">
             <p className="text-xs font-semibold text-gray-500 mb-1">메모</p>
             <p className="text-sm text-gray-700 whitespace-pre-wrap">{expense.notes}</p>
           </div>
@@ -93,7 +93,7 @@ export default function ExpenseDetailPage() {
 
         {/* 영수증 사진 */}
         {expense.photos?.length > 0 && (
-          <div className="bg-white rounded-xl border border-gray-100 p-4">
+          <div className="bg-white rounded-xl border border-gray-300 p-4">
             <p className="text-xs font-semibold text-gray-500 mb-3">영수증 사진</p>
             <div className="flex gap-2 flex-wrap">
               {expense.photos.map((dataUrl, i) => (
@@ -111,7 +111,7 @@ export default function ExpenseDetailPage() {
             <p className="font-semibold text-gray-900 mb-1">경비 내역을 삭제하시겠습니까?</p>
             <div className="flex gap-2 mt-4">
               <button onClick={() => setDeleting(false)}
-                className="flex-1 py-2.5 text-sm font-medium border border-gray-200 rounded-xl text-gray-600">
+                className="flex-1 py-2.5 text-sm font-medium border border-gray-300 rounded-xl text-gray-600">
                 취소
               </button>
               <button onClick={handleDelete}

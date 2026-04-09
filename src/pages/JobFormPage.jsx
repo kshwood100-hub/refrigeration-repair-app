@@ -259,13 +259,13 @@ export default function JobFormPage() {
               {showCustomerList ? '닫기' : '기존 고객 불러오기'}
             </button>
             {showCustomerList && (
-              <div className="mt-2 border border-gray-200 rounded-xl overflow-hidden">
+              <div className="mt-2 border border-gray-300 rounded-xl overflow-hidden">
                 <input
                   type="text"
                   value={customerSearch}
                   onChange={(e) => setCustomerSearch(e.target.value)}
                   placeholder="업체명 또는 전화번호"
-                  className="w-full px-3 py-2 text-sm border-b border-gray-100 outline-none"
+                  className="w-full px-3 py-2 text-sm border-b border-gray-300 outline-none"
                 />
                 <div className="max-h-40 overflow-y-auto">
                   {filteredCustomers.length === 0
@@ -296,7 +296,7 @@ export default function JobFormPage() {
               type="date"
               value={job.visitDate}
               onChange={(e) => setJ('visitDate', e.target.value)}
-              className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-400"
+              className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-400"
             />
           </div>
           <TimeSelect
@@ -340,9 +340,9 @@ export default function JobFormPage() {
               {transcript && (
                 <div>
                   <p className="text-xs text-gray-400 mb-1">인식된 내용</p>
-                  <div className="bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm text-gray-700 whitespace-pre-wrap">{transcript}</div>
+                  <div className="bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700 whitespace-pre-wrap">{transcript}</div>
                   <div className="flex gap-2 mt-2">
-                    <button onClick={() => setTranscript('')} className="flex-1 py-2 text-sm font-medium border border-gray-200 rounded-xl text-gray-500">지우기</button>
+                    <button onClick={() => setTranscript('')} className="flex-1 py-2 text-sm font-medium border border-gray-300 rounded-xl text-gray-500">지우기</button>
                     <button onClick={handleAiClassify} disabled={aiLoading}
                       className="flex-1 py-2 text-sm font-medium bg-gray-900 text-white rounded-xl disabled:opacity-50 flex items-center justify-center gap-1.5">
                       <Sparkles size={13} strokeWidth={1.5} />
@@ -413,7 +413,7 @@ function Section({ title, children }) {
   return (
     <div>
       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5 px-1">{title}</p>
-      <div className="bg-white border border-gray-100 rounded-xl px-4 py-3 space-y-3 shadow-sm">
+      <div className="bg-white border border-gray-300 rounded-xl px-4 py-3 space-y-3 shadow-sm">
         {children}
       </div>
     </div>
@@ -425,7 +425,7 @@ function Field({ label, value, onChange, type = 'text', placeholder }) {
     <div>
       <label className="text-xs font-semibold text-gray-500 block mb-1">{label}</label>
       <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
-        className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-400" />
+        className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-400" />
     </div>
   )
 }
@@ -435,7 +435,7 @@ function Textarea({ label, value, onChange, placeholder, rows = 3 }) {
     <div>
       <label className="text-xs font-semibold text-gray-500 block mb-1">{label}</label>
       <textarea value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} rows={rows}
-        className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-400 resize-none" />
+        className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-400 resize-none" />
     </div>
   )
 }
@@ -460,7 +460,7 @@ function TimeSelect({ label, value, onChange }) {
         <select
           value={h ?? ''}
           onChange={(e) => update(e.target.value, m)}
-          className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-400 bg-white"
+          className="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-400 bg-white"
         >
           <option value="">시</option>
           {HOURS.map((hh) => <option key={hh} value={hh}>{hh}시</option>)}
@@ -468,7 +468,7 @@ function TimeSelect({ label, value, onChange }) {
         <select
           value={m ?? ''}
           onChange={(e) => update(h, e.target.value)}
-          className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-blue-400 bg-white"
+          className="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-400 bg-white"
         >
           <option value="">분</option>
           {MINS.map((mm) => <option key={mm} value={mm}>{mm}분</option>)}

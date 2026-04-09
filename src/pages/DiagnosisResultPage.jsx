@@ -55,7 +55,7 @@ export default function DiagnosisResultPage() {
             return (
               <div
                 key={node.nodeId}
-                className="bg-white border border-gray-200 rounded-2xl overflow-hidden"
+                className="bg-white border border-gray-300 rounded-2xl overflow-hidden"
               >
                 {/* 요약 행 */}
                 <button
@@ -82,7 +82,7 @@ export default function DiagnosisResultPage() {
 
                 {/* 펼쳐진 상세 */}
                 {isOpen && (
-                  <div className="px-4 pb-4 border-t border-gray-100 pt-3 space-y-3">
+                  <div className="px-4 pb-4 border-t border-gray-300 pt-3 space-y-3">
 
                     {/* 결론 */}
                     {node.conclusion && (

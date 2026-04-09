@@ -21,7 +21,7 @@ export default function KnowhowDetailPage() {
         </button>
         <button
           onClick={() => navigate(`/knowhow/${id}/edit`)}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-lg text-gray-700"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-gray-300 rounded-lg text-gray-700"
         >
           <Pencil size={12} strokeWidth={1.5} />
           수정
@@ -31,14 +31,14 @@ export default function KnowhowDetailPage() {
       <div className="space-y-3">
 
         {/* 제목 + 분류 */}
-        <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
+        <div className="bg-white border border-gray-300 rounded-xl p-4 shadow-sm">
           <h2 className="text-base font-bold text-gray-900 mb-3 leading-snug">{item.title}</h2>
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs font-medium text-gray-600 bg-gray-100 px-2.5 py-1 rounded-lg">
               {item.category}
             </span>
             {item.location && item.location !== '기타' && (
-              <span className="flex items-center gap-1 text-xs text-gray-500 bg-gray-50 px-2.5 py-1 rounded-lg border border-gray-100">
+              <span className="flex items-center gap-1 text-xs text-gray-500 bg-gray-50 px-2.5 py-1 rounded-lg border border-gray-300">
                 <MapPin size={10} strokeWidth={1.5} />
                 {item.location}
               </span>
@@ -120,7 +120,7 @@ export default function KnowhowDetailPage() {
 
 function Card({ title, children }) {
   return (
-    <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
+    <div className="bg-white border border-gray-300 rounded-xl p-4 shadow-sm">
       <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">{title}</p>
       {children}
     </div>

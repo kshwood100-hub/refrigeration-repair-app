@@ -58,7 +58,7 @@ export default function SymptomsPage() {
           <Link
             key={s.id}
             to={`/symptoms/${s.id}`}
-            className="block p-4 bg-white border border-gray-200 rounded-xl active:bg-gray-50"
+            className="block p-4 bg-white border border-gray-300 rounded-xl active:bg-gray-50"
           >
             <div className="flex items-center justify-between">
               <div>
