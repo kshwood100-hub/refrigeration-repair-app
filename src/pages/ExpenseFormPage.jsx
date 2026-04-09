@@ -164,16 +164,7 @@ export default function ExpenseFormPage() {
 
         {/* 경비 항목 */}
         <div className="bg-white rounded-xl border border-gray-100 p-4">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-semibold text-gray-500">경비 항목</p>
-            <button
-              onClick={addItem}
-              className="flex items-center gap-1 text-xs text-blue-600 font-medium"
-            >
-              <Plus size={12} strokeWidth={2} />
-              항목 추가
-            </button>
-          </div>
+          <p className="text-xs font-semibold text-gray-500 mb-3">경비 항목</p>
 
           <div className="space-y-3">
             {items.map((item, idx) => (
@@ -211,6 +202,15 @@ export default function ExpenseFormPage() {
               </div>
             ))}
           </div>
+
+          {/* 항목 추가 버튼 - 항목 아래 */}
+          <button
+            onClick={addItem}
+            className="w-full mt-3 py-2.5 border border-dashed border-gray-300 rounded-xl text-sm text-gray-500 flex items-center justify-center gap-1.5 active:bg-gray-50"
+          >
+            <Plus size={14} strokeWidth={2} />
+            항목 추가
+          </button>
 
           {/* 합계 */}
           <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center">
