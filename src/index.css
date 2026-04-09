@@ -7,6 +7,6 @@
 }
 
 body {
-  @apply bg-gray-50 text-gray-900;
+  @apply bg-slate-100 text-gray-900;
   font-family: 'Noto Sans KR', system-ui, sans-serif;
 }
