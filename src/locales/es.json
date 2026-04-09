@@ -1,0 +1,66 @@
+{
+  "translation": {
+    "appName": "Guía de Reparación de Refrigeración",
+    "appSubtitle": "Referencia para Técnicos de Campo",
+    "diagnosis": {
+      "title": "Diagrama de Diagnóstico",
+      "subtitle": "Selecciona un síntoma y sigue los pasos para encontrar la causa",
+      "back": "Lista",
+      "yes": "Sí",
+      "no": "No",
+      "prevQuestion": "Anterior",
+      "result": "Resultado del Diagnóstico",
+      "restart": "Empezar de Nuevo",
+      "orBrowse": "O buscar en la lista de síntomas",
+      "browseList": "Ver Lista de Síntomas"
+    },
+    "nav": {
+      "home": "Inicio",
+      "diagnosis": "Diagnóstico",
+      "checklist": "Lista",
+      "logs": "Historial"
+    },
+    "home": {
+      "diagnosis": "Diagrama de Diagnóstico",
+      "diagnosisDesc": "Selecciona síntoma → preguntas → causa y reparación",
+      "symptoms": "Diagnóstico de Fallas",
+      "symptomsDesc": "Causas y procedimientos por síntoma",
+      "checklist": "Lista de Inspección",
+      "checklistDesc": "Ítems de inspección periódica",
+      "logs": "Historial de Reparaciones",
+      "logsDesc": "Ver y agregar registros"
+    },
+    "symptoms": {
+      "title": "Diagnóstico de Fallas",
+      "searchPlaceholder": "Buscar síntomas...",
+      "all": "Todos",
+      "empty": "No se encontraron síntomas",
+      "causes": "Posibles Causas",
+      "procedures": "Procedimientos de Reparación",
+      "notes": "Precaución",
+      "back": "← Volver"
+    },
+    "checklist": {
+      "title": "Lista de Inspección",
+      "items": " ítems",
+      "progress": "Progreso",
+      "allDone": "✅ Todos los ítems completados",
+      "back": "← Lista"
+    },
+    "logs": {
+      "title": "Historial de Reparaciones",
+      "add": "+ Agregar",
+      "datePlaceholder": "Fecha",
+      "equipmentPlaceholder": "Nombre del equipo",
+      "symptomPlaceholder": "Síntoma",
+      "actionPlaceholder": "Acción tomada",
+      "resultPlaceholder": "Resultado",
+      "save": "Guardar",
+      "symptomLabel": "Síntoma",
+      "actionLabel": "Acción",
+      "resultLabel": "Resultado",
+      "empty": "Sin historial de reparaciones",
+      "loading": "Cargando..."
+    }
+  }
+}

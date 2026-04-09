@@ -1,0 +1,88 @@
+import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { useLiveQuery } from 'dexie-react-hooks'
+import {
+  Pencil, ChevronRight, List,
+  Settings2, Thermometer, Volume2, Zap, Snowflake,
+  RefreshCw, TrendingUp, TrendingDown, Wind, Droplets,
+  PowerOff, AlertCircle,
+} from 'lucide-react'
+import { useLocalField } from '../hooks/useLang'
+import { db } from '../db'
+
+const ICON_MAP = {
+  compressor_no_start: { Icon: Settings2,    bg: '#F3F4F6', color: '#374151' },
+  poor_cooling:        { Icon: Thermometer,  bg: '#EFF6FF', color: '#3B82F6' },
+  abnormal_noise:      { Icon: Volume2,      bg: '#FFF7ED', color: '#F97316' },
+  breaker_trip:        { Icon: Zap,          bg: '#FEFCE8', color: '#EAB308' },
+  heavy_frost:         { Icon: Snowflake,    bg: '#EFF6FF', color: '#60A5FA' },
+  short_cycling:       { Icon: RefreshCw,    bg: '#F5F3FF', color: '#8B5CF6' },
+  high_pressure:       { Icon: TrendingUp,   bg: '#FEF2F2', color: '#EF4444' },
+  low_pressure:        { Icon: TrendingDown, bg: '#F0FDF4', color: '#22C55E' },
+  evap_fan_fail:       { Icon: Wind,         bg: '#F0FDFA', color: '#14B8A6' },
+  cond_fan_fail:       { Icon: Wind,         bg: '#FFF7ED', color: '#F97316' },
+  drainage_issue:      { Icon: Droplets,     bg: '#EFF6FF', color: '#38BDF8' },
+  no_power:            { Icon: PowerOff,     bg: '#F3F4F6', color: '#6B7280' },
+}
+
+export default function DiagnosisPage() {
+  const { t } = useTranslation()
+  const lf = useLocalField()
+  const categories = useLiveQuery(() => db.flow_categories.toArray())
+
+  if (!categories) return <div className="p-4 text-gray-400 text-sm">불러오는 중...</div>
+
+  return (
+    <div className="p-4 pb-6">
+      <div className="flex items-center justify-between mb-1">
+        <h2 className="text-base font-semibold text-gray-900">{t('diagnosis.title')}</h2>
+        <Link
+          to="/flow-edit"
+          className="flex items-center gap-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-lg px-3 py-1.5 active:bg-gray-50"
+        >
+          <Pencil size={12} strokeWidth={1.5} />
+          진단편집
+        </Link>
+      </div>
+      <p className="text-xs text-gray-400 mb-5">{t('diagnosis.subtitle')}</p>
+
+      <div className="space-y-2">
+        {categories.map((cat) => {
+          const mapped = ICON_MAP[cat.id]
+          const Icon = mapped?.Icon ?? AlertCircle
+          const bg    = mapped?.bg    ?? '#F3F4F6'
+          const color = mapped?.color ?? '#6B7280'
+          return (
+            <div key={cat.id} className="flex items-center gap-2 px-4 py-3 bg-white border border-gray-100 rounded-xl shadow-sm">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: bg }}>
+                <Icon size={18} strokeWidth={1.5} style={{ color }} />
+              </div>
+              <Link to={`/diagnosis/${cat.id}`} className="flex-1 min-w-0 py-0.5">
+                <span className="text-sm font-medium text-gray-800">{lf(cat, 'title')}</span>
+              </Link>
+              <Link
+                to={`/diagnosis/${cat.id}/results`}
+                className="text-xs text-gray-500 border border-gray-200 rounded-lg px-2.5 py-1.5 shrink-0 active:bg-gray-50 whitespace-nowrap"
+              >
+                참고
+              </Link>
+              <Link to={`/diagnosis/${cat.id}`} className="shrink-0">
+                <ChevronRight size={15} strokeWidth={1.5} className="text-gray-300" />
+              </Link>
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="mt-5 pt-4 border-t border-gray-100">
+        <Link
+          to="/symptoms"
+          className="flex items-center justify-center gap-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-xl py-3 active:bg-gray-50"
+        >
+          <List size={15} strokeWidth={1.5} />
+          {t('diagnosis.browseList')}
+        </Link>
+      </div>
+    </div>
+  )
+}

@@ -1,0 +1,66 @@
+{
+  "translation": {
+    "appName": "Refrigeration Repair Guide",
+    "appSubtitle": "Field Technician Reference",
+    "home": {
+      "diagnosis": "Diagnostic Flowchart",
+      "diagnosisDesc": "Select symptom → step-by-step questions → cause & repair",
+      "symptoms": "Fault Diagnosis",
+      "symptomsDesc": "Causes & repair procedures by symptom",
+      "checklist": "Inspection Checklist",
+      "checklistDesc": "Periodic inspection items",
+      "logs": "Repair History",
+      "logsDesc": "View & add work records"
+    },
+    "symptoms": {
+      "title": "Fault Diagnosis",
+      "searchPlaceholder": "Search symptoms...",
+      "all": "All",
+      "empty": "No matching symptoms found",
+      "causes": "Possible Causes",
+      "procedures": "Repair Procedures",
+      "notes": "Caution",
+      "back": "← Back"
+    },
+    "checklist": {
+      "title": "Inspection Checklist",
+      "items": " items",
+      "progress": "Progress",
+      "allDone": "✅ All items completed",
+      "back": "← List"
+    },
+    "diagnosis": {
+      "title": "Diagnostic Flowchart",
+      "subtitle": "Select a symptom and follow step-by-step to find the cause",
+      "back": "Diagnosis List",
+      "yes": "Yes",
+      "no": "No",
+      "prevQuestion": "Previous",
+      "result": "Diagnosis Result",
+      "restart": "Start Over",
+      "orBrowse": "Or browse the symptom list directly",
+      "browseList": "View Symptom List"
+    },
+    "nav": {
+      "home": "Home",
+      "diagnosis": "Diagnose",
+      "checklist": "Checklist",
+      "logs": "Repair Log"
+    },
+    "logs": {
+      "title": "Repair History",
+      "add": "+ Add",
+      "datePlaceholder": "Date",
+      "equipmentPlaceholder": "Equipment name (e.g. Freezer Compressor A)",
+      "symptomPlaceholder": "Symptom",
+      "actionPlaceholder": "Action taken",
+      "resultPlaceholder": "Result (e.g. Restored to normal)",
+      "save": "Save",
+      "symptomLabel": "Symptom",
+      "actionLabel": "Action",
+      "resultLabel": "Result",
+      "empty": "No repair history",
+      "loading": "Loading..."
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "translation": {
+    "appName": "냉동기 수리 실무",
+    "appSubtitle": "현장 기사 실무 가이드",
+    "home": {
+      "diagnosis": "진단 플로우차트",
+      "diagnosisDesc": "증상 선택 → 단계별 질문 → 원인 및 수리 절차",
+      "symptoms": "고장 진단",
+      "symptomsDesc": "증상별 원인 및 수리 절차",
+      "checklist": "점검 체크리스트",
+      "checklistDesc": "정기점검 항목 체크",
+      "logs": "수리 이력",
+      "logsDesc": "작업 기록 조회 및 추가"
+    },
+    "symptoms": {
+      "title": "고장 진단",
+      "searchPlaceholder": "증상 검색...",
+      "all": "전체",
+      "empty": "해당 증상이 없습니다",
+      "causes": "추정 원인",
+      "procedures": "수리 절차",
+      "notes": "주의사항",
+      "back": "← 목록으로"
+    },
+    "checklist": {
+      "title": "점검 체크리스트",
+      "items": "개 항목",
+      "progress": "진행률",
+      "allDone": "✅ 모든 항목 완료",
+      "back": "← 목록"
+    },
+    "diagnosis": {
+      "title": "진단 플로우차트",
+      "subtitle": "증상을 선택하면 단계별로 원인을 찾아드립니다",
+      "back": "진단 목록",
+      "yes": "예",
+      "no": "아니요",
+      "prevQuestion": "이전 질문",
+      "result": "진단 결과",
+      "restart": "처음부터 다시",
+      "orBrowse": "또는 증상 목록에서 직접 찾기",
+      "browseList": "증상 목록 보기"
+    },
+    "nav": {
+      "home": "홈",
+      "diagnosis": "진단",
+      "checklist": "체크리스트",
+      "logs": "수리이력"
+    },
+    "logs": {
+      "title": "수리 이력",
+      "add": "+ 추가",
+      "datePlaceholder": "날짜",
+      "equipmentPlaceholder": "장비명 (예: 냉동창고 압축기 A)",
+      "symptomPlaceholder": "증상",
+      "actionPlaceholder": "조치 내용",
+      "resultPlaceholder": "결과 (예: 정상 복구)",
+      "save": "저장",
+      "symptomLabel": "증상",
+      "actionLabel": "조치",
+      "resultLabel": "결과",
+      "empty": "수리 이력이 없습니다",
+      "loading": "로딩 중..."
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "translation": {
+    "appName": "制冷设备维修指南",
+    "appSubtitle": "现场技术员参考手册",
+    "diagnosis": {
+      "title": "故障诊断流程",
+      "subtitle": "选择症状，逐步找出原因",
+      "back": "诊断列表",
+      "yes": "是",
+      "no": "否",
+      "prevQuestion": "上一步",
+      "result": "诊断结果",
+      "restart": "重新开始",
+      "orBrowse": "或直接浏览症状列表",
+      "browseList": "查看症状列表"
+    },
+    "nav": {
+      "home": "主页",
+      "diagnosis": "诊断",
+      "checklist": "检查清单",
+      "logs": "维修记录"
+    },
+    "home": {
+      "diagnosis": "故障诊断流程",
+      "diagnosisDesc": "选择症状 → 逐步提问 → 找出原因",
+      "symptoms": "故障诊断",
+      "symptomsDesc": "按症状查原因及维修步骤",
+      "checklist": "定期检查清单",
+      "checklistDesc": "定期检查项目",
+      "logs": "维修历史",
+      "logsDesc": "查看并添加工作记录"
+    },
+    "symptoms": {
+      "title": "故障诊断",
+      "searchPlaceholder": "搜索症状...",
+      "all": "全部",
+      "empty": "未找到匹配症状",
+      "causes": "可能原因",
+      "procedures": "维修步骤",
+      "notes": "注意事项",
+      "back": "← 返回"
+    },
+    "checklist": {
+      "title": "检查清单",
+      "items": " 项",
+      "progress": "进度",
+      "allDone": "✅ 所有项目已完成",
+      "back": "← 列表"
+    },
+    "logs": {
+      "title": "维修记录",
+      "add": "+ 添加",
+      "datePlaceholder": "日期",
+      "equipmentPlaceholder": "设备名称（如：冷库压缩机A）",
+      "symptomPlaceholder": "故障症状",
+      "actionPlaceholder": "处理措施",
+      "resultPlaceholder": "结果（如：恢复正常）",
+      "save": "保存",
+      "symptomLabel": "症状",
+      "actionLabel": "措施",
+      "resultLabel": "结果",
+      "empty": "暂无维修记录",
+      "loading": "加载中..."
+    }
+  }
+}

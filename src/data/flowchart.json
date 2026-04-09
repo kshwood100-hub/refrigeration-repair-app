@@ -1,0 +1,2053 @@
+{
+  "categories": [
+    { "id": "compressor_no_start", "title": "압축기가 안 돌아간다", "title_en": "Compressor does not start", "icon": "⚙️", "startNode": "cns_q1" },
+    { "id": "poor_cooling", "title": "냉각이 안 된다 / 온도가 안 내려간다", "title_en": "Not cooling / temperature won't drop", "icon": "🌡️", "startNode": "pc_q1" },
+    { "id": "abnormal_noise", "title": "이상한 소음이 난다", "title_en": "Abnormal noise", "icon": "🔊", "startNode": "an_q1" },
+    { "id": "breaker_trip", "title": "전기가 자꾸 끊긴다 (차단기 트립)", "title_en": "Circuit breaker keeps tripping", "icon": "⚡", "startNode": "bt_q1" },
+    { "id": "heavy_frost", "title": "서리(착상)가 너무 많이 낀다", "title_en": "Excessive frost buildup", "icon": "❄️", "startNode": "hf_q1" },
+    { "id": "short_cycling", "title": "압축기가 자꾸 껐다 켜진다", "title_en": "Compressor short cycling", "icon": "🔄", "startNode": "sc_q1" },
+    { "id": "high_pressure", "title": "고압 스위치가 자꾸 동작한다", "title_en": "High pressure switch keeps tripping", "icon": "📈", "startNode": "hp_q1" },
+    { "id": "low_pressure", "title": "저압 스위치가 자꾸 동작한다", "title_en": "Low pressure switch keeps tripping", "icon": "📉", "startNode": "lp_q1" },
+    { "id": "evap_fan_fail", "title": "증발기 팬이 안 돌아간다", "title_en": "Evaporator fan not running", "icon": "💨", "startNode": "eff_q1" },
+    { "id": "cond_fan_fail", "title": "응축기 팬이 안 돌아간다", "title_en": "Condenser fan not running", "icon": "🌀", "startNode": "cff_q1" },
+    { "id": "drainage_issue", "title": "물(결로)이 흘러내린다", "title_en": "Water dripping / drain blocked", "icon": "💧", "startNode": "di_q1" },
+    { "id": "no_power", "title": "냉동기가 전혀 반응이 없다", "title_en": "Unit completely dead", "icon": "🔌", "startNode": "np_q1" }
+  ],
+  "nodes": {
+    "cns_q1": {
+      "type": "multi",
+      "question": "압축기가 돌지 않을 때, 어느 부분이 주로 의심되나요?",
+      "question_en": "When the compressor won't start, which area do you suspect?",
+      "choices": [
+        { "label": "전원 계통 문제 (전압 없음)", "next": "cns_q_power" },
+        { "label": "제어 계통 문제 (신호 없음)", "next": "cns_q_control" },
+        { "label": "압축기 자체 문제 (전원은 있는데 안 돌아감)", "next": "cns_q_comp" }
+      ]
+    },
+    "cns_q_power": {
+      "type": "question",
+      "question": "압축기 단자대에 정격 전압이 측정되나요?",
+      "question_en": "Is the rated voltage measured at the compressor terminals?",
+      "yes": "cns_q_cap",
+      "no": "cns_r_no_voltage"
+    },
+    "cns_q_cap": {
+      "type": "question",
+      "question": "기동 커패시터를 용량 측정기로 확인했을 때 정격 범위 내인가요?",
+      "question_en": "Is the start capacitor within its rated capacitance range?",
+      "yes": "cns_r_comp_internal",
+      "no": "cns_r_cap_fail"
+    },
+    "cns_q_control": {
+      "type": "question",
+      "question": "온도 조절기(써모스탯)에서 압축기 기동 신호가 출력되나요?",
+      "question_en": "Is the thermostat outputting a compressor start signal?",
+      "yes": "cns_q_contactor",
+      "no": "cns_r_thermostat_fail"
+    },
+    "cns_q_contactor": {
+      "type": "question",
+      "question": "마그네틱 컨택터(전자 접촉기)가 코일 통전으로 여자(동작)되나요?",
+      "question_en": "Is the magnetic contactor coil energized and pulled in?",
+      "yes": "cns_r_wiring",
+      "no": "cns_r_contactor_fail"
+    },
+    "cns_q_comp": {
+      "type": "question",
+      "question": "압축기 단자에 전원은 들어오는데 소리도 없이 작동하지 않나요?",
+      "question_en": "Does power reach the compressor but it makes no sound and won't start?",
+      "yes": "cns_r_comp_locked",
+      "no": "cns_r_overload_trip"
+    },
+    "cns_r_no_voltage": {
+      "type": "result",
+      "title": "전원 공급 계통 불량",
+      "title_en": "Power Supply Fault",
+      "level": "easy",
+      "conclusion": "압축기 단자대에 전압이 없습니다. 차단기·퓨즈·배선 순서로 전원 계통을 점검하세요.",
+      "conclusion_en": "No voltage at compressor terminals. Inspect the power circuit in order: breaker → fuse → wiring.",
+      "causes": ["전원 차단기 트립 또는 미투입", "전원 배선 단선 또는 접촉 불량", "전원 공급 퓨즈 소손"],
+      "causes_en": ["Circuit breaker tripped or not switched on", "Broken or loose power wiring", "Blown power supply fuse"],
+      "steps": [
+        "분전반 차단기 투입 상태 확인",
+        "압축기까지 배선 연속성 측정 (멀티미터)",
+        "퓨즈 또는 퓨즈 홀더 상태 확인",
+        "단자 조임 및 접촉 불량 점검",
+        "차단기 재투입 후 전압 재측정"
+      ],
+      "steps_en": [
+        "Confirm circuit breaker is in ON position",
+        "Measure wiring continuity to compressor (multimeter)",
+        "Inspect fuse or fuse holder",
+        "Check terminal tightness and contact quality",
+        "Re-close breaker and re-measure voltage"
+      ],
+      "warningLevel": "caution",
+      "warning": "배선 작업 전 반드시 전원 차단 후 LOTO 절차를 따르세요.",
+      "warning_en": "Always de-energize and follow LOTO procedures before working on wiring."
+    },
+    "cns_r_cap_fail": {
+      "type": "result",
+      "title": "기동 커패시터 불량",
+      "title_en": "Start Capacitor Failure",
+      "level": "easy",
+      "conclusion": "기동 커패시터를 동일 규격(μF·정격전압)으로 교체하세요.",
+      "conclusion_en": "Replace the start capacitor with one of the same specification (μF and voltage rating).",
+      "causes": ["커패시터 용량 저하 (노화)", "과전압·과열로 인한 소손", "단자 부식 또는 접촉 불량"],
+      "causes_en": ["Capacity degraded from aging", "Damaged by overvoltage or overheating", "Terminal corrosion or poor contact"],
+      "steps": [
+        "커패시터 외관 점검 (팽창·파열·누액)",
+        "용량 측정 (정격 ±10% 이내 확인)",
+        "동일 규격(μF·전압) 교체품 준비",
+        "분리 전 단자 배선 사진 촬영",
+        "교체 후 기동 전류 측정으로 정상 확인"
+      ],
+      "steps_en": [
+        "Inspect for bulging, cracking, or leakage",
+        "Measure capacitance (within ±10% of rated)",
+        "Prepare replacement of same spec (μF and voltage)",
+        "Photograph terminal wiring before disconnecting",
+        "Measure starting current after replacement"
+      ],
+      "warningLevel": "caution",
+      "warning": "충전된 커패시터는 전원 차단 후 10분 대기하거나 방전 저항으로 방전 후 취급하세요.",
+      "warning_en": "Wait 10 minutes after power-off or use a discharge resistor before handling a charged capacitor."
+    },
+    "cns_r_comp_internal": {
+      "type": "result",
+      "title": "압축기 내부 고장",
+      "title_en": "Compressor Internal Failure",
+      "level": "hard",
+      "conclusion": "커패시터와 전압이 모두 정상이나 압축기가 기동하지 않습니다. 압축기 내부(모터 권선 또는 기계 부품) 고장으로 교체가 필요합니다.",
+      "conclusion_en": "Capacitor and voltage are both normal but the compressor won't start. Internal failure (motor winding or mechanical). Replacement required.",
+      "causes": ["모터 권선 단선 또는 층간 단락", "내부 기계 부품 마모 또는 고착", "오일 부족으로 인한 내부 손상"],
+      "causes_en": ["Motor winding open or inter-turn short", "Internal mechanical wear or seizure", "Internal damage from oil shortage"],
+      "steps": [
+        "단자 간 권선 저항 측정 (단선·단락 확인)",
+        "단자~케이스 간 절연 저항 측정 (1MΩ 이상)",
+        "동일 냉매·용량·전원 규격 교체품 선정",
+        "냉매 회수 후 압축기 교체",
+        "오일 규격 확인 및 보충",
+        "진공 작업 후 냉매 재충전"
+      ],
+      "steps_en": [
+        "Measure winding resistance (check for open/short)",
+        "Measure insulation resistance terminal-to-body (≥1MΩ)",
+        "Select replacement matching refrigerant, capacity, electrical spec",
+        "Recover refrigerant, then replace compressor",
+        "Verify oil spec and top up if needed",
+        "Evacuate and recharge refrigerant"
+      ],
+      "warningLevel": "danger",
+      "warning": "냉매 회수 없이 냉동 사이클을 개방하지 마세요. 고압 냉매 누출로 부상 위험이 있습니다.",
+      "warning_en": "Never open the refrigeration cycle without recovering refrigerant. High-pressure release causes serious injury."
+    },
+    "cns_r_thermostat_fail": {
+      "type": "result",
+      "title": "온도 조절기(써모스탯) 불량",
+      "title_en": "Thermostat / Controller Failure",
+      "level": "medium",
+      "conclusion": "써모스탯에서 기동 신호가 출력되지 않습니다. 온도 설정 확인 후 써모스탯을 교체하세요.",
+      "conclusion_en": "Thermostat is not outputting a start signal. Check temperature settings, then replace if confirmed faulty.",
+      "causes": ["온도 설정값이 고내 온도보다 높게 설정됨", "감온부(센서) 파손 또는 감온관 가스 누출", "써모스탯 내부 접점 고장"],
+      "causes_en": ["Setpoint higher than cabinet temperature (no demand)", "Sensor bulb damaged or sensing tube gas leak", "Internal contact failure"],
+      "steps": [
+        "설정 온도가 현재 고내 온도보다 낮은지 확인",
+        "출력 단자에서 기동 신호 전압 측정",
+        "감온부가 올바른 위치에 있는지 확인",
+        "기동 단자 직결 시 압축기 기동되면 써모스탯 불량 확정",
+        "동일 규격 써모스탯으로 교체"
+      ],
+      "steps_en": [
+        "Confirm setpoint is lower than current cabinet temperature",
+        "Measure output voltage at control terminal",
+        "Verify sensor bulb is correctly positioned",
+        "Bridge control terminals; if compressor starts, thermostat is faulty",
+        "Replace with same specification thermostat"
+      ],
+      "warningLevel": "",
+      "warning": "",
+      "warning_en": ""
+    },
+    "cns_r_contactor_fail": {
+      "type": "result",
+      "title": "마그네틱 컨택터(전자 접촉기) 불량",
+      "title_en": "Magnetic Contactor Failure",
+      "level": "medium",
+      "conclusion": "제어 신호는 정상이나 컨택터가 동작하지 않습니다. 코일 또는 접점 불량 — 컨택터를 교체하세요.",
+      "conclusion_en": "Control signal is normal but the contactor is not energizing. Coil or contact fault — replace the contactor.",
+      "causes": ["컨택터 코일 단선", "주접점 고착·탄화", "코일 정격 전압 불일치"],
+      "causes_en": ["Contactor coil open circuit", "Main contacts seized or carbonized", "Coil voltage rating mismatch"],
+      "steps": [
+        "코일 단자에 제어 전압 인가 확인",
+        "코일 저항 측정 (수십~수백 Ω; 단선이면 무한대)",
+        "주접점 육안 점검 (탄화, 용착)",
+        "동일 규격(코일 전압·전류 용량) 컨택터로 교체",
+        "교체 후 수동 테스트로 동작 확인"
+      ],
+      "steps_en": [
+        "Confirm control voltage is applied to coil terminals",
+        "Measure coil resistance (tens to hundreds of Ω; open = infinite)",
+        "Visually inspect main contacts for carbonization or welding",
+        "Replace with same spec (coil voltage, current rating)",
+        "Perform manual test after replacement"
+      ],
+      "warningLevel": "caution",
+      "warning": "주접점 점검 및 교체 시 반드시 전원을 차단하세요.",
+      "warning_en": "Always disconnect power before inspecting or replacing main contacts."
+    },
+    "cns_r_wiring": {
+      "type": "result",
+      "title": "배선 접촉 불량 / 단선",
+      "title_en": "Wiring Fault / Open Circuit",
+      "level": "easy",
+      "conclusion": "컨택터는 동작하나 압축기에 전원이 전달되지 않습니다. 컨택터 출력~압축기 단자 간 배선을 점검하세요.",
+      "conclusion_en": "Contactor energizes but power is not reaching the compressor. Inspect wiring from contactor output to compressor.",
+      "causes": ["압축기 전원 단자 나사 풀림 또는 부식", "컨택터 출력 측 배선 단선", "단자대 접촉 불량"],
+      "causes_en": ["Loose or corroded compressor power terminal screw", "Open wire on contactor output side", "Poor contact at terminal block"],
+      "steps": [
+        "컨택터 출력~압축기 단자 간 전압 강하 측정",
+        "각 단자 나사 조임 및 재조임",
+        "배선 피복 손상 및 단선 부위 점검",
+        "부식 단자 사포·접점 스프레이 처리 후 재조임",
+        "수리 후 운전 전류로 정상 확인"
+      ],
+      "steps_en": [
+        "Measure voltage drop from contactor output to compressor terminal",
+        "Inspect and re-tighten all terminal screws",
+        "Check wiring for insulation damage or breaks",
+        "Clean corroded terminals, then re-tighten",
+        "Measure operating current after repair to confirm normal"
+      ],
+      "warningLevel": "caution",
+      "warning": "전원 차단 후 작업하세요. 절연 장갑을 사용하세요.",
+      "warning_en": "De-energize before working. Use insulated gloves."
+    },
+    "cns_r_comp_locked": {
+      "type": "result",
+      "title": "압축기 고착 (록업)",
+      "title_en": "Compressor Seizure / Lock-up",
+      "level": "hard",
+      "conclusion": "전원·제어 신호 모두 정상이나 압축기가 기계적으로 고착되었습니다. 압축기 교체가 필요합니다.",
+      "conclusion_en": "Power and control signals are normal but the compressor is mechanically seized. Compressor replacement required.",
+      "causes": ["오일 부족으로 인한 내부 마찰 고착", "액백(Liquid Slugging)으로 인한 기계 손상", "장기 미사용 후 내부 고착"],
+      "causes_en": ["Seizure from oil shortage", "Mechanical damage from liquid refrigerant slugging", "Seized after prolonged shutdown"],
+      "steps": [
+        "기동 전류 측정 (정격 6~8배 이상이면 고착 의심)",
+        "권선 저항·절연 저항 측정으로 내부 상태 확인",
+        "고압 확인 후 과도하면 냉매 일부 회수 후 재기동 시도",
+        "재기동 불가 시 냉매 전량 회수",
+        "오일 양·규격 확인 후 압축기 교체",
+        "진공 후 냉매 충전"
+      ],
+      "steps_en": [
+        "Measure starting current (≥6–8× rated = seizure suspected)",
+        "Check winding and insulation resistance",
+        "If high pressure is elevated, recover some refrigerant and retry start",
+        "If restart fails, recover all refrigerant",
+        "Verify oil quantity and spec, then replace compressor",
+        "Evacuate and recharge"
+      ],
+      "warningLevel": "danger",
+      "warning": "냉매 회수 없이 냉동 사이클을 개방하지 마세요.",
+      "warning_en": "Never open the refrigeration circuit without recovering refrigerant."
+    },
+    "cns_r_overload_trip": {
+      "type": "result",
+      "title": "과부하 보호기(써멀 프로텍터) 동작",
+      "title_en": "Thermal Overload Protector Tripped",
+      "level": "easy",
+      "conclusion": "압축기 과부하 보호기가 동작하여 회로를 차단했습니다. 냉각 후 자동 복귀를 기다리고 원인을 제거하세요.",
+      "conclusion_en": "The thermal overload protector has tripped. Allow cooling and auto-reset, then identify and eliminate the root cause.",
+      "causes": ["운전 전류 과다 (냉매 과충전, 고압 상승)", "환기 불량으로 압축기 과열", "전원 전압 불균형 또는 저전압"],
+      "causes_en": ["Excessive current (refrigerant overcharge, high condensing pressure)", "Compressor overheating from poor ventilation", "Voltage imbalance or undervoltage"],
+      "steps": [
+        "압축기 표면 온도 측정 (90°C 이상이면 과열)",
+        "전원 전압 측정 (정격 ±10% 이내 확인)",
+        "운전 전류와 정격 비교",
+        "응축기 팬 및 청결도 확인",
+        "15~30분 냉각 후 자동 복귀 확인",
+        "복귀 후 원인 제거 (냉매 조정, 응축기 청소 등)"
+      ],
+      "steps_en": [
+        "Measure compressor surface temperature (overheating if ≥90°C)",
+        "Measure supply voltage (within ±10% of rated)",
+        "Compare operating current with rated current",
+        "Check condenser fan and cleanliness",
+        "Wait 15–30 minutes for cooling and auto-reset",
+        "After reset, eliminate root cause"
+      ],
+      "warningLevel": "caution",
+      "warning": "과부하 보호기를 바이패스하거나 무력화하지 마세요. 압축기 소손 및 화재 위험이 있습니다.",
+      "warning_en": "Do not disable or bypass the overload protector. Risk of compressor burnout and fire."
+    },
+
+    "pc_q1": {
+      "type": "multi",
+      "question": "냉각 불량의 주요 증상은 무엇인가요?",
+      "question_en": "What is the main symptom of the cooling problem?",
+      "choices": [
+        { "label": "온도가 전혀 내려가지 않는다", "next": "pc_q_no_cooling" },
+        { "label": "냉각은 되지만 설정 온도까지 안 내려간다", "next": "pc_q_slow_cooling" },
+        { "label": "예전보다 냉각 능력이 현저히 떨어졌다", "next": "pc_q_capacity_drop" }
+      ]
+    },
+    "pc_q_no_cooling": {
+      "type": "question",
+      "question": "압축기가 현재 가동 중인가요? (운전 소리 또는 전류로 확인)",
+      "question_en": "Is the compressor currently running? (Confirm by sound or current measurement)",
+      "yes": "pc_q_pressure",
+      "no": "pc_r_comp_not_running"
+    },
+    "pc_q_pressure": {
+      "type": "question",
+      "question": "냉매 고압 게이지가 비정상적으로 낮거나 진공에 가깝게 측정되나요?",
+      "question_en": "Is the high-side pressure gauge reading abnormally low or near vacuum?",
+      "yes": "pc_r_refrigerant_leak",
+      "no": "pc_r_expansion_block"
+    },
+    "pc_q_slow_cooling": {
+      "type": "question",
+      "question": "증발기에 서리가 과도하게 착상되어 팬 풍량이 감소한 상태인가요?",
+      "question_en": "Is the evaporator heavily frosted, reducing fan airflow?",
+      "yes": "pc_r_frost_block",
+      "no": "pc_q_condenser"
+    },
+    "pc_q_condenser": {
+      "type": "question",
+      "question": "응축기 코일/핀이 먼지·그리스·오물로 막혀있나요?",
+      "question_en": "Is the condenser coil/fin fouled with dust, grease, or debris?",
+      "yes": "pc_r_condenser_dirty",
+      "no": "pc_r_refrigerant_low"
+    },
+    "pc_q_capacity_drop": {
+      "type": "question",
+      "question": "냉장실 도어 씰(패킹)이 손상되거나 틈이 있나요?",
+      "question_en": "Is the door seal/gasket damaged or showing gaps?",
+      "yes": "pc_r_door_seal",
+      "no": "pc_r_high_load"
+    },
+    "pc_r_comp_not_running": {
+      "type": "result",
+      "title": "압축기 미작동으로 인한 냉각 불량",
+      "title_en": "No Cooling Due to Compressor Not Running",
+      "level": "medium",
+      "conclusion": "압축기가 작동하지 않아 냉각이 되지 않습니다. '압축기가 안 돌아간다' 카테고리로 이동하여 원인을 진단하세요.",
+      "conclusion_en": "Cooling has stopped because the compressor is not running. Go to 'Compressor Does Not Start' to diagnose the cause.",
+      "causes": ["전원·제어 신호 불량으로 압축기 미기동", "보호 장치(과부하·고압·저압) 동작으로 정지", "압축기 자체 고장"],
+      "causes_en": ["Power or control signal fault preventing start", "Protection device (overload/high/low pressure) shutdown", "Compressor internal failure"],
+      "steps": [
+        "압축기 단자 전압 인가 여부 확인",
+        "제어 신호(써모스탯 출력) 확인",
+        "과부하·고압·저압 스위치 동작 여부 확인",
+        "'압축기가 안 돌아간다' 진단 트리 참조"
+      ],
+      "steps_en": [
+        "Check voltage at compressor terminals",
+        "Verify control signal (thermostat output)",
+        "Check if overload/high-pressure/low-pressure protection tripped",
+        "Follow 'Compressor Does Not Start' diagnostic tree"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+    "pc_r_refrigerant_leak": {
+      "type": "result",
+      "title": "냉매 누설로 인한 냉각 불량",
+      "title_en": "No Cooling Due to Refrigerant Leak",
+      "level": "hard",
+      "conclusion": "냉매 누설로 사이클 압력이 낮습니다. 누설 부위를 수리한 후 냉매를 재충전하세요.",
+      "conclusion_en": "Refrigerant has leaked, causing low cycle pressures. Repair the leak, then recharge.",
+      "causes": ["플레어 이음부·납땜 부위 크랙·부식", "서비스 밸브 코어 누설", "압축기 축봉 또는 토출 밸브 누설"],
+      "causes_en": ["Crack or corrosion at flare joints or brazed connections", "Service valve core leak", "Compressor shaft seal or discharge valve leak"],
+      "steps": [
+        "전자식 리크 디텍터로 누설 부위 탐색",
+        "비눗물 또는 형광 누설 탐지제로 확인",
+        "냉매 전량 회수",
+        "누설 부위 재납땜 또는 플레어 재가공",
+        "질소 가압 테스트 (설계 압력 1.5배, 30분 유지)",
+        "진공 (500μm Hg 이하) 후 중량 계량으로 재충전"
+      ],
+      "steps_en": [
+        "Use electronic leak detector to locate leak",
+        "Apply soap solution or fluorescent dye to confirm",
+        "Recover all refrigerant",
+        "Re-braze or re-flare the leak point",
+        "Nitrogen pressure test (1.5× design pressure, 30+ min)",
+        "Evacuate (≤500 μm Hg) and recharge by weight"
+      ],
+      "warningLevel": "danger",
+      "warning": "냉매를 대기 중에 방출하지 마세요. 법적 위반이며 환경 오염입니다. 반드시 회수 장비를 사용하세요.",
+      "warning_en": "Never vent refrigerant to atmosphere. Illegal and environmentally harmful. Always use recovery equipment."
+    },
+    "pc_r_expansion_block": {
+      "type": "result",
+      "title": "팽창 기기(팽창 밸브/모세관) 막힘",
+      "title_en": "Expansion Device Blockage (TXV / Capillary Tube)",
+      "level": "hard",
+      "conclusion": "냉매 압력은 정상이나 증발기에 냉매 공급이 차단됩니다. 수분·이물질에 의한 팽창 기기 막힘을 점검하세요.",
+      "conclusion_en": "Refrigerant pressure is normal but supply to the evaporator is blocked. Inspect expansion device for moisture or debris blockage.",
+      "causes": ["수분 동결에 의한 팽창 밸브 막힘", "이물질·슬러지 막힘", "TXV 감온통 가스 누출로 밸브 폐쇄"],
+      "causes_en": ["Expansion valve freeze blockage from moisture", "Debris/sludge clogging", "TXV closed due to sensing bulb gas loss"],
+      "steps": [
+        "팽창 기기 전후 온도·압력으로 막힘 확인",
+        "모세관: 드라이어 교체 및 질소 역류 청소",
+        "TXV: 감온통 부착 상태 및 가스 충전 확인",
+        "필터 드라이어 교체 (수분 제거)",
+        "진공 후 냉매 재충전",
+        "과냉·과열도 측정으로 정상 확인"
+      ],
+      "steps_en": [
+        "Confirm blockage by measuring temperature/pressure across device",
+        "Capillary tube: replace filter drier and backflush with nitrogen",
+        "TXV: check sensing bulb attachment and gas charge",
+        "Replace filter drier to remove moisture",
+        "Evacuate and recharge",
+        "Measure subcooling and superheat to verify normal operation"
+      ],
+      "warningLevel": "caution",
+      "warning": "수분 제거 없이 재충전하면 단기간 내 재발합니다. 드라이어 교체를 반드시 병행하세요.",
+      "warning_en": "Recharging without removing moisture will cause rapid recurrence. Always replace the filter drier."
+    },
+    "pc_r_frost_block": {
+      "type": "result",
+      "title": "과착상(서리 과다)으로 인한 풍로 차단",
+      "title_en": "Airflow Blocked by Excessive Frost Buildup",
+      "level": "medium",
+      "conclusion": "증발기 과착상으로 공기 순환이 막혀 냉각 능력이 저하됩니다. 수동 제상 후 제상 장치를 점검하세요.",
+      "conclusion_en": "Excessive frost is blocking airflow. Manually defrost then investigate the defrost system.",
+      "causes": ["제상 히터 단선 또는 타이머 불량", "제상수 배수 막힘으로 재착상 반복", "도어 씰 불량으로 수분 지속 유입"],
+      "causes_en": ["Defrost heater open or timer failure", "Repeated re-frosting from blocked drain", "Continuous moisture ingress from faulty door seal"],
+      "steps": [
+        "전원 차단 후 선풍기·온풍기로 수동 제상",
+        "제상수 배수 정상 여부 확인",
+        "제상 히터 통전 확인 (저항 측정)",
+        "제상 타이머·컨트롤러 동작 확인",
+        "도어 씰 상태 점검"
+      ],
+      "steps_en": [
+        "Cut power and manually defrost with fan or warm air",
+        "Confirm defrost water drains correctly",
+        "Check defrost heater continuity",
+        "Verify defrost timer/controller operation",
+        "Inspect door seal condition"
+      ],
+      "warningLevel": "caution",
+      "warning": "개방형 화염을 증발기에 직접 대면 핀·코일이 손상됩니다. 저온 열풍 또는 자연 해동을 사용하세요.",
+      "warning_en": "Do not direct open flame at the evaporator — damages fins and coils. Use low-temperature warm air or natural thawing."
+    },
+    "pc_r_condenser_dirty": {
+      "type": "result",
+      "title": "응축기 오염으로 인한 냉각 능력 저하",
+      "title_en": "Reduced Cooling Capacity Due to Condenser Fouling",
+      "level": "easy",
+      "conclusion": "응축기 코일·핀이 오염되어 방열이 불량합니다. 응축기를 청소하면 즉시 개선됩니다.",
+      "conclusion_en": "The condenser coil/fin is fouled, causing poor heat rejection. Cleaning will provide immediate improvement.",
+      "causes": ["먼지·그리스·솜먼지 누적", "응축기 주변 공간 부족으로 열기 재순환", "장기간 유지보수 미실시"],
+      "causes_en": ["Dust, grease, or lint accumulation", "Hot air recirculation from insufficient clearance", "Long-term maintenance neglect"],
+      "steps": [
+        "전원 차단 후 응축기 커버 분리",
+        "압축 공기로 핀 역방향에서 먼지 제거",
+        "그리스 오염 시 알칼리 세정제 후 헹굼",
+        "핀 변형 부위 핀 빗으로 정리",
+        "재기동 후 고압 측정으로 개선 확인"
+      ],
+      "steps_en": [
+        "Disconnect power and remove condenser cover",
+        "Blow dust with compressed air (against airflow direction)",
+        "For heavy grease: apply alkaline cleaner, then rinse",
+        "Straighten bent fins with a fin comb",
+        "Measure high-side pressure after restart to confirm improvement"
+      ],
+      "warningLevel": "caution",
+      "warning": "세정제를 전기 부품에 직접 분사하지 마세요.",
+      "warning_en": "Do not spray cleaning agents directly on electrical components."
+    },
+    "pc_r_refrigerant_low": {
+      "type": "result",
+      "title": "냉매 부족으로 인한 냉각 능력 저하",
+      "title_en": "Reduced Cooling Capacity Due to Low Refrigerant Charge",
+      "level": "medium",
+      "conclusion": "냉매량이 부족합니다. 누설 여부를 반드시 확인한 후 냉매를 보충하세요.",
+      "conclusion_en": "Refrigerant charge is low. Always check for leaks before adding refrigerant.",
+      "causes": ["냉동 사이클 어딘가에서 서서히 누설", "초기 충전 불량", "서비스 포트 코어 미세 누설"],
+      "causes_en": ["Slow leak from somewhere in the circuit", "Inadequate initial charge", "Minor service port core leak"],
+      "steps": [
+        "리크 디텍터로 전체 배관·이음부 누설 점검",
+        "누설 발견 시 수리 우선 (수리 없이 보충만 하면 재발)",
+        "중량 계량으로 냉매 보충",
+        "충전 후 고압·저압·과열도·과냉각도 측정",
+        "충전 기록 보관"
+      ],
+      "steps_en": [
+        "Check all pipes and joints with leak detector",
+        "Repair any leak first — do not add refrigerant without fixing the leak",
+        "Recharge by accurate weight measurement",
+        "After charging, measure pressures, superheat, and subcooling",
+        "Record the charge amount"
+      ],
+      "warningLevel": "caution",
+      "warning": "누설을 수리하지 않고 냉매만 보충하는 것은 임시방편이며 환경 오염 및 법적 책임을 유발합니다.",
+      "warning_en": "Adding refrigerant without fixing the leak is a temporary measure and causes environmental harm and legal liability."
+    },
+    "pc_r_door_seal": {
+      "type": "result",
+      "title": "도어 씰(가스켓) 불량으로 인한 냉기 누출",
+      "title_en": "Cold Air Leakage Due to Faulty Door Seal/Gasket",
+      "level": "easy",
+      "conclusion": "도어 씰 불량으로 외기가 유입됩니다. 도어 씰을 교체하세요.",
+      "conclusion_en": "Faulty door seal allows warm air ingress. Replace the door seal.",
+      "causes": ["씰 고무 노화·경화·변형", "도어 힌지 불량으로 틀어짐", "씰 틈새에 이물질 끼임"],
+      "causes_en": ["Seal rubber aged, hardened, or deformed", "Door misalignment from faulty hinge", "Foreign material in seal gap"],
+      "steps": [
+        "페이퍼 테스트: 도어 씰에 종이 끼워 닫고 당겼을 때 저항 없이 빠지는 부위 확인",
+        "씰 전체 육안 점검 (균열, 변형, 틀어짐)",
+        "도어 힌지·수평 조정",
+        "이물질 제거 후 씰 밀착 확인",
+        "씰 불량 시 동일 규격으로 교체"
+      ],
+      "steps_en": [
+        "Paper test: close door on a sheet of paper; no resistance when pulled = gap",
+        "Visually inspect entire seal for cracks, deformation, or misalignment",
+        "Adjust door hinge and level if misaligned",
+        "Remove foreign material and confirm seal contact",
+        "Replace with same spec if faulty"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+    "pc_r_high_load": {
+      "type": "result",
+      "title": "냉방 부하 과다",
+      "title_en": "Excessive Cooling Load",
+      "level": "medium",
+      "conclusion": "냉동기 용량이 실제 부하를 감당하지 못합니다. 부하 조건을 검토하거나 용량을 확장하세요.",
+      "conclusion_en": "The refrigeration unit cannot handle the actual cooling load. Review operating conditions or consider capacity expansion.",
+      "causes": ["주변 온도가 설계 사양보다 높음", "냉각실 내 부하가 설계 이상으로 증가", "단열재 손상으로 외부 열 침입 증가"],
+      "causes_en": ["Ambient temperature exceeds design specification", "Cooling room load increased beyond design", "Increased heat ingress from damaged insulation"],
+      "steps": [
+        "현재 주변 온도와 냉동기 최대 허용 주변 온도 비교",
+        "고내 부하 변경 여부 확인 (제품량 증가, 신규 열원)",
+        "단열재 상태 점검 (결로, 손상, 공극)",
+        "냉동기 기본 성능 점검 (압력·전류 정상 범위 확인)",
+        "부하 감소 불가 시 용량 증대 방안 검토"
+      ],
+      "steps_en": [
+        "Compare ambient temperature with rated maximum ambient",
+        "Check if room load has changed (more product, new heat sources)",
+        "Inspect insulation condition (condensation, damage, voids)",
+        "Check basic performance (pressures and current in normal range)",
+        "If load cannot be reduced, consider capacity upgrade"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+
+    "an_q1": {
+      "type": "multi",
+      "question": "소음이 주로 어디서 발생하나요?",
+      "question_en": "Where is the noise mainly coming from?",
+      "choices": [
+        { "label": "압축기 본체", "next": "an_q_comp_noise" },
+        { "label": "실내기(증발기) 팬", "next": "an_q_evap_noise" },
+        { "label": "실외기(응축기) 팬", "next": "an_q_cond_noise" },
+        { "label": "배관 또는 본체 진동", "next": "an_q_pipe_noise" }
+      ]
+    },
+    "an_q_comp_noise": {
+      "type": "multi",
+      "question": "압축기 소음의 종류는 무엇인가요?",
+      "question_en": "What type of noise does the compressor make?",
+      "choices": [
+        { "label": "웅~ 하는 낮고 지속적인 진동음", "next": "an_r_comp_vibration" },
+        { "label": "따따따/덜컹 하는 마찰음·충격음", "next": "an_r_comp_bearing" },
+        { "label": "쉭~ 하는 고압 가스 누설음", "next": "an_r_comp_discharge" }
+      ]
+    },
+    "an_q_evap_noise": {
+      "type": "question",
+      "question": "증발기 팬 날개에 서리나 이물질이 닿아 긁히나요?",
+      "question_en": "Is the evaporator fan blade scraping against frost or debris?",
+      "yes": "an_r_evap_frost",
+      "no": "an_r_evap_bearing"
+    },
+    "an_q_cond_noise": {
+      "type": "question",
+      "question": "응축기 팬 날개가 케이싱이나 이물질에 닿나요?",
+      "question_en": "Is the condenser fan blade contacting the casing or any foreign object?",
+      "yes": "an_r_cond_blade",
+      "no": "an_r_cond_bearing"
+    },
+    "an_q_pipe_noise": {
+      "type": "question",
+      "question": "압축기 기동 또는 정지 순간에만 '쾅' 하는 충격음이 나나요?",
+      "question_en": "Does a single 'bang' occur only at the moment of compressor start or stop?",
+      "yes": "an_r_liquid_hammer",
+      "no": "an_r_pipe_resonance"
+    },
+    "an_r_comp_vibration": {
+      "type": "result",
+      "title": "압축기 방진 마운트 불량 또는 공진",
+      "title_en": "Compressor Anti-Vibration Mount Failure or Resonance",
+      "level": "easy",
+      "conclusion": "방진 고무 마운트 점검·교체 및 압축기 고정 볼트 조임 상태를 확인하세요.",
+      "conclusion_en": "Inspect and replace anti-vibration rubber mounts, and check mounting bolt tightness.",
+      "causes": ["방진 고무 마운트 노화·경화·파손", "압축기 고정 볼트 이완", "고압 상승으로 진동 증가"],
+      "causes_en": ["Anti-vibration mounts aged, hardened, or broken", "Mounting bolts loosened", "Increased vibration from elevated pressure"],
+      "steps": [
+        "고정 볼트 조임 상태 점검 및 재조임",
+        "방진 고무 마운트 점검 (경화, 균열, 변형)",
+        "손상된 마운트 교체",
+        "응축 압력 측정으로 고압 상승 여부 확인"
+      ],
+      "steps_en": [
+        "Check and re-tighten mounting bolts",
+        "Inspect anti-vibration mounts for hardening, cracking, or deformation",
+        "Replace damaged mounts",
+        "Measure condensing pressure to check for elevated pressure"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+    "an_r_comp_bearing": {
+      "type": "result",
+      "title": "압축기 내부 베어링 마모 또는 오일 부족",
+      "title_en": "Compressor Internal Bearing Wear or Oil Shortage",
+      "level": "hard",
+      "conclusion": "금속 마찰음은 내부 베어링 마모 또는 오일 부족을 의미합니다. 이상음이 악화되면 즉시 운전 중단 후 압축기를 교체하세요.",
+      "conclusion_en": "Metal scraping indicates internal bearing wear or oil shortage. If noise worsens, stop immediately and replace the compressor.",
+      "causes": ["냉동 오일 부족·열화로 베어링 마모", "액백으로 인한 기계 부품 손상", "장기 운전으로 부품 수명 만료"],
+      "causes_en": ["Bearing wear from insufficient or degraded oil", "Mechanical damage from liquid slugging", "End-of-life from extended operation"],
+      "steps": [
+        "오일 세퍼레이터 및 오일 레벨 확인",
+        "이상음 악화 추세라면 즉시 운전 중단",
+        "냉매 회수 후 압축기 교체",
+        "오일 규격·양 확인 후 충전",
+        "재기동 후 소음 및 오일 압력 확인"
+      ],
+      "steps_en": [
+        "Check oil separator and oil level sight glass",
+        "If noise is worsening, stop operation immediately",
+        "Recover refrigerant and replace compressor",
+        "Verify oil spec and quantity, then recharge",
+        "Confirm noise and oil pressure after restart"
+      ],
+      "warningLevel": "danger",
+      "warning": "마찰음 방치 시 압축기 소손 및 냉동 오일이 사이클 전체를 오염시킵니다.",
+      "warning_en": "Ignoring grinding noise risks burnout and oil contamination throughout the entire refrigeration circuit."
+    },
+    "an_r_comp_discharge": {
+      "type": "result",
+      "title": "압축기 토출 밸브 누설음",
+      "title_en": "Compressor Discharge Valve Leak Sound",
+      "level": "hard",
+      "conclusion": "고압 가스가 토출 밸브에서 역류·누설됩니다. 냉각 효율 저하 및 압축기 교체가 필요합니다.",
+      "conclusion_en": "High-pressure gas is leaking back through the discharge valve. Cooling efficiency drops. Compressor replacement needed.",
+      "causes": ["토출 밸브 플레이트 마모·파손", "밸브 스프링 탄력 저하", "장기 운전으로 밸브 수명 만료"],
+      "causes_en": ["Discharge valve plate worn or broken", "Valve spring fatigue", "End-of-life from extended operation"],
+      "steps": [
+        "고압 낮고 저압 높으면 밸브 역류 증거",
+        "압축기 전류 측정 (부하 감소로 낮아질 수 있음)",
+        "냉각 성능 저하 확인",
+        "냉매 회수 후 압축기 교체",
+        "교체 후 압력·전류 정상화 확인"
+      ],
+      "steps_en": [
+        "Low high-side + high low-side pressure = evidence of valve backflow",
+        "Measure compressor current (may be lower due to reduced load)",
+        "Confirm cooling performance degradation",
+        "Recover refrigerant and replace compressor",
+        "Verify pressure and current normalize after replacement"
+      ],
+      "warningLevel": "danger",
+      "warning": "냉매 회수 없이 압축기 개방 금지.",
+      "warning_en": "Never open the compressor without recovering refrigerant first."
+    },
+    "an_r_evap_frost": {
+      "type": "result",
+      "title": "증발기 팬 날개와 서리 접촉",
+      "title_en": "Evaporator Fan Blade Contacting Frost",
+      "level": "easy",
+      "conclusion": "서리가 팬 날개에 닿아 소음이 발생합니다. 수동 제상 후 제상 장치를 점검하세요.",
+      "conclusion_en": "Frost is contacting the fan blade causing noise. Manually defrost, then inspect the defrost system.",
+      "causes": ["제상 장치 불량으로 서리 과다 증가", "팬과 코일 사이 간격이 좁은 상태에서 서리 누적"],
+      "causes_en": ["Defrost system failure causing excessive frost", "Frost accumulating in tight clearance between fan and coil"],
+      "steps": [
+        "전원 차단 후 수동 제상 (온풍 또는 자연 해동)",
+        "제상 히터 통전·저항 측정",
+        "제상 타이머·컨트롤러 동작 확인",
+        "팬 날개 변형 여부 점검",
+        "제상 후 재기동하여 소음 소멸 확인"
+      ],
+      "steps_en": [
+        "Cut power and manually defrost (warm air or natural thawing)",
+        "Test defrost heater continuity and resistance",
+        "Verify defrost timer/controller operation",
+        "Check fan blade for deformation",
+        "Confirm noise is gone after restart"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+    "an_r_evap_bearing": {
+      "type": "result",
+      "title": "증발기 팬 모터 베어링 마모",
+      "title_en": "Evaporator Fan Motor Bearing Wear",
+      "level": "medium",
+      "conclusion": "팬 모터 베어링이 마모되었습니다. 팬 모터를 교체하세요.",
+      "conclusion_en": "The fan motor bearing is worn. Replace the fan motor.",
+      "causes": ["팬 모터 베어링 수명 만료", "결로수·수분 침투로 베어링 부식", "과부하 운전으로 조기 마모"],
+      "causes_en": ["Bearing end-of-life", "Bearing corrosion from condensate or moisture", "Premature wear from overload"],
+      "steps": [
+        "팬 날개 손으로 돌려보기 (걸리거나 소리 나면 베어링 불량)",
+        "동일 규격 팬 모터로 교체",
+        "날개 균형 및 고정 볼트 확인",
+        "재기동 후 소음 소멸 확인"
+      ],
+      "steps_en": [
+        "Spin blade by hand (resistance or noise = bearing issue)",
+        "Replace with fan motor of same specification",
+        "Check blade balance and mounting bolts",
+        "Confirm noise is gone after restart"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+    "an_r_cond_blade": {
+      "type": "result",
+      "title": "응축기 팬 날개 변형 또는 케이싱 접촉",
+      "title_en": "Condenser Fan Blade Deformed or Contacting Casing",
+      "level": "easy",
+      "conclusion": "팬 날개가 케이싱 또는 이물질에 닿아 소음이 발생합니다. 이물질을 제거하고 날개 상태를 점검하세요.",
+      "conclusion_en": "Fan blade is contacting the casing or a foreign object. Remove obstructions and inspect blade condition.",
+      "causes": ["팬 날개 충격으로 인한 변형", "팬 허브 이완으로 날개 위치 이동", "나뭇잎·종이 등 이물질 끼임"],
+      "causes_en": ["Blade deformed from impact", "Blade position shifted from loose hub", "Foreign object (leaf, paper) caught"],
+      "steps": [
+        "전원 차단 후 팬 날개 육안 점검",
+        "이물질 제거",
+        "날개 허브 고정 볼트 조임",
+        "날개 변형 시 교체",
+        "케이싱과 날개 사이 간격 확인",
+        "재기동 후 소음 소멸 확인"
+      ],
+      "steps_en": [
+        "Disconnect power and visually inspect fan blade",
+        "Remove foreign objects",
+        "Tighten fan hub mounting bolt",
+        "Replace blade if deformed",
+        "Check clearance between blade and casing",
+        "Confirm noise is gone after restart"
+      ],
+      "warningLevel": "caution",
+      "warning": "팬이 회전 중일 때는 절대 케이싱 내에 손을 넣지 마세요.",
+      "warning_en": "Never reach inside the fan casing while the fan is running."
+    },
+    "an_r_cond_bearing": {
+      "type": "result",
+      "title": "응축기 팬 모터 베어링 마모",
+      "title_en": "Condenser Fan Motor Bearing Wear",
+      "level": "medium",
+      "conclusion": "응축기 팬 모터 베어링이 마모되었습니다. 팬 모터를 교체하세요.",
+      "conclusion_en": "Condenser fan motor bearing is worn. Replace the fan motor.",
+      "causes": ["팬 모터 베어링 수명 만료", "고온 환경 장기 운전으로 윤활 저하"],
+      "causes_en": ["Bearing end-of-life", "Lubrication degraded from long-term high-ambient operation"],
+      "steps": [
+        "팬 날개 손으로 돌려보기 (저항감·소리 확인)",
+        "동일 규격 팬 모터로 교체",
+        "날개 균형·고정 볼트 확인",
+        "재기동 후 소음 및 응축 압력 정상화 확인"
+      ],
+      "steps_en": [
+        "Spin blade by hand to check for resistance or noise",
+        "Replace with fan motor of same specification",
+        "Check blade balance and mounting bolt tightness",
+        "Confirm noise and condensing pressure normalize after restart"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+    "an_r_liquid_hammer": {
+      "type": "result",
+      "title": "액체 냉매 해머링 (Liquid Hammer)",
+      "title_en": "Liquid Refrigerant Hammering (Liquid Hammer)",
+      "level": "hard",
+      "conclusion": "액체 냉매가 압축기로 유입되는 충격음입니다. 즉시 원인을 파악하지 않으면 압축기가 파손됩니다.",
+      "conclusion_en": "Banging is caused by liquid refrigerant entering the compressor. Identify and eliminate the cause immediately to prevent damage.",
+      "causes": ["팽창 밸브 과개방 또는 불량으로 과잉 냉매 공급", "냉매 과충전", "정지 중 크랭크케이스 히터 불량으로 냉매 이동"],
+      "causes_en": ["Expansion valve over-opened or faulty, supplying excess refrigerant", "Refrigerant overcharge", "Refrigerant migrating to compressor during off cycle (crankcase heater failure)"],
+      "steps": [
+        "운전 중 흡입 배관 서리 확인 (서리 = 액체 냉매 유입 증거)",
+        "팽창 밸브 과열도 설정 확인 (목표 5~8K)",
+        "냉매 충전량 확인 및 필요시 일부 회수",
+        "크랭크케이스 히터 작동 여부 확인",
+        "반복 발생 시 즉시 운전 중단"
+      ],
+      "steps_en": [
+        "Check suction pipe for frost during operation (frost = liquid ingestion)",
+        "Check expansion valve superheat setting (target 5–8K)",
+        "Verify refrigerant charge; recover some if overcharged",
+        "Check crankcase heater operation if equipped",
+        "Stop operation immediately if hammering recurs"
+      ],
+      "warningLevel": "danger",
+      "warning": "액해머를 방치하면 압축기 밸브 파손, 연결봉 굴곡 등 심각한 내부 손상이 발생합니다.",
+      "warning_en": "Ignoring liquid hammer will cause severe internal damage including valve breakage and connecting rod bending."
+    },
+    "an_r_pipe_resonance": {
+      "type": "result",
+      "title": "배관 진동 / 공진",
+      "title_en": "Pipe Vibration / Resonance",
+      "level": "easy",
+      "conclusion": "배관이 지지대 없이 진동하거나 특정 주파수에서 공진합니다. 배관 지지대를 추가하거나 변경하세요.",
+      "conclusion_en": "Pipes vibrating without supports or resonating at a specific frequency. Add or relocate pipe supports.",
+      "causes": ["배관 지지 클램프 탈락 또는 부족", "배관 경로가 압축기 진동 주파수와 공진", "냉매 유속 과다"],
+      "causes_en": ["Pipe support clamps missing or insufficient", "Pipe routing resonating with compressor vibration frequency", "Excessive refrigerant flow velocity"],
+      "steps": [
+        "진동 배관 부위 특정 (접촉 감촉 또는 청진기 활용)",
+        "진동 부위 근처에 배관 지지 클램프 추가",
+        "클램프와 배관 사이 방진 고무 삽입",
+        "고정 후 소음 소멸 확인"
+      ],
+      "steps_en": [
+        "Locate vibrating pipe section (use touch or stethoscope)",
+        "Add pipe support clamps near the vibrating area",
+        "Insert anti-vibration rubber between clamp and pipe",
+        "Confirm noise is eliminated after securing"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+
+    "bt_q1": {
+      "type": "multi",
+      "question": "차단기 트립이 발생하는 시점은 언제인가요?",
+      "question_en": "When does the circuit breaker trip?",
+      "choices": [
+        { "label": "전원 인가 즉시 (시동 전)", "next": "bt_q_instant" },
+        { "label": "압축기 기동 순간", "next": "bt_q_startup" },
+        { "label": "운전 중 (일정 시간 후)", "next": "bt_q_running" }
+      ]
+    },
+    "bt_q_instant": {
+      "type": "question",
+      "question": "배선 또는 부품에서 탄 냄새나 절연 불량(지락)이 확인되나요?",
+      "question_en": "Is there a burning smell or confirmed insulation failure (ground fault) in wiring or components?",
+      "yes": "bt_r_ground_fault",
+      "no": "bt_r_short_circuit"
+    },
+    "bt_q_startup": {
+      "type": "question",
+      "question": "기동 순간 전류가 정격 전류의 6배 이상으로 측정되나요?",
+      "question_en": "Is the starting current measured at over 6× the rated current?",
+      "yes": "bt_r_overcurrent_start",
+      "no": "bt_r_cap_fail_trip"
+    },
+    "bt_q_running": {
+      "type": "question",
+      "question": "운전 중 전류가 점진적으로 상승하다가 트립되나요?",
+      "question_en": "Does the current gradually rise during operation before the breaker trips?",
+      "yes": "bt_q_overload",
+      "no": "bt_r_intermittent_fault"
+    },
+    "bt_q_overload": {
+      "type": "question",
+      "question": "응축기 팬 정지 또는 오염으로 고압이 상승해 있나요?",
+      "question_en": "Is high-side pressure elevated due to condenser fan failure or condenser fouling?",
+      "yes": "bt_r_high_cond_overload",
+      "no": "bt_r_motor_overload"
+    },
+    "bt_r_ground_fault": {
+      "type": "result",
+      "title": "지락(절연 파괴)으로 인한 즉시 트립",
+      "title_en": "Immediate Trip Due to Ground Fault (Insulation Breakdown)",
+      "level": "hard",
+      "conclusion": "배선 또는 압축기 모터에서 지락이 발생했습니다. 절연 저항을 측정하여 불량 부위를 찾아 교체하세요.",
+      "conclusion_en": "A ground fault has occurred in wiring or motor. Measure insulation resistance to identify and replace the faulty component.",
+      "causes": ["압축기 모터 권선~케이스 간 절연 파괴", "배선 피복 손상으로 지락", "제어 기판 또는 전기 부품 절연 불량"],
+      "causes_en": ["Insulation breakdown between motor winding and casing", "Ground fault from damaged wire insulation", "Insulation failure in control board or components"],
+      "steps": [
+        "전원 완전 차단 후 LOTO 적용",
+        "각 부품 케이스 간 절연 저항 측정 (500V DC, 1MΩ 이상 확인)",
+        "절연 불량 부품 특정",
+        "불량 배선 또는 부품 교체",
+        "교체 후 절연 저항 재측정으로 1MΩ 이상 확인",
+        "재투입 전 차단기 용량 및 적정 여부 확인"
+      ],
+      "steps_en": [
+        "Fully disconnect power and apply LOTO",
+        "Measure insulation resistance of each component against ground (500V DC; must be ≥1MΩ)",
+        "Identify the faulty component",
+        "Replace faulty wiring or component",
+        "Re-measure insulation resistance to confirm ≥1MΩ",
+        "Verify breaker rating before re-energizing"
+      ],
+      "warningLevel": "danger",
+      "warning": "지락 상태에서 전원을 인가하면 감전 사망 위험이 있습니다. 반드시 절연 저항 확인 후 투입하세요.",
+      "warning_en": "Energizing a ground-faulted circuit risks fatal electric shock. Always confirm insulation resistance before re-energizing."
+    },
+    "bt_r_short_circuit": {
+      "type": "result",
+      "title": "배선 단락(쇼트)으로 인한 즉시 트립",
+      "title_en": "Immediate Trip Due to Wiring Short Circuit",
+      "level": "medium",
+      "conclusion": "전원 인가 즉시 트립은 단락이 원인입니다. 부하를 순차적으로 분리하며 단락 부위를 찾으세요.",
+      "conclusion_en": "Immediate trip on power-on indicates a short circuit. Disconnect loads one by one to locate the short.",
+      "causes": ["배선 피복 손상으로 두 선이 접촉", "단자대 내 도전체 접촉", "부품 내부 단락"],
+      "causes_en": ["Two wires contacting from damaged insulation", "Conductors touching in terminal block", "Internal short circuit in component"],
+      "steps": [
+        "모든 부하(압축기, 팬 등)를 배선에서 분리",
+        "차단기 재투입: 배선만으로 트립되면 배선 단락",
+        "부하를 하나씩 재연결하며 트립 원인 특정",
+        "문제 부품 절연 저항 측정 후 교체",
+        "피복 손상 부위 교체 또는 수리"
+      ],
+      "steps_en": [
+        "Disconnect all loads from wiring",
+        "Re-close breaker: if trips on wiring alone, wiring is shorted",
+        "Reconnect loads one by one to identify which causes the trip",
+        "Measure insulation resistance of suspect component and replace",
+        "Replace or repair damaged wire insulation"
+      ],
+      "warningLevel": "danger",
+      "warning": "단락 부위를 찾기 전까지 차단기를 강제 재투입하지 마세요. 화재 위험이 있습니다.",
+      "warning_en": "Do not force the breaker closed until the short is located. Fire risk."
+    },
+    "bt_r_overcurrent_start": {
+      "type": "result",
+      "title": "과전류 기동 (기동 장치 불량)",
+      "title_en": "Overcurrent at Start (Starting Device Failure)",
+      "level": "medium",
+      "conclusion": "기동 순간 과전류로 트립됩니다. 기동 커패시터 또는 소프트 스타터를 점검하세요.",
+      "conclusion_en": "Breaker trips from overcurrent at startup. Inspect the start capacitor or soft starter.",
+      "causes": ["기동 커패시터 용량 부족으로 기동 전류 증가", "소프트 스타터·인버터 설정 불량", "차단기 정격이 기동 전류 허용 범위 미달"],
+      "causes_en": ["Insufficient start capacitor causing high inrush current", "Incorrect soft starter or inverter settings", "Breaker rating too small for starting current"],
+      "steps": [
+        "기동 커패시터 용량 측정 및 교체",
+        "소프트 스타터 가속 시간 설정 확인·조정",
+        "차단기 정격 재검토",
+        "인버터 사용 시 기동 전류 제한 설정 확인"
+      ],
+      "steps_en": [
+        "Measure start capacitor capacitance and replace if low",
+        "Check and adjust soft starter acceleration time",
+        "Review breaker current rating",
+        "Check inverter current limit settings for startup"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+    "bt_r_cap_fail_trip": {
+      "type": "result",
+      "title": "기동 커패시터 불량으로 인한 기동 과전류",
+      "title_en": "Start Capacitor Failure Causing Startup Overcurrent",
+      "level": "easy",
+      "conclusion": "기동 커패시터를 점검하고 불량이면 교체하세요.",
+      "conclusion_en": "Inspect and replace the start capacitor if faulty.",
+      "causes": ["커패시터 용량 저하 또는 단락", "커패시터 연결 불량"],
+      "causes_en": ["Capacitor capacity degraded or shorted", "Poor capacitor connection"],
+      "steps": [
+        "커패시터 용량 측정 (정격 ±10% 이내)",
+        "외관 점검 (팽창, 누액)",
+        "불량 시 동일 규격으로 교체",
+        "교체 후 기동 전류 측정으로 정상화 확인"
+      ],
+      "steps_en": [
+        "Measure capacitance (within ±10% of rated)",
+        "Inspect for bulging or leakage",
+        "Replace with same specification if faulty",
+        "Measure starting current after replacement"
+      ],
+      "warningLevel": "caution",
+      "warning": "교체 전 커패시터 방전 확인 필수.",
+      "warning_en": "Always confirm capacitor is discharged before replacement."
+    },
+    "bt_r_intermittent_fault": {
+      "type": "result",
+      "title": "간헐적 절연 불량 / 느슨한 단자",
+      "title_en": "Intermittent Insulation Fault / Loose Terminal",
+      "level": "medium",
+      "conclusion": "운전 중 열이 쌓이면서 절연이 악화되거나 단자가 이완되어 발생하는 간헐적 트립입니다. 단자 조임 및 절연 상태를 점검하세요.",
+      "conclusion_en": "Intermittent tripping from insulation degrading with heat or loose terminals. Tighten all terminals and check insulation.",
+      "causes": ["열에 의한 배선 피복 연화·절연 저하", "단자 이완으로 아크 발생", "부품 열화로 절연 저하"],
+      "causes_en": ["Wire insulation softening from heat", "Arcing from loose terminals", "Insulation degradation from component aging"],
+      "steps": [
+        "모든 전기 단자 점검 및 재조임",
+        "배선 열 손상 부위 점검 (탄화, 변색)",
+        "운전 중 전류 모니터링으로 과전류 발생 시점 포착",
+        "열화상 카메라로 과열 부위 확인",
+        "단자·배선 교체 후 절연 저항 측정"
+      ],
+      "steps_en": [
+        "Inspect and re-tighten all electrical terminals",
+        "Check wiring for heat damage (charring, discoloration)",
+        "Monitor current during operation to catch overcurrent moment",
+        "Use thermal camera to identify hot spots",
+        "Replace terminals/wiring then measure insulation resistance"
+      ],
+      "warningLevel": "caution",
+      "warning": "간헐적 트립은 화재로 이어질 수 있습니다. 빠른 시일 내 점검하세요.",
+      "warning_en": "Intermittent tripping can lead to fire. Inspect promptly."
+    },
+    "bt_r_high_cond_overload": {
+      "type": "result",
+      "title": "응축 압력 상승으로 인한 모터 과부하",
+      "title_en": "Motor Overload Due to Elevated Condensing Pressure",
+      "level": "medium",
+      "conclusion": "응축기 이상으로 고압이 높아져 압축기 모터가 과부하 상태입니다. 응축기 팬 및 응축기를 점검하세요.",
+      "conclusion_en": "Elevated condensing pressure is overloading the compressor motor. Inspect condenser fan and condenser.",
+      "causes": ["응축기 팬 정지 또는 풍량 부족", "응축기 오염으로 방열 불량", "비응축성 가스 혼입"],
+      "causes_en": ["Condenser fan stopped or insufficient airflow", "Poor heat rejection from condenser fouling", "Non-condensable gas in circuit"],
+      "steps": [
+        "응축기 팬 작동 상태 확인",
+        "응축기 코일 청소",
+        "고압 게이지 측정 후 규정값과 비교",
+        "비응축성 가스 의심 시 냉매 회수·재진공·재충전"
+      ],
+      "steps_en": [
+        "Check condenser fan operation",
+        "Clean condenser coil",
+        "Measure high-side pressure and compare with spec",
+        "If non-condensable gas suspected, recover/re-evacuate/recharge"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+    "bt_r_motor_overload": {
+      "type": "result",
+      "title": "압축기 모터 과부하 (권선 불량)",
+      "title_en": "Compressor Motor Overload (Winding Fault)",
+      "level": "hard",
+      "conclusion": "압축기 모터 권선 불량으로 인한 과부하입니다. 권선·절연 저항 측정 후 압축기 교체를 검토하세요.",
+      "conclusion_en": "Compressor motor overload from winding fault. Measure winding and insulation resistance, then consider replacement.",
+      "causes": ["모터 권선 층간 단락으로 과전류", "과열 반복으로 권선 절연 열화", "모터 내부 마찰 증가"],
+      "causes_en": ["Inter-turn winding short causing overcurrent", "Winding insulation degraded from repeated overheating", "Increased internal mechanical friction"],
+      "steps": [
+        "단자 간 권선 저항 3상 대칭 여부 측정",
+        "절연 저항 측정 (케이스 대 단자: 1MΩ 이상)",
+        "운전 전류와 정격 전류 비교",
+        "전원 전압 균형 측정 (불균형도 3% 이내)",
+        "교체 결정 시 냉매 회수 후 압축기 교체"
+      ],
+      "steps_en": [
+        "Measure winding resistance between all terminal pairs (check 3-phase symmetry)",
+        "Measure insulation resistance terminal-to-body (≥1MΩ)",
+        "Compare operating current to rated",
+        "Measure supply voltage balance (≤3% imbalance)",
+        "If replacement decided, recover refrigerant and replace"
+      ],
+      "warningLevel": "danger",
+      "warning": "권선 단락 압축기를 계속 운전하면 권선 소손 및 냉동 오일 탄화로 사이클 전체가 오염됩니다.",
+      "warning_en": "Continued operation with shorted winding causes burnout and carbonized oil contaminating the entire circuit."
+    },
+
+    "hf_q1": {
+      "type": "multi",
+      "question": "서리(착상)가 주로 어느 위치에 집중되어 있나요?",
+      "question_en": "Where is the frost buildup mainly concentrated?",
+      "choices": [
+        { "label": "증발기 전체에 고르게 두껍게 낀다", "next": "hf_q_full_frost" },
+        { "label": "증발기 일부(특히 입구 쪽)에만 낀다", "next": "hf_r_partial_frost" },
+        { "label": "흡입 배관(저압 배관)까지 서리가 낀다", "next": "hf_r_pipe_frost" }
+      ]
+    },
+    "hf_q_full_frost": {
+      "type": "question",
+      "question": "제상 히터에 전원이 들어오고 통전(저항 측정)이 정상인가요?",
+      "question_en": "Is the defrost heater receiving power and showing normal continuity?",
+      "yes": "hf_q_defrost_ctrl",
+      "no": "hf_r_heater_fail"
+    },
+    "hf_q_defrost_ctrl": {
+      "type": "question",
+      "question": "제상 타이머 또는 제상 컨트롤러가 정상적으로 주기마다 제상을 실행하나요?",
+      "question_en": "Is the defrost timer or controller executing defrost cycles normally?",
+      "yes": "hf_r_defrost_drain",
+      "no": "hf_r_defrost_timer"
+    },
+    "hf_r_partial_frost": {
+      "type": "result",
+      "title": "팽창 기기 이상으로 인한 부분 착상",
+      "title_en": "Partial Frost Due to Expansion Device Abnormality",
+      "level": "medium",
+      "conclusion": "증발기 입구 쪽에만 서리가 집중되는 것은 팽창 밸브(또는 모세관)가 부분 막히거나 과소 개방된 것이 원인입니다.",
+      "conclusion_en": "Frost concentrated at the evaporator inlet indicates partial blockage or under-opening of the expansion device.",
+      "causes": ["팽창 밸브 과소 개방 (과열도 설정 너무 높음)", "모세관 내 이물질·수분으로 부분 막힘", "TXV 감온통 위치 불량"],
+      "causes_en": ["Expansion valve under-opening (superheat set too high)", "Capillary tube partially blocked by debris or moisture", "TXV sensing bulb incorrectly positioned"],
+      "steps": [
+        "TXV: 과열도 측정 후 설정값 조정 (목표 5~8K)",
+        "감온통이 흡입 배관에 밀착·단열되어 있는지 확인",
+        "모세관: 필터 드라이어 교체 및 질소 역류 청소",
+        "수분 원인 판단 시 드라이어 교체 후 재진공·재충전"
+      ],
+      "steps_en": [
+        "TXV: measure superheat and adjust setting (target 5–8K)",
+        "Confirm sensing bulb is tightly strapped and insulated on suction pipe",
+        "Capillary tube: replace filter drier and backflush with nitrogen",
+        "If moisture is cause, replace drier, re-evacuate, and recharge"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+    "hf_r_pipe_frost": {
+      "type": "result",
+      "title": "저과열도로 인한 흡입 배관 착상",
+      "title_en": "Suction Pipe Frosting from Low Superheat",
+      "level": "medium",
+      "conclusion": "흡입 배관까지 서리가 끼는 것은 액체 냉매가 증발기를 빠져나오는 증거입니다. 냉매 과충전 또는 팽창 밸브 과개방을 점검하세요.",
+      "conclusion_en": "Frost on the suction pipe means liquid refrigerant is leaving the evaporator. Check for overcharge or over-opened expansion valve.",
+      "causes": ["냉매 과충전", "팽창 밸브 과개방 (과열도 설정 너무 낮음)", "TXV 감온통 가스 누출로 밸브 고개방"],
+      "causes_en": ["Refrigerant overcharge", "Expansion valve over-opened (superheat set too low)", "TXV sensing bulb gas loss causing full valve opening"],
+      "steps": [
+        "흡입 배관 과열도 측정 (0K에 가까우면 액백 위험)",
+        "냉매 충전량 점검 및 과충전 시 일부 회수",
+        "TXV: 과열도 설정 조정 (목표 5~8K)",
+        "TXV 감온통 상태 확인",
+        "조정 후 흡입 배관 서리 소멸 확인"
+      ],
+      "steps_en": [
+        "Measure suction superheat (near 0K = liquid slugging risk)",
+        "Check refrigerant charge; if overcharged, recover to correct level",
+        "TXV: adjust superheat setting (target 5–8K)",
+        "Check TXV sensing bulb condition",
+        "Confirm suction pipe frost disappears after adjustment"
+      ],
+      "warningLevel": "caution",
+      "warning": "저과열 상태는 압축기 액해머로 이어질 수 있습니다. 즉시 조치하세요.",
+      "warning_en": "Low superheat can lead to liquid hammer. Take immediate corrective action."
+    },
+    "hf_r_heater_fail": {
+      "type": "result",
+      "title": "제상 히터 단선 / 불량",
+      "title_en": "Defrost Heater Open Circuit / Failure",
+      "level": "medium",
+      "conclusion": "제상 히터가 단선되어 제상이 이루어지지 않습니다. 동일 규격 히터로 교체하세요.",
+      "conclusion_en": "Defrost heater has an open circuit and is not defrosting. Replace with same specification heater.",
+      "causes": ["히터 요소 단선 (수명 만료)", "히터 단자 부식·접촉 불량", "과열 방지기(열 퓨즈) 동작으로 히터 회로 차단"],
+      "causes_en": ["Heater element open circuit (end of life)", "Heater terminal corrosion or poor contact", "Defrost circuit cut by thermal fuse activation"],
+      "steps": [
+        "히터 저항 측정 (단선이면 무한대 저항)",
+        "열 퓨즈(Thermal Fuse) 통전 확인",
+        "히터 회로 전체 점검 (전선, 단자, 퓨즈)",
+        "동일 규격(전압·전력·형상) 히터로 교체",
+        "교체 후 제상 주기 실행하여 정상 확인",
+        "제상수 배수 상태도 함께 확인"
+      ],
+      "steps_en": [
+        "Measure heater resistance (open circuit = infinite)",
+        "Check thermal fuse continuity",
+        "Inspect entire heater circuit (wiring, terminals, fuse)",
+        "Replace with heater of same spec (voltage, wattage, shape)",
+        "Run defrost cycle after replacement to confirm operation",
+        "Also check defrost drain flow"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+    "hf_r_defrost_drain": {
+      "type": "result",
+      "title": "제상수 배수 불량으로 인한 재착상",
+      "title_en": "Re-frosting Due to Blocked Defrost Drain",
+      "level": "easy",
+      "conclusion": "제상은 정상이지만 제상수가 배수되지 않아 재착상이 반복됩니다. 배수구를 청소하세요.",
+      "conclusion_en": "Defrost is working but meltwater is not draining, causing repeated re-frosting. Clean the drain.",
+      "causes": ["드레인 배수구 이물질 또는 얼음으로 막힘", "드레인 히터 불량으로 배수관 동결", "배수 경사 불량 또는 배수관 막힘"],
+      "causes_en": ["Drain outlet blocked by debris or ice", "Drain pipe frozen from drain heater failure", "Improper drain slope or blocked drain pipe"],
+      "steps": [
+        "제상 중 배수 트레이·배수구 확인 (물 고임 여부)",
+        "배수구를 따뜻한 물로 녹이고 이물질 제거",
+        "드레인 히터 통전 확인 (있는 경우)",
+        "배수관 경사·막힘 확인",
+        "제상 주기 실행하여 배수 정상화 확인"
+      ],
+      "steps_en": [
+        "Check drain pan and outlet during defrost (look for ponding)",
+        "Flush drain with warm water and remove debris",
+        "Check drain heater continuity if equipped",
+        "Verify drain pipe slope and check for blockage",
+        "Run defrost cycle to confirm normal drainage"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+    "hf_r_defrost_timer": {
+      "type": "result",
+      "title": "제상 타이머 / 컨트롤러 불량",
+      "title_en": "Defrost Timer / Controller Failure",
+      "level": "medium",
+      "conclusion": "제상 타이머 또는 컨트롤러가 정상적으로 제상을 실행하지 못합니다. 교체하세요.",
+      "conclusion_en": "The defrost timer or controller is not executing defrost cycles normally. Replace it.",
+      "causes": ["타이머 모터 불량 또는 기어 파손", "전자식 제상 컨트롤러 PCB 불량", "온도 센서(제상 종료 센서) 불량"],
+      "causes_en": ["Defrost timer motor failure or gear damage", "Electronic defrost controller PCB failure", "Temperature sensor (defrost termination) failure"],
+      "steps": [
+        "기계식 타이머: 수동으로 제상 위치로 돌렸을 때 히터 동작하면 타이머 불량",
+        "전자식: 강제 제상 모드 실행 후 히터 동작 여부 확인",
+        "제상 종료 센서(바이메탈/NTC) 저항 측정",
+        "타이머 또는 컨트롤러 동일 규격으로 교체",
+        "교체 후 제상 주기·히터 동작 확인"
+      ],
+      "steps_en": [
+        "Mechanical timer: manually advance to defrost position; heater activating = timer faulty",
+        "Electronic: force defrost cycle and check if heater activates",
+        "Measure defrost termination sensor (bimetal/NTC) resistance",
+        "Replace timer or controller with same spec",
+        "Verify defrost cycle and heater operation after replacement"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+
+    "sc_q1": {
+      "type": "multi",
+      "question": "압축기가 꺼질 때 어떤 보호 장치가 동작하나요?",
+      "question_en": "Which protection device activates when the compressor shuts off?",
+      "choices": [
+        { "label": "고압 스위치(High Pressure Switch) 동작", "next": "sc_r_high_press" },
+        { "label": "저압 스위치(Low Pressure Switch) 동작", "next": "sc_r_low_press" },
+        { "label": "과부하 보호기(Overload Protector) 동작", "next": "sc_r_overload" },
+        { "label": "보호 장치 없이 꺼짐 (써모스탯/PCB 문제)", "next": "sc_q_timer" }
+      ]
+    },
+    "sc_q_timer": {
+      "type": "question",
+      "question": "써모스탯 감온부(센서)가 증발기 코일에 직접 닿아있나요?",
+      "question_en": "Is the thermostat sensing bulb in direct contact with the evaporator coil?",
+      "yes": "sc_r_thermostat_short",
+      "no": "sc_r_pcb_fault"
+    },
+    "sc_r_high_press": {
+      "type": "result",
+      "title": "고압 보호 동작으로 인한 단속 운전",
+      "title_en": "Short Cycling from High Pressure Protection Activation",
+      "level": "medium",
+      "conclusion": "고압 스위치가 반복 동작하여 단속 운전 중입니다. '고압 스위치가 자꾸 동작한다' 카테고리를 참조하여 원인을 해결하세요.",
+      "conclusion_en": "High-pressure switch is repeatedly tripping. Refer to 'High Pressure Switch Keeps Tripping' to resolve the root cause.",
+      "causes": ["응축기 팬 불량으로 고압 상승", "응축기 오염으로 방열 불량", "냉매 과충전 또는 비응축성 가스"],
+      "causes_en": ["High pressure rise from condenser fan failure", "Poor heat rejection from condenser fouling", "Refrigerant overcharge or non-condensable gas"],
+      "steps": [
+        "응축기 팬 작동 확인",
+        "응축기 청소",
+        "고압 게이지 확인",
+        "'고압 스위치가 자꾸 동작한다' 진단 트리 참조"
+      ],
+      "steps_en": [
+        "Verify condenser fan is running",
+        "Clean condenser",
+        "Check high-side gauge reading",
+        "Refer to 'High Pressure Switch Keeps Tripping' diagnostic tree"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+    "sc_r_low_press": {
+      "type": "result",
+      "title": "저압 보호 동작으로 인한 단속 운전",
+      "title_en": "Short Cycling from Low Pressure Protection Activation",
+      "level": "medium",
+      "conclusion": "저압 스위치가 반복 동작하여 단속 운전 중입니다. '저압 스위치가 자꾸 동작한다' 카테고리를 참조하세요.",
+      "conclusion_en": "Low-pressure switch is repeatedly tripping. Refer to 'Low Pressure Switch Keeps Tripping'.",
+      "causes": ["냉매 누설 또는 부족", "증발기 과착상으로 저압 하강", "팽창 밸브 막힘"],
+      "causes_en": ["Refrigerant leak or insufficient charge", "Low pressure drop from excessive evaporator frost", "Expansion valve blockage"],
+      "steps": [
+        "저압 게이지 수치 확인",
+        "냉매 누설 여부 점검",
+        "증발기 착상 상태 확인",
+        "'저압 스위치가 자꾸 동작한다' 진단 트리 참조"
+      ],
+      "steps_en": [
+        "Check low-side gauge reading",
+        "Inspect for refrigerant leaks",
+        "Check evaporator frost condition",
+        "Refer to 'Low Pressure Switch Keeps Tripping' diagnostic tree"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+    "sc_r_overload": {
+      "type": "result",
+      "title": "과부하 보호기 동작으로 인한 단속 운전",
+      "title_en": "Short Cycling from Overload Protector Activation",
+      "level": "medium",
+      "conclusion": "과부하 보호기가 반복 동작하여 단속 운전 중입니다. 운전 전류 및 과열 원인을 점검하세요.",
+      "conclusion_en": "Overload protector is repeatedly tripping. Inspect operating current and the cause of overheating.",
+      "causes": ["운전 전류 과다 (고압 상승, 전압 불균형)", "압축기 환기 불량으로 과열", "과부하 보호기 자체 노화"],
+      "causes_en": ["Excessive current (high condensing pressure, voltage imbalance)", "Overheating from poor ventilation", "Overload protector itself aged"],
+      "steps": [
+        "압축기 표면 온도 측정 (90°C 이상이면 과열)",
+        "운전 전류 측정 및 정격과 비교",
+        "전원 전압·균형 측정",
+        "응축기 상태 점검",
+        "30분 냉각 후 복귀 확인"
+      ],
+      "steps_en": [
+        "Measure compressor surface temperature (overheating if ≥90°C)",
+        "Measure and compare operating current to rated",
+        "Measure supply voltage and balance",
+        "Check condenser condition",
+        "Wait 30 minutes for cooling and auto-reset"
+      ],
+      "warningLevel": "caution",
+      "warning": "과부하 보호기를 바이패스하거나 제거하지 마세요.",
+      "warning_en": "Do not bypass or remove the overload protector."
+    },
+    "sc_r_thermostat_short": {
+      "type": "result",
+      "title": "써모스탯 감온부 위치 불량으로 인한 조기 차단",
+      "title_en": "Premature Cutoff from Thermostat Sensor Misplacement",
+      "level": "easy",
+      "conclusion": "써모스탯 감온부가 코일에 직접 닿아 실제 고내 온도보다 훨씬 낮은 온도를 감지합니다. 감온부 위치를 변경하세요.",
+      "conclusion_en": "The sensor is directly touching the coil, sensing much lower temperatures than the actual cabinet. Relocate the sensor.",
+      "causes": ["감온부가 증발기 코일·서리에 직접 접촉", "감온부 클립 이완으로 위치 변경"],
+      "causes_en": ["Sensing bulb in direct contact with evaporator coil or frost", "Sensing bulb position changed from loose clip"],
+      "steps": [
+        "감온부를 코일에서 분리",
+        "고내 공기 순환이 잘 되는 위치에 재고정",
+        "클립 및 단열 상태 확인",
+        "재설치 후 온도 조절 동작 확인"
+      ],
+      "steps_en": [
+        "Separate sensor bulb from coil",
+        "Reposition in area of good air circulation inside cabinet",
+        "Check clip and insulation condition",
+        "Verify thermostat operation after reinstallation"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+    "sc_r_pcb_fault": {
+      "type": "result",
+      "title": "제어 기판(PCB) 불량으로 인한 오동작",
+      "title_en": "Malfunction Due to Control Board (PCB) Failure",
+      "level": "medium",
+      "conclusion": "보호 장치가 동작하지 않는데도 압축기가 임의로 꺼진다면 제어 기판 불량을 의심하세요.",
+      "conclusion_en": "If the compressor shuts off randomly without any protection device activating, suspect a control board failure.",
+      "causes": ["PCB 전해 커패시터 불량으로 오동작", "릴레이 접점 불량", "납땜 크랙 또는 트랙 단선"],
+      "causes_en": ["PCB malfunction from faulty electrolytic capacitor", "Relay contact failure", "Solder crack or broken PCB trace"],
+      "steps": [
+        "PCB 육안 점검 (팽창 커패시터, 탄화, 크랙)",
+        "PCB 입출력 전압 측정",
+        "릴레이 동작 확인",
+        "동일 규격 PCB로 교체",
+        "교체 후 단속 운전 소멸 확인"
+      ],
+      "steps_en": [
+        "Visually inspect PCB for bulging capacitors, burn marks, or cracks",
+        "Measure PCB input/output voltages",
+        "Verify relay operation",
+        "Replace with same specification PCB",
+        "Confirm short cycling stops after replacement"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+
+    "hp_q1": {
+      "type": "question",
+      "question": "응축기 팬 모터가 정상적으로 회전하고 있나요?",
+      "question_en": "Is the condenser fan motor running normally?",
+      "yes": "hp_q_cond_dirty",
+      "no": "hp_r_cond_fan_fail"
+    },
+    "hp_q_cond_dirty": {
+      "type": "question",
+      "question": "응축기 코일/핀이 먼지나 오물로 막혀 방열이 불량한가요?",
+      "question_en": "Is the condenser coil/fin blocked by dust or debris, causing poor heat rejection?",
+      "yes": "hp_r_condenser_dirty",
+      "no": "hp_q_overcharge"
+    },
+    "hp_q_overcharge": {
+      "type": "question",
+      "question": "냉매가 과충전되었나요? (고압이 규정값의 120% 이상으로 매우 높음)",
+      "question_en": "Is the refrigerant overcharged? (High-side pressure over 120% of rated value)",
+      "yes": "hp_r_overcharge",
+      "no": "hp_r_non_condensable"
+    },
+    "hp_r_cond_fan_fail": {
+      "type": "result",
+      "title": "응축기 팬 정지로 인한 고압 상승",
+      "title_en": "High Pressure Rise from Condenser Fan Stoppage",
+      "level": "medium",
+      "conclusion": "응축기 팬이 멈춰 방열이 안 되어 고압이 상승합니다. '응축기 팬이 안 돌아간다' 카테고리를 참조하여 팬을 수리하세요.",
+      "conclusion_en": "Condenser fan stopped, causing high pressure rise. Refer to 'Condenser Fan Not Running' to repair the fan.",
+      "causes": ["응축기 팬 모터 불량", "팬 모터 전원 공급 불량", "팬 날개 이물질 끼임"],
+      "causes_en": ["Condenser fan motor failure", "Poor power supply to fan motor", "Foreign object in fan blade"],
+      "steps": [
+        "응축기 팬 모터 전원 확인",
+        "팬 날개 이물질 제거",
+        "'응축기 팬이 안 돌아간다' 진단 트리 참조",
+        "팬 수리·교체 후 고압 정상화 확인"
+      ],
+      "steps_en": [
+        "Check power supply to condenser fan motor",
+        "Remove any foreign objects from fan blade",
+        "Refer to 'Condenser Fan Not Running' for detailed diagnosis",
+        "Verify high-side pressure normalizes after fan repair"
+      ],
+      "warningLevel": "caution",
+      "warning": "팬 정지 상태에서 장시간 운전 시 압축기 손상 위험이 있습니다.",
+      "warning_en": "Extended operation with fan stopped risks compressor damage."
+    },
+    "hp_r_condenser_dirty": {
+      "type": "result",
+      "title": "응축기 오염으로 인한 고압 상승",
+      "title_en": "High Pressure Rise from Condenser Fouling",
+      "level": "easy",
+      "conclusion": "응축기를 청소하면 즉시 고압이 떨어집니다. 정기적인 청소 주기를 설정하세요.",
+      "conclusion_en": "Cleaning the condenser will immediately reduce high-side pressure. Establish a regular cleaning schedule.",
+      "causes": ["먼지·그리스·솜먼지가 핀에 누적", "장기 미청소"],
+      "causes_en": ["Dust, grease, or lint accumulated on fins", "Long-term maintenance neglect"],
+      "steps": [
+        "전원 차단 후 응축기 커버 분리",
+        "압축 공기로 핀 역방향에서 먼지 제거",
+        "그리스 오염 시 알칼리 세정제 후 헹굼",
+        "핀 빗으로 변형 핀 정리",
+        "재기동 후 고압 수치 정상화 확인"
+      ],
+      "steps_en": [
+        "Disconnect power and remove condenser cover",
+        "Blow dust with compressed air against airflow direction",
+        "For grease: apply alkaline cleaner then rinse",
+        "Straighten bent fins with fin comb",
+        "Confirm high-side pressure normalizes after restart"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+    "hp_r_overcharge": {
+      "type": "result",
+      "title": "냉매 과충전으로 인한 고압 상승",
+      "title_en": "High Pressure Rise from Refrigerant Overcharge",
+      "level": "medium",
+      "conclusion": "냉매가 과충전되어 고압이 비정상적으로 높습니다. 냉매를 일부 회수하여 적정량으로 조정하세요.",
+      "conclusion_en": "Refrigerant overcharge is causing abnormally high pressure. Recover some refrigerant to correct the charge level.",
+      "causes": ["서비스 시 과도한 냉매 충전", "부품 교체 후 재충전 시 계량 미실시"],
+      "causes_en": ["Excessive refrigerant added during service", "Refrigerant recharged without weight measurement after parts replacement"],
+      "steps": [
+        "과냉각도 측정 (정상 5~10K; 크게 초과하면 과충전)",
+        "냉매 회수 장비로 일부 회수하여 고압 조정",
+        "과냉각도·과열도 동시 확인하며 적정 충전량 결정",
+        "충전 기록 보관"
+      ],
+      "steps_en": [
+        "Measure subcooling (normal 5–10K; significantly above = overcharge)",
+        "Use recovery equipment to remove some refrigerant and adjust pressure",
+        "Determine correct charge by checking subcooling and superheat simultaneously",
+        "Record the final charge amount"
+      ],
+      "warningLevel": "caution",
+      "warning": "냉매 방출은 법적으로 금지되어 있습니다. 반드시 회수 장비를 사용하세요.",
+      "warning_en": "Venting refrigerant is prohibited by law. Always use recovery equipment."
+    },
+    "hp_r_non_condensable": {
+      "type": "result",
+      "title": "비응축성 가스(공기) 혼입",
+      "title_en": "Non-Condensable Gas (Air) in Circuit",
+      "level": "hard",
+      "conclusion": "냉동 사이클에 공기 등 비응축성 가스가 혼입되어 고압이 비정상적으로 높습니다. 냉매 전량 회수 후 재진공 및 재충전하세요.",
+      "conclusion_en": "Non-condensable gas contaminating the circuit is causing abnormally high pressure. Fully recover refrigerant, re-evacuate, and recharge.",
+      "causes": ["진공 작업 불충분 상태에서 냉매 충전", "누설 수리 시 개방 부위로 공기 유입", "충전 호스 내 공기 미제거"],
+      "causes_en": ["Refrigerant charged without sufficient vacuum", "Air ingress during leak repair", "Air in charging hoses not purged"],
+      "steps": [
+        "냉동기 정지 후 포화 압력 대비 실측 압력 비교 (초과분 = 비응축성 가스)",
+        "냉매 전량 회수",
+        "30분 이상 진공 (500μm Hg 이하)",
+        "충전 호스 퍼지 후 중량 계량으로 냉매 재충전",
+        "고압 정상화 확인"
+      ],
+      "steps_en": [
+        "Stop unit and compare measured vs saturation pressure (excess = non-condensable gas)",
+        "Recover all refrigerant",
+        "Evacuate 30+ minutes to ≤500 μm Hg",
+        "Purge charging hoses, then recharge by weight",
+        "Confirm high-side pressure normalizes"
+      ],
+      "warningLevel": "caution",
+      "warning": "오염된 냉매는 재생 처리 기관에 보내세요.",
+      "warning_en": "Send contaminated refrigerant to a reclamation facility."
+    },
+
+    "lp_q1": {
+      "type": "question",
+      "question": "증발기에 서리가 과도하게 착상되어 있나요?",
+      "question_en": "Is there excessive frost buildup on the evaporator?",
+      "yes": "lp_r_frost_block",
+      "no": "lp_q_leak"
+    },
+    "lp_q_leak": {
+      "type": "question",
+      "question": "고압·저압 게이지 수치가 모두 비정상적으로 낮나요? (냉매 누설 의심)",
+      "question_en": "Are both high-side and low-side pressures abnormally low? (Refrigerant leak suspected)",
+      "yes": "lp_r_refrigerant_leak",
+      "no": "lp_q_expansion"
+    },
+    "lp_q_expansion": {
+      "type": "question",
+      "question": "팽창 밸브 전후 온도차가 현저하거나 팽창 밸브 출구 배관이 매우 차갑나요?",
+      "question_en": "Is there a large temperature difference across the expansion valve, or is the valve outlet pipe extremely cold?",
+      "yes": "lp_r_expansion_fail",
+      "no": "lp_r_evap_fan_fail"
+    },
+    "lp_r_frost_block": {
+      "type": "result",
+      "title": "증발기 과착상으로 인한 저압 하강",
+      "title_en": "Low Pressure Drop from Excessive Evaporator Frost",
+      "level": "medium",
+      "conclusion": "증발기가 과착상되어 열 교환이 안 되고 저압이 하강합니다. 제상 후 제상 장치를 점검하세요.",
+      "conclusion_en": "Excessive frost is blocking heat exchange, causing low pressure. Defrost and inspect the defrost system.",
+      "causes": ["제상 장치 불량 (히터·타이머·센서)", "도어 씰 불량으로 수분 과다 유입", "과부하 운전"],
+      "causes_en": ["Defrost system failure (heater, timer, sensor)", "Excess moisture from faulty door seal", "Excessive load operation"],
+      "steps": [
+        "수동 제상 후 저압 정상화 확인",
+        "제상 히터 통전 확인",
+        "제상 타이머·컨트롤러 동작 확인",
+        "도어 씰 점검",
+        "'서리가 너무 많이 낀다' 카테고리 참조"
+      ],
+      "steps_en": [
+        "Manually defrost and check if low pressure normalizes",
+        "Check defrost heater continuity",
+        "Check defrost timer/controller operation",
+        "Inspect door seal",
+        "Refer to 'Excessive Frost Buildup' category"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+    "lp_r_refrigerant_leak": {
+      "type": "result",
+      "title": "냉매 누설로 인한 저압 하강",
+      "title_en": "Low Pressure Drop from Refrigerant Leak",
+      "level": "hard",
+      "conclusion": "냉매 누설로 고압·저압 모두 낮습니다. 누설 부위를 수리 후 냉매를 재충전하세요.",
+      "conclusion_en": "Refrigerant leak causing both pressures to be low. Repair the leak then recharge.",
+      "causes": ["배관 이음부·플레어·납땜 부위 누설", "서비스 밸브 코어 누설", "압축기 축봉 누설"],
+      "causes_en": ["Leak at pipe joints, flare, or brazed sections", "Service valve core leak", "Compressor shaft seal leak"],
+      "steps": [
+        "리크 디텍터로 전체 배관 탐색",
+        "누설 부위 수리 (재납땜 또는 플레어 재가공)",
+        "질소 가압 테스트 (설계 압력 1.5배, 30분 유지)",
+        "진공 (500μm Hg 이하)",
+        "중량 계량으로 냉매 재충전"
+      ],
+      "steps_en": [
+        "Search all pipes with leak detector",
+        "Repair leak (re-braze or re-flare)",
+        "Nitrogen pressure test (1.5× design pressure, 30+ min)",
+        "Evacuate to ≤500 μm Hg",
+        "Recharge by weight measurement"
+      ],
+      "warningLevel": "danger",
+      "warning": "냉매를 대기 중에 방출하지 마세요.",
+      "warning_en": "Do not vent refrigerant to atmosphere."
+    },
+    "lp_r_expansion_fail": {
+      "type": "result",
+      "title": "팽창 밸브 막힘 / 폐쇄로 인한 저압 하강",
+      "title_en": "Low Pressure Drop from Expansion Valve Blockage / Closure",
+      "level": "hard",
+      "conclusion": "팽창 밸브가 막히거나 닫혀있어 증발기로 냉매 공급이 차단됩니다. 팽창 밸브를 점검하거나 교체하세요.",
+      "conclusion_en": "Expansion valve blocked or closed, cutting off refrigerant supply to the evaporator. Inspect or replace.",
+      "causes": ["수분 동결에 의한 팽창 밸브 막힘", "이물질·슬러지 막힘", "TXV 감온통 가스 누출로 밸브 폐쇄"],
+      "causes_en": ["Expansion valve frozen by moisture", "Debris/sludge blockage", "TXV closed from sensing bulb gas loss"],
+      "steps": [
+        "팽창 밸브 전후 온도·압력으로 막힘 확인",
+        "TXV: 감온통 가스 충전 상태 확인",
+        "필터 드라이어 교체",
+        "냉매 회수 후 팽창 밸브 교체",
+        "진공 후 냉매 재충전"
+      ],
+      "steps_en": [
+        "Confirm blockage by measuring temperature/pressure across valve",
+        "TXV: check sensing bulb gas charge",
+        "Replace filter drier",
+        "Recover refrigerant and replace expansion valve",
+        "Evacuate and recharge"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+    "lp_r_evap_fan_fail": {
+      "type": "result",
+      "title": "증발기 팬 불작동으로 인한 저압 하강",
+      "title_en": "Low Pressure Drop from Evaporator Fan Failure",
+      "level": "medium",
+      "conclusion": "증발기 팬이 작동하지 않아 열 교환이 안 되고 저압이 하강합니다. '증발기 팬이 안 돌아간다' 카테고리를 참조하세요.",
+      "conclusion_en": "Evaporator fan failure stopping heat exchange, causing low pressure. Refer to 'Evaporator Fan Not Running'.",
+      "causes": ["팬 모터 불량", "팬 전원 공급 불량", "제상 후 팬 재기동 실패"],
+      "causes_en": ["Fan motor failure", "Poor power supply to fan", "Fan failed to restart after defrost"],
+      "steps": [
+        "증발기 팬 작동 여부 확인",
+        "'증발기 팬이 안 돌아간다' 진단 트리 참조",
+        "팬 수리·교체 후 저압 정상화 확인"
+      ],
+      "steps_en": [
+        "Check if evaporator fan is running",
+        "Refer to 'Evaporator Fan Not Running' diagnostic tree",
+        "Verify low pressure normalizes after fan repair"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+
+    "eff_q1": {
+      "type": "question",
+      "question": "증발기 팬 모터 단자에 정격 전압이 인가되고 있나요?",
+      "question_en": "Is the rated voltage being applied to the evaporator fan motor terminals?",
+      "yes": "eff_q_motor_test",
+      "no": "eff_q_power_source"
+    },
+    "eff_q_motor_test": {
+      "type": "question",
+      "question": "팬 모터를 단독으로 전원 인가 시 회전하나요?",
+      "question_en": "Does the fan motor run when power is applied directly to it alone?",
+      "yes": "eff_r_control_signal",
+      "no": "eff_r_motor_fail"
+    },
+    "eff_q_power_source": {
+      "type": "question",
+      "question": "현재 제상(Defrost) 사이클 중이거나 제상 후 재기동 대기 중인가요?",
+      "question_en": "Is the unit currently in a defrost cycle or in the restart delay after defrost?",
+      "yes": "eff_r_defrost_normal",
+      "no": "eff_r_power_wiring"
+    },
+    "eff_r_control_signal": {
+      "type": "result",
+      "title": "팬 모터 제어 신호 불량 (PCB/릴레이)",
+      "title_en": "Fan Motor Control Signal Failure (PCB / Relay)",
+      "level": "medium",
+      "conclusion": "팬 모터는 정상이나 PCB 또는 릴레이에서 작동 신호가 나오지 않습니다. 릴레이 및 PCB를 점검하세요.",
+      "conclusion_en": "Fan motor is OK but the PCB or relay is not sending an activation signal. Inspect relay and PCB.",
+      "causes": ["팬 릴레이 접점 불량", "PCB 팬 출력 회로 불량", "온도 센서 오작동으로 팬 신호 미출력"],
+      "causes_en": ["Fan relay contact failure", "PCB fan output circuit failure", "Fan signal not output from temperature sensor malfunction"],
+      "steps": [
+        "팬 릴레이 코일 통전 및 접점 전도 확인",
+        "PCB 팬 출력 단자 전압 측정",
+        "온도 센서(NTC/PTC) 저항 측정·확인",
+        "릴레이 불량 시 교체",
+        "PCB 불량 시 교체"
+      ],
+      "steps_en": [
+        "Check fan relay coil continuity and contact conductivity",
+        "Measure voltage at PCB fan output terminal",
+        "Measure temperature sensor (NTC/PTC) resistance",
+        "Replace relay if faulty",
+        "Replace PCB if faulty"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+    "eff_r_motor_fail": {
+      "type": "result",
+      "title": "증발기 팬 모터 소손 / 불량",
+      "title_en": "Evaporator Fan Motor Burned Out / Faulty",
+      "level": "medium",
+      "conclusion": "증발기 팬 모터가 불량입니다. 동일 규격의 모터로 교체하세요.",
+      "conclusion_en": "Evaporator fan motor is faulty. Replace with a motor of the same specification.",
+      "causes": ["베어링 고착으로 인한 모터 소손", "서리·결로로 인한 절연 파괴", "전압 불균형·과전압으로 소손"],
+      "causes_en": ["Motor burned out from bearing seizure", "Insulation breakdown from frost or condensate", "Burnout from voltage imbalance or overvoltage"],
+      "steps": [
+        "팬 모터 권선 저항 측정 (단선·단락 확인)",
+        "절연 저항 측정 (케이스 대 단자: 1MΩ 이상)",
+        "동일 규격(전압·전력·RPM·축 방향) 모터 준비",
+        "날개 교체 여부 판단 후 모터 교체",
+        "교체 후 전류 측정으로 정상 확인"
+      ],
+      "steps_en": [
+        "Measure winding resistance (check for open/short)",
+        "Measure insulation resistance (case to terminal; ≥1MΩ)",
+        "Prepare replacement of same spec (voltage, wattage, RPM, shaft direction)",
+        "Decide if blade needs replacement, then replace motor",
+        "Measure current after replacement to confirm normal"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+    "eff_r_defrost_normal": {
+      "type": "result",
+      "title": "정상 제상 동작 중 팬 일시 정지 (정상)",
+      "title_en": "Fan Temporarily Stopped During Normal Defrost (Normal)",
+      "level": "easy",
+      "conclusion": "제상 사이클 중에는 팬이 일시 정지하는 것이 정상입니다. 제상 종료 후 팬이 재기동하는지 확인하세요.",
+      "conclusion_en": "Fan stopping during defrost is normal. Confirm the fan restarts after the defrost cycle ends.",
+      "causes": ["정상적인 제상 사이클 동작"],
+      "causes_en": ["Normal defrost cycle operation"],
+      "steps": [
+        "제상 사이클이 정상 종료될 때까지 대기 (보통 20~30분)",
+        "제상 종료 후 팬 자동 재기동 여부 확인",
+        "재기동 안 하면 제상 종료 센서 또는 PCB 점검"
+      ],
+      "steps_en": [
+        "Wait for defrost cycle to complete (usually 20–30 minutes)",
+        "Confirm fan auto-restarts after defrost ends",
+        "If fan does not restart, inspect defrost termination sensor or PCB"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+    "eff_r_power_wiring": {
+      "type": "result",
+      "title": "팬 전원 배선 / 퓨즈 불량",
+      "title_en": "Fan Power Wiring / Fuse Failure",
+      "level": "easy",
+      "conclusion": "팬 모터에 전원이 공급되지 않습니다. 배선 및 퓨즈를 점검하세요.",
+      "conclusion_en": "Power is not being supplied to the fan motor. Inspect wiring and fuses.",
+      "causes": ["팬 전원 퓨즈 소손", "배선 단선 또는 단자 이탈", "팬 전원 차단기 트립"],
+      "causes_en": ["Fan power fuse blown", "Wiring break or terminal disconnection", "Fan circuit breaker tripped"],
+      "steps": [
+        "팬 전원 라인 퓨즈 확인 및 교체",
+        "팬 단자까지의 배선 연속성 측정",
+        "단자 연결 상태 확인 및 재연결",
+        "차단기 상태 확인 및 재투입",
+        "수리 후 팬 기동 확인"
+      ],
+      "steps_en": [
+        "Check and replace fan power fuse",
+        "Measure wire continuity to fan terminals",
+        "Check and reconnect terminal connections",
+        "Check and reset circuit breaker",
+        "Confirm fan starts after repair"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+
+    "cff_q1": {
+      "type": "question",
+      "question": "응축기 팬 모터 단자에 전압이 인가되고 있나요?",
+      "question_en": "Is voltage being applied to the condenser fan motor terminals?",
+      "yes": "cff_q_blade_check",
+      "no": "cff_r_power_wiring"
+    },
+    "cff_q_blade_check": {
+      "type": "question",
+      "question": "팬 날개(블레이드)를 손으로 돌렸을 때 무겁거나 걸림이 있나요?",
+      "question_en": "Is the fan blade heavy or jammed when turned by hand?",
+      "yes": "cff_r_blade_jammed",
+      "no": "cff_r_motor_fail"
+    },
+    "cff_r_power_wiring": {
+      "type": "result",
+      "title": "응축기 팬 전원 배선 / 접촉 불량",
+      "title_en": "Condenser Fan Power Wiring / Contact Failure",
+      "level": "easy",
+      "conclusion": "응축기 팬 모터에 전원이 공급되지 않습니다. 배선 및 접촉 불량을 점검하세요.",
+      "conclusion_en": "Power is not being supplied to the condenser fan motor. Inspect wiring and contact quality.",
+      "causes": ["팬 전원 퓨즈 소손", "배선 단선 또는 커넥터 이탈", "릴레이 불량으로 팬 전원 미출력"],
+      "causes_en": ["Fan power fuse blown", "Wiring break or connector disconnection", "Fan power not output from relay failure"],
+      "steps": [
+        "팬 전원 퓨즈 확인 및 교체",
+        "배선 연속성 측정",
+        "커넥터·단자 접촉 상태 확인 및 재연결",
+        "릴레이 동작 확인",
+        "수리 후 팬 기동·고압 확인"
+      ],
+      "steps_en": [
+        "Check and replace fan power fuse",
+        "Measure wiring continuity",
+        "Check connector and terminal contact, reconnect if loose",
+        "Verify relay operation",
+        "Confirm fan starts and high-side pressure after repair"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+    "cff_r_blade_jammed": {
+      "type": "result",
+      "title": "팬 날개 이물질 끼임 또는 베어링 고착",
+      "title_en": "Fan Blade Jammed by Foreign Object or Bearing Seizure",
+      "level": "medium",
+      "conclusion": "팬 날개가 기계적으로 잠겨있습니다. 이물질 제거 또는 팬 모터 교체가 필요합니다.",
+      "conclusion_en": "Fan blade is mechanically locked. Remove foreign object or replace the fan motor.",
+      "causes": ["나뭇잎·비닐 등 이물질 끼임", "팬 모터 베어링 고착", "팬 날개 변형으로 케이싱 접촉"],
+      "causes_en": ["Foreign object (leaf, plastic, etc.) caught in fan", "Fan motor bearing seized", "Deformed fan blade contacting casing"],
+      "steps": [
+        "전원 차단 후 이물질 제거",
+        "이물질 제거 후 날개 손으로 돌려보기 (뻑뻑하면 베어링 고착)",
+        "베어링 고착 시 팬 모터 교체",
+        "날개 변형 확인 및 필요시 교체",
+        "교체 후 고압 수치 정상화 확인"
+      ],
+      "steps_en": [
+        "Disconnect power and remove foreign object",
+        "After removing, turn blade by hand (still stiff = bearing seized)",
+        "If bearing seized, replace fan motor",
+        "Check blade for deformation and replace if needed",
+        "Verify high-side pressure normalizes after repair"
+      ],
+      "warningLevel": "caution",
+      "warning": "회전 중 팬에 손을 넣지 마세요. 반드시 전원 차단 후 작업하세요.",
+      "warning_en": "Never reach into a running fan. Always disconnect power first."
+    },
+    "cff_r_motor_fail": {
+      "type": "result",
+      "title": "응축기 팬 모터 소손 / 불량",
+      "title_en": "Condenser Fan Motor Burned Out / Faulty",
+      "level": "medium",
+      "conclusion": "응축기 팬 모터가 불량입니다. 동일 규격의 모터로 교체하세요.",
+      "conclusion_en": "Condenser fan motor is faulty. Replace with motor of same specification.",
+      "causes": ["모터 권선 소손 (과열·과전압)", "베어링 마모로 인한 과부하", "절연 열화로 인한 지락"],
+      "causes_en": ["Motor winding burned out (overheating, overvoltage)", "Motor overloaded from bearing wear", "Ground fault from insulation degradation"],
+      "steps": [
+        "팬 모터 권선·절연 저항 측정",
+        "동일 규격(전압·전력·RPM·방향) 모터 준비",
+        "팬 날개 상태 확인 후 모터 교체",
+        "교체 후 전류·고압 수치 확인"
+      ],
+      "steps_en": [
+        "Measure winding resistance and insulation resistance",
+        "Prepare replacement of same spec (voltage, wattage, RPM, direction)",
+        "Check fan blade condition, then replace motor",
+        "Verify current and high-side pressure after replacement"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+
+    "di_q1": {
+      "type": "multi",
+      "question": "물(결로수)이 주로 어디서 발생하나요?",
+      "question_en": "Where is the water mainly coming from?",
+      "choices": [
+        { "label": "실내기(증발기) 아래에서 물이 떨어진다", "next": "di_q_indoor" },
+        { "label": "응축기 주변 또는 실외기에서 물이 고인다", "next": "di_r_outdoor" },
+        { "label": "냉매 배관 연결부 또는 단열재에서 결로가 생긴다", "next": "di_r_pipe_condensation" }
+      ]
+    },
+    "di_q_indoor": {
+      "type": "question",
+      "question": "배수 트레이(드레인 팬)에 오물이 쌓여 막혀있나요?",
+      "question_en": "Is the drain pan/tray blocked with accumulated debris?",
+      "yes": "di_r_drain_pan",
+      "no": "di_q_drain_hose"
+    },
+    "di_q_drain_hose": {
+      "type": "question",
+      "question": "배수 호스 또는 배수관이 꺾이거나 막혀있나요?",
+      "question_en": "Is the drain hose or drain pipe kinked or blocked?",
+      "yes": "di_r_drain_hose",
+      "no": "di_r_drain_pump"
+    },
+    "di_r_outdoor": {
+      "type": "result",
+      "title": "응축기 주변 결로 (정상 현상 또는 배수 불량)",
+      "title_en": "Condensate Around Condenser (Normal or Drain Issue)",
+      "level": "easy",
+      "conclusion": "고온 다습한 환경에서 응축기 주변 결로는 정상입니다. 다만 물이 지속적으로 고이면 배수구를 점검하세요.",
+      "conclusion_en": "Condensate around the condenser in hot, humid conditions is normal. If water continuously pools, inspect the drain.",
+      "causes": ["고온 다습한 환경에서 정상 발생하는 결로", "응축기 배수구 막힘으로 물 고임"],
+      "causes_en": ["Normal condensation in hot, humid environment", "Water pooling from blocked condenser drain"],
+      "steps": [
+        "기상 조건(고온 다습 여부) 확인",
+        "물이 지속 고이면 배수구 막힘 점검",
+        "배수구 청소 및 배수 경로 확인",
+        "설치 환경(환기·습도) 개선 검토"
+      ],
+      "steps_en": [
+        "Check weather conditions (hot and humid?)",
+        "If water continuously pools, inspect for drain blockage",
+        "Clean drain outlet and verify drainage path",
+        "Consider improving installation environment (ventilation, humidity control)"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+    "di_r_pipe_condensation": {
+      "type": "result",
+      "title": "냉매 배관 단열 불량으로 인한 결로",
+      "title_en": "Condensate from Poor Pipe Insulation",
+      "level": "easy",
+      "conclusion": "저온 냉매 배관의 단열이 불량하여 표면에 결로가 생깁니다. 단열재를 보강하세요.",
+      "conclusion_en": "Poor insulation on cold refrigerant pipes is causing surface condensation. Reinforce the insulation.",
+      "causes": ["단열재 손상·탈락·노화", "단열재 이음부 틈 발생", "고습도 환경에서 단열 부족"],
+      "causes_en": ["Insulation damaged, fallen off, or aged", "Gaps forming at insulation joints", "Insufficient insulation in high-humidity environment"],
+      "steps": [
+        "결로 발생 배관 부위 확인",
+        "기존 단열재 상태 점검 (손상·탈락·틈)",
+        "손상된 단열재 교체 또는 보강",
+        "이음부 방수 테이프 처리",
+        "시공 후 결로 소멸 확인"
+      ],
+      "steps_en": [
+        "Identify the pipe sections where condensation forms",
+        "Inspect insulation condition (damage, detachment, gaps)",
+        "Replace or reinforce damaged insulation",
+        "Seal joints with waterproof tape",
+        "Confirm condensation disappears after repair"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+    "di_r_drain_pan": {
+      "type": "result",
+      "title": "드레인 팬(배수 트레이) 오염 / 막힘",
+      "title_en": "Drain Pan Contamination / Blockage",
+      "level": "easy",
+      "conclusion": "배수 트레이가 슬라임·물때·이물질로 막혀 물이 넘칩니다. 트레이를 청소하세요.",
+      "conclusion_en": "Drain pan is overflowing from slime, scale, or debris. Clean the drain pan.",
+      "causes": ["장기간 미청소로 슬라임·이끼 번식", "배수 트레이 경사 불량", "배수구 이물질 막힘"],
+      "causes_en": ["Slime/algae growth from neglect", "Improper drain pan slope", "Drain outlet blocked by debris"],
+      "steps": [
+        "전원 차단 후 배수 트레이 분리",
+        "트레이 내부 슬라임·오물 제거 (중성 세제 및 솔)",
+        "배수구 막힘 확인 및 제거",
+        "트레이 경사 확인 (배수구 쪽으로 낮아야 함)",
+        "재조립 후 제상 주기 실행하여 배수 확인",
+        "살균 정제 투입 고려 (재발 방지)"
+      ],
+      "steps_en": [
+        "Disconnect power and remove drain pan",
+        "Remove slime and debris (use neutral detergent and brush)",
+        "Check and clear drain outlet blockage",
+        "Verify tray slope (should tilt toward drain outlet)",
+        "Reassemble and run defrost cycle to confirm drainage",
+        "Consider adding drain tablets to prevent recurrence"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+    "di_r_drain_hose": {
+      "type": "result",
+      "title": "배수 호스 / 배수관 막힘 또는 꺾임",
+      "title_en": "Drain Hose / Pipe Blocked or Kinked",
+      "level": "easy",
+      "conclusion": "배수 호스 또는 배수관이 막히거나 꺾여있어 배수가 안 됩니다. 호스를 청소하거나 재배선하세요.",
+      "conclusion_en": "Drain hose or pipe is blocked or kinked, preventing drainage. Clean or re-route the drain line.",
+      "causes": ["배수 호스 꺾임 또는 눌림", "배수관 내 슬라임·이물질 막힘", "역구배 설치"],
+      "causes_en": ["Drain hose kinked or compressed", "Drain pipe blocked by slime or debris", "Improper installation creating reverse slope"],
+      "steps": [
+        "배수 호스 전체 경로 점검 (꺾임·눌림 부위 확인)",
+        "꺾인 부위 직선화 또는 재설치",
+        "물 또는 압축 공기로 내부 통수 시험",
+        "막힘 제거 불가 시 호스 교체",
+        "최종 배수 출구가 아래를 향하도록 경사 확인"
+      ],
+      "steps_en": [
+        "Inspect entire drain hose route for kinks or compression",
+        "Straighten kinked sections or reinstall",
+        "Flush with water or compressed air to test flow",
+        "Replace hose if blockage cannot be cleared",
+        "Confirm the drain outlet points downward with proper slope"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+    "di_r_drain_pump": {
+      "type": "result",
+      "title": "배수 펌프 불량 또는 미설치",
+      "title_en": "Drain Pump Failure or Not Installed",
+      "level": "medium",
+      "conclusion": "배수 펌프가 작동하지 않거나 없어서 물이 배수되지 않습니다. 배수 펌프를 점검하거나 설치하세요.",
+      "conclusion_en": "Water is not draining because drain pump is not working or absent. Inspect or install a drain pump.",
+      "causes": ["배수 펌프 모터 불량", "배수 펌프 임펠러 막힘", "배수 펌프 전원 공급 불량"],
+      "causes_en": ["Drain pump motor failure", "Drain pump impeller blocked", "Poor power supply to drain pump"],
+      "steps": [
+        "배수 펌프 전원 공급 확인",
+        "펌프 단독 전원 인가 시 동작 여부 확인",
+        "임펠러 막힘 점검 및 청소",
+        "펌프 불량 시 동일 규격으로 교체",
+        "교체 후 배수 정상화 확인"
+      ],
+      "steps_en": [
+        "Check power supply to drain pump",
+        "Test pump by applying power directly",
+        "Inspect and clean impeller for blockage",
+        "Replace with same specification if faulty",
+        "Confirm normal drainage after replacement"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+
+    "np_q1": {
+      "type": "question",
+      "question": "분전반의 냉동기 전용 차단기가 ON 위치에 있나요? (트립 또는 내려가지 않았나요?)",
+      "question_en": "Is the dedicated circuit breaker for the refrigerator in the ON position (not tripped or off)?",
+      "yes": "np_q_display",
+      "no": "np_r_breaker_off"
+    },
+    "np_q_display": {
+      "type": "question",
+      "question": "냉동기 전원 스위치를 켰을 때 컨트롤 패널(디스플레이)에 전혀 반응이 없나요?",
+      "question_en": "Is there absolutely no response from the control panel/display when the unit power switch is turned on?",
+      "yes": "np_q_fuse",
+      "no": "np_r_partial_display"
+    },
+    "np_q_fuse": {
+      "type": "question",
+      "question": "본체 내부 퓨즈 또는 소형 차단기(MCB)가 소손·트립되어 있나요?",
+      "question_en": "Is the internal fuse or miniature circuit breaker (MCB) blown or tripped?",
+      "yes": "np_r_fuse_blown",
+      "no": "np_r_pcb_fail"
+    },
+    "np_r_breaker_off": {
+      "type": "result",
+      "title": "분전반 차단기 미투입 또는 트립",
+      "title_en": "Distribution Panel Breaker Off or Tripped",
+      "level": "easy",
+      "conclusion": "차단기가 꺼져있거나 트립 상태입니다. 재투입 전 반드시 트립 원인을 확인하세요.",
+      "conclusion_en": "The circuit breaker is off or tripped. Before re-closing, always identify why it tripped.",
+      "causes": ["수동으로 차단기가 내려진 상태", "과전류·단락으로 인한 자동 트립", "지락으로 인한 누전 차단기(ELB/RCD) 동작"],
+      "causes_en": ["Breaker manually switched off", "Automatic trip from overcurrent or short circuit", "ELCB/RCD operated due to ground fault"],
+      "steps": [
+        "차단기 핸들 위치 확인 (OFF vs 트립 위치 구분)",
+        "냉동기 메인 스위치를 끄고 차단기 재투입 시도",
+        "재투입 즉시 재트립 시 배선·부품 단락·지락 점검",
+        "차단기 용량 재확인",
+        "누전 차단기인 경우 누전 원인 점검"
+      ],
+      "steps_en": [
+        "Check breaker handle position (distinguish OFF from tripped)",
+        "Turn off refrigerator main switch, then attempt to re-close breaker",
+        "If it immediately trips again, inspect for short/ground fault",
+        "Re-verify breaker capacity",
+        "If ELCB/RCD, investigate ground fault cause"
+      ],
+      "warningLevel": "caution",
+      "warning": "트립 원인 파악 없이 차단기를 반복 재투입하면 화재 위험이 있습니다.",
+      "warning_en": "Repeatedly re-closing a tripped breaker without finding the cause poses a fire risk."
+    },
+    "np_r_partial_display": {
+      "type": "result",
+      "title": "부분적 동작 - 전원 불완전 또는 통신 오류",
+      "title_en": "Partial Operation - Incomplete Power or Communication Error",
+      "level": "medium",
+      "conclusion": "컨트롤 패널에 일부 반응은 있으나 정상 동작하지 않습니다. 제어 전원 전압 및 통신 배선을 점검하세요.",
+      "conclusion_en": "Some panel response but operation is not normal. Inspect control power voltage and communication wiring.",
+      "causes": ["제어 전원 전압 불안정 또는 저전압", "PCB 간 통신 배선 불량", "전원부 커패시터 불량으로 제어 전원 불안정"],
+      "causes_en": ["Control power voltage unstable or undervoltage", "Communication wiring between PCBs faulty", "Control power unstable from faulty power supply capacitor"],
+      "steps": [
+        "제어 전원(DC 12V 또는 24V 등) 측정",
+        "각 PCB 전원·통신 단자 연결 상태 확인",
+        "에러 코드 확인 (매뉴얼 참조)",
+        "통신 배선(RS485, CAN 등) 상태 점검",
+        "전원 공급 PCB 불량 시 교체"
+      ],
+      "steps_en": [
+        "Measure control power voltage (DC 12V or 24V, etc.)",
+        "Check all PCB power and communication terminal connections",
+        "Check error codes (refer to manual)",
+        "Inspect communication wiring (RS485, CAN, etc.)",
+        "Replace power supply PCB if faulty"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    },
+    "np_r_fuse_blown": {
+      "type": "result",
+      "title": "내부 퓨즈 / 소형 차단기 소손",
+      "title_en": "Internal Fuse / Miniature Circuit Breaker Blown",
+      "level": "medium",
+      "conclusion": "내부 퓨즈 또는 MCB가 소손되었습니다. 교체 전 반드시 소손 원인을 파악하세요.",
+      "conclusion_en": "Internal fuse or MCB has blown. Always identify the cause before replacing.",
+      "causes": ["순간 과전류로 인한 퓨즈 소손", "배선·부품 단락", "낙뢰 또는 전원 서지"],
+      "causes_en": ["Fuse blown from momentary overcurrent", "Wiring or component short circuit", "Lightning strike or power surge"],
+      "steps": [
+        "소손 퓨즈 규격 확인 (전류·전압·형태)",
+        "교체 전 배선 단락 여부 확인 (절연 저항 측정)",
+        "동일 규격 퓨즈 또는 MCB로 교체",
+        "교체 후 즉시 재소손 시 단락 원인 추가 점검",
+        "서지 보호기(SPD) 미설치 시 설치 권장"
+      ],
+      "steps_en": [
+        "Identify blown fuse specification (current, voltage, type)",
+        "Before replacing, check for wiring short (measure insulation resistance)",
+        "Replace with fuse or MCB of same specification",
+        "If it blows again immediately, investigate the short",
+        "Recommend installing surge protection device (SPD) if not present"
+      ],
+      "warningLevel": "caution",
+      "warning": "더 큰 용량의 퓨즈로 교체하지 마세요. 화재 위험 및 부품 보호 기능이 무력화됩니다.",
+      "warning_en": "Do not replace with a larger-rated fuse. Fire risk and component protection is disabled."
+    },
+    "np_r_pcb_fail": {
+      "type": "result",
+      "title": "메인 PCB(제어 기판) 불량",
+      "title_en": "Main PCB (Control Board) Failure",
+      "level": "hard",
+      "conclusion": "전원·배선·퓨즈가 모두 정상이나 응답이 없다면 메인 PCB가 불량입니다. PCB를 교체하세요.",
+      "conclusion_en": "If power, wiring, and fuses are all normal but there is no response, the main PCB is faulty. Replace it.",
+      "causes": ["낙뢰·전원 서지로 인한 PCB 손상", "전해 커패시터 불량으로 제어 기능 상실", "PCB 납땜 크랙 또는 부품 소손"],
+      "causes_en": ["PCB damaged by lightning or power surge", "Loss of control function from faulty electrolytic capacitor", "Solder crack or component burnout on PCB"],
+      "steps": [
+        "PCB 육안 점검 (탄화, 부품 팽창, 크랙)",
+        "전원 공급 단자에서 PCB 입력 전압 측정",
+        "동일 기종 PCB로 교체",
+        "교체 후 설정 데이터 재입력 (매뉴얼 참조)",
+        "서지 보호기(SPD) 추가 설치 검토"
+      ],
+      "steps_en": [
+        "Visually inspect PCB for charring, bulging components, or cracks",
+        "Measure PCB input voltage at power supply terminal",
+        "Replace with same model PCB",
+        "Re-enter settings data after replacement (refer to manual)",
+        "Consider adding surge protection device (SPD)"
+      ],
+      "warningLevel": "", "warning": "", "warning_en": ""
+    }
+  }
+}

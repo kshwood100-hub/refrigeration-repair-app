@@ -1,0 +1,66 @@
+{
+  "translation": {
+    "appName": "रेफ्रिजरेशन रिपेयर गाइड",
+    "appSubtitle": "फील्ड टेक्नीशियन संदर्भ",
+    "diagnosis": {
+      "title": "डायग्नोस्टिक फ्लोचार्ट",
+      "subtitle": "लक्षण चुनें और चरण-दर-चरण कारण खोजें",
+      "back": "सूची",
+      "yes": "हाँ",
+      "no": "नहीं",
+      "prevQuestion": "पिछला",
+      "result": "निदान परिणाम",
+      "restart": "फिर से शुरू",
+      "orBrowse": "या सीधे सूची देखें",
+      "browseList": "लक्षण सूची देखें"
+    },
+    "nav": {
+      "home": "होम",
+      "diagnosis": "निदान",
+      "checklist": "चेकलिस्ट",
+      "logs": "मरम्मत लॉग"
+    },
+    "home": {
+      "diagnosis": "डायग्नोस्टिक फ्लोचार्ट",
+      "diagnosisDesc": "लक्षण चुनें → प्रश्न → कारण और मरम्मत",
+      "symptoms": "खराबी निदान",
+      "symptomsDesc": "लक्षण के अनुसार कारण और मरम्मत",
+      "checklist": "निरीक्षण चेकलिस्ट",
+      "checklistDesc": "नियमित निरीक्षण आइटम",
+      "logs": "मरम्मत इतिहास",
+      "logsDesc": "कार्य रिकॉर्ड देखें और जोड़ें"
+    },
+    "symptoms": {
+      "title": "खराबी निदान",
+      "searchPlaceholder": "लक्षण खोजें...",
+      "all": "सभी",
+      "empty": "कोई मिलान लक्षण नहीं मिला",
+      "causes": "संभावित कारण",
+      "procedures": "मरम्मत प्रक्रिया",
+      "notes": "सावधानी",
+      "back": "← वापस"
+    },
+    "checklist": {
+      "title": "निरीक्षण चेकलिस्ट",
+      "items": " आइटम",
+      "progress": "प्रगति",
+      "allDone": "✅ सभी आइटम पूर्ण",
+      "back": "← सूची"
+    },
+    "logs": {
+      "title": "मरम्मत इतिहास",
+      "add": "+ जोड़ें",
+      "datePlaceholder": "तारीख",
+      "equipmentPlaceholder": "उपकरण का नाम",
+      "symptomPlaceholder": "लक्षण",
+      "actionPlaceholder": "की गई कार्रवाई",
+      "resultPlaceholder": "परिणाम",
+      "save": "सहेजें",
+      "symptomLabel": "लक्षण",
+      "actionLabel": "कार्रवाई",
+      "resultLabel": "परिणाम",
+      "empty": "कोई मरम्मत इतिहास नहीं",
+      "loading": "लोड हो रहा है..."
+    }
+  }
+}

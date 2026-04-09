@@ -1,0 +1,66 @@
+{
+  "translation": {
+    "appName": "冷凍機修理実務",
+    "appSubtitle": "現場技術者リファレンス",
+    "diagnosis": {
+      "title": "診断フローチャート",
+      "subtitle": "症状を選んで、ステップごとに原因を特定します",
+      "back": "診断一覧",
+      "yes": "はい",
+      "no": "いいえ",
+      "prevQuestion": "前の質問",
+      "result": "診断結果",
+      "restart": "最初からやり直す",
+      "orBrowse": "または症状一覧から検索",
+      "browseList": "症状一覧を見る"
+    },
+    "nav": {
+      "home": "ホーム",
+      "diagnosis": "診断",
+      "checklist": "チェックリスト",
+      "logs": "修理履歴"
+    },
+    "home": {
+      "diagnosis": "診断フローチャート",
+      "diagnosisDesc": "症状を選択 → 質問 → 原因と修理手順",
+      "symptoms": "故障診断",
+      "symptomsDesc": "症状別の原因と修理手順",
+      "checklist": "点検チェックリスト",
+      "checklistDesc": "定期点検項目のチェック",
+      "logs": "修理履歴",
+      "logsDesc": "作業記録の確認・追加"
+    },
+    "symptoms": {
+      "title": "故障診断",
+      "searchPlaceholder": "症状を検索...",
+      "all": "すべて",
+      "empty": "該当する症状がありません",
+      "causes": "推定原因",
+      "procedures": "修理手順",
+      "notes": "注意事項",
+      "back": "← 一覧へ"
+    },
+    "checklist": {
+      "title": "点検チェックリスト",
+      "items": " 項目",
+      "progress": "進捗",
+      "allDone": "✅ すべての項目が完了",
+      "back": "← 一覧"
+    },
+    "logs": {
+      "title": "修理履歴",
+      "add": "+ 追加",
+      "datePlaceholder": "日付",
+      "equipmentPlaceholder": "機器名（例：冷凍倉庫コンプレッサーA）",
+      "symptomPlaceholder": "症状",
+      "actionPlaceholder": "対応内容",
+      "resultPlaceholder": "結果（例：正常復旧）",
+      "save": "保存",
+      "symptomLabel": "症状",
+      "actionLabel": "対応",
+      "resultLabel": "結果",
+      "empty": "修理履歴がありません",
+      "loading": "読み込み中..."
+    }
+  }
+}
