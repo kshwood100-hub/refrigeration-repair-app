@@ -239,9 +239,11 @@ export default function JobFormPage() {
           <span className="text-sm">뒤로</span>
         </button>
         <h2 className="text-base font-semibold text-gray-900">{isNew ? '새 수리 의뢰' : '의뢰 수정'}</h2>
-        <button onClick={handleSave} className="px-4 py-1.5 bg-gray-900 text-white text-sm font-medium rounded-lg">
-          저장
-        </button>
+        {!isNew && (
+          <button onClick={handleSave} className="px-4 py-1.5 bg-gray-900 text-white text-sm font-medium rounded-lg">
+            저장
+          </button>
+        )}
       </div>
 
       <div className="space-y-4">
