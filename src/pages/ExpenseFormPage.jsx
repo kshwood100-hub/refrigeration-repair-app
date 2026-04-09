@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { ChevronLeft, Plus, Trash2 } from 'lucide-react'
+import { ChevronLeft, Plus, Trash2, Camera, X } from 'lucide-react'
 import { db } from '../db'
 
 const today = () => new Date().toISOString().slice(0, 10)
@@ -26,7 +26,9 @@ export default function ExpenseFormPage() {
   const [jobId, setJobId] = useState('')
   const [items, setItems] = useState([{ ...EMPTY_ITEM }])
   const [notes, setNotes] = useState('')
+  const [photos, setPhotos] = useState([])
   const [initialized, setInitialized] = useState(false)
+  const fileRef = useRef()
 
   useEffect(() => {
     if (!isNew && existing && !initialized) {
@@ -35,9 +37,37 @@ export default function ExpenseFormPage() {
       setJobId(existing.jobId ? String(existing.jobId) : '')
       setItems(existing.items?.length ? existing.items : [{ ...EMPTY_ITEM }])
       setNotes(existing.notes ?? '')
+      setPhotos(existing.photos ?? [])
       setInitialized(true)
     }
   }, [existing, isNew, initialized])
+
+  function compressImage(file) {
+    return new Promise((resolve) => {
+      const img = new Image()
+      const url = URL.createObjectURL(file)
+      img.onload = () => {
+        const MAX = 1200
+        const scale = Math.min(1, MAX / Math.max(img.width, img.height))
+        const canvas = document.createElement('canvas')
+        canvas.width  = Math.round(img.width  * scale)
+        canvas.height = Math.round(img.height * scale)
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height)
+        URL.revokeObjectURL(url)
+        resolve(canvas.toDataURL('image/jpeg', 0.75))
+      }
+      img.src = url
+    })
+  }
+
+  async function handlePhoto(e) {
+    const files = Array.from(e.target.files)
+    for (const file of files) {
+      const dataUrl = await compressImage(file)
+      setPhotos((p) => [...p, dataUrl])
+    }
+    e.target.value = ''
+  }
 
   const customerMap = Object.fromEntries((customers ?? []).map((c) => [c.id, c]))
 
@@ -62,6 +92,7 @@ export default function ExpenseFormPage() {
       jobId: jobId ? Number(jobId) : null,
       items,
       notes: notes.trim(),
+      photos,
       updatedAt: new Date().toISOString(),
     }
     if (isNew) {
@@ -198,6 +229,28 @@ export default function ExpenseFormPage() {
             rows={3}
             className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-gray-400 resize-none"
           />
+        </div>
+
+        {/* 영수증 사진 */}
+        <div className="bg-white rounded-xl border border-gray-100 p-4">
+          <p className="text-xs font-semibold text-gray-500 mb-3">영수증 사진</p>
+          <input ref={fileRef} type="file" accept="image/*" capture="environment" multiple className="hidden" onChange={handlePhoto} />
+          <div className="flex gap-2 flex-wrap">
+            {photos.map((dataUrl, i) => (
+              <div key={i} className="relative w-24 h-24">
+                <img src={dataUrl} alt="" className="w-full h-full object-cover rounded-xl" />
+                <button onClick={() => setPhotos((prev) => prev.filter((_, idx) => idx !== i))}
+                  className="absolute -top-1 -right-1 w-5 h-5 bg-gray-800 text-white rounded-full flex items-center justify-center">
+                  <X size={10} strokeWidth={2.5} />
+                </button>
+              </div>
+            ))}
+            <button onClick={() => fileRef.current?.click()}
+              className="w-24 h-24 border border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-400 active:bg-gray-50">
+              <Camera size={20} strokeWidth={1.5} />
+              <span className="text-xs">촬영/추가</span>
+            </button>
+          </div>
         </div>
 
         <button

@@ -91,6 +91,18 @@ export default function ExpenseDetailPage() {
           </div>
         )}
 
+        {/* 영수증 사진 */}
+        {expense.photos?.length > 0 && (
+          <div className="bg-white rounded-xl border border-gray-100 p-4">
+            <p className="text-xs font-semibold text-gray-500 mb-3">영수증 사진</p>
+            <div className="flex gap-2 flex-wrap">
+              {expense.photos.map((dataUrl, i) => (
+                <img key={i} src={dataUrl} alt="" className="w-24 h-24 object-cover rounded-xl" />
+              ))}
+            </div>
+          </div>
+        )}
+
       </div>
 
       {deleting && (
