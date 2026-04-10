@@ -1,6 +1,7 @@
 // 냉매별 포화압력-온도 데이터 (압력 단위: bar abs)
 // 출처: NIST WebBook 선형보간 (순수냉매), ASHRAE 근사값 (혼합냉매*)
 // * R-410A, R-404A, R-507A 는 혼합냉매로 NIST 데이터 없음 — 현장 참조용 근사값
+// pt: null 인 냉매는 특성 정보만 표시 (PT 데이터 미수록)
 
 export const ATM = 1.013 // 대기압 bar
 
@@ -10,8 +11,9 @@ export const REFRIGERANTS = [
     id: 'R-22',
     name: 'R-22',
     color: '#3B82F6',
+    type: 'HCFC',
     note: 'HCFC-22 (NIST)',
-    info: { group: 'A1', gwp: 1810, odp: 0.055, tBoil: -40.8, tCrit: 96.2 },
+    info: { group: 'A1', gwp: 1810, odp: 0.055, tBoil: -40.8, tCrit: 96.1, tCritP: 4.99 },
     tMin: -50, tMax: 60,
     pt: [
       [-50, 0.65], [-45, 0.83], [-40, 1.05], [-35, 1.32],
@@ -26,8 +28,9 @@ export const REFRIGERANTS = [
     id: 'R-410A',
     name: 'R-410A',
     color: '#EF4444',
+    type: '혼합냉매',
     note: 'HFC 혼합 R-32/125 (*근사)',
-    info: { group: 'A1', gwp: 2088, odp: 0, tBoil: -51.4, tCrit: 71.4 },
+    info: { group: 'A1', gwp: 2088, odp: 0, tBoil: -51.4, tCrit: 72.1, tCritP: 4.95 },
     tMin: -50, tMax: 50,
     pt: [
       [-50, 2.37], [-45, 2.70], [-40, 3.07], [-35, 3.49],
@@ -42,8 +45,9 @@ export const REFRIGERANTS = [
     id: 'R-404A',
     name: 'R-404A',
     color: '#10B981',
+    type: '혼합냉매',
     note: 'HFC 혼합 R-125/143a/134a (*근사)',
-    info: { group: 'A1', gwp: 3922, odp: 0, tBoil: -46.5, tCrit: 72.1 },
+    info: { group: 'A1', gwp: 3922, odp: 0, tBoil: -46.5, tCrit: 72.1, tCritP: 3.74 },
     tMin: -50, tMax: 50,
     pt: [
       [-50, 1.23], [-45, 1.47], [-40, 1.73], [-35, 2.10],
@@ -58,8 +62,9 @@ export const REFRIGERANTS = [
     id: 'R-134a',
     name: 'R-134a',
     color: '#F59E0B',
+    type: 'HFC',
     note: 'HFC-134a (NIST)',
-    info: { group: 'A1', gwp: 1430, odp: 0, tBoil: -26.1, tCrit: 101.1 },
+    info: { group: 'A1', gwp: 1430, odp: 0, tBoil: -26.3, tCrit: 101.1, tCritP: 4.06 },
     tMin: -50, tMax: 60,
     pt: [
       [-50, 0.30], [-45, 0.39], [-40, 0.51], [-35, 0.66],
@@ -74,8 +79,9 @@ export const REFRIGERANTS = [
     id: 'R-32',
     name: 'R-32',
     color: '#8B5CF6',
+    type: 'HFC',
     note: 'HFC-32 (NIST)',
-    info: { group: 'A2L', gwp: 675, odp: 0, tBoil: -51.7, tCrit: 78.1 },
+    info: { group: 'A2L', gwp: 675, odp: 0, tBoil: -51.7, tCrit: 78.1, tCritP: 5.78 },
     tMin: -50, tMax: 50,
     pt: [
       [-50, 1.10], [-45, 1.41], [-40, 1.77], [-35, 2.21],
@@ -90,8 +96,9 @@ export const REFRIGERANTS = [
     id: 'R-507A',
     name: 'R-507A',
     color: '#06B6D4',
+    type: '혼합냉매',
     note: 'HFC 공비혼합 R-125/143a (*근사)',
-    info: { group: 'A1', gwp: 3985, odp: 0, tBoil: -46.7, tCrit: 70.6 },
+    info: { group: 'A1', gwp: 3985, odp: 0, tBoil: -46.7, tCrit: 70.6, tCritP: 3.79 },
     tMin: -50, tMax: 50,
     pt: [
       [-50, 1.43], [-45, 1.65], [-40, 1.89], [-35, 2.31],
@@ -106,8 +113,9 @@ export const REFRIGERANTS = [
     id: 'R-407C',
     name: 'R-407C',
     color: '#84CC16',
+    type: '혼합냉매',
     note: 'HFC 혼합 R-32/125/134a (*근사)',
-    info: { group: 'A1', gwp: 1774, odp: 0, tBoil: -43.6, tCrit: 86.7 },
+    info: { group: 'A1', gwp: 1774, odp: 0, tBoil: -43.6, tCrit: 86.1, tCritP: 4.63 },
     tMin: -50, tMax: 50,
     pt: [
       [-50, 0.88], [-45, 1.06], [-40, 1.26], [-35, 1.56],
@@ -122,8 +130,9 @@ export const REFRIGERANTS = [
     id: 'R-600a',
     name: 'R-600a',
     color: '#EC4899',
+    type: '자연냉매',
     note: '이소부탄 소형냉장고 (NIST)',
-    info: { group: 'A3', gwp: 3, odp: 0, tBoil: -11.7, tCrit: 134.7 },
+    info: { group: 'A3', gwp: 3, odp: 0, tBoil: -11.6, tCrit: 134.7, tCritP: 3.64 },
     tMin: -40, tMax: 50,
     pt: [
       [-40, 0.29], [-35, 0.37], [-30, 0.47], [-25, 0.58],
@@ -137,8 +146,9 @@ export const REFRIGERANTS = [
     id: 'R-290',
     name: 'R-290',
     color: '#F97316',
+    type: '자연냉매',
     note: '프로판 자연냉매 (NIST)',
-    info: { group: 'A3', gwp: 3, odp: 0, tBoil: -42.1, tCrit: 96.7 },
+    info: { group: 'A3', gwp: 3, odp: 0, tBoil: -42.1, tCrit: 96.7, tCritP: 4.25 },
     tMin: -50, tMax: 50,
     pt: [
       [-50, 0.71], [-45, 0.89], [-40, 1.11], [-35, 1.37],
@@ -153,8 +163,9 @@ export const REFRIGERANTS = [
     id: 'R-717',
     name: 'R-717',
     color: '#64748B',
+    type: '자연냉매',
     note: '암모니아 산업용 (NIST)',
-    info: { group: 'B2L', gwp: 0, odp: 0, tBoil: -33.3, tCrit: 132.3 },
+    info: { group: 'B2L', gwp: 0, odp: 0, tBoil: -33.3, tCrit: 132.4, tCritP: 11.33 },
     tMin: -50, tMax: 50,
     pt: [
       [-50, 0.41], [-45, 0.55], [-40, 0.72], [-35, 0.93],
@@ -170,7 +181,8 @@ export const REFRIGERANTS = [
     name: 'R-744',
     color: '#0EA5E9',
     note: 'CO₂ 자연냉매 (NIST)',
-    info: { group: 'A1', gwp: 1, odp: 0, tBoil: null, tCrit: 31.1 },
+    type: '자연냉매',
+    info: { group: 'A1', gwp: 1, odp: 0, tBoil: null, tCrit: 31.1, tCritP: 7.38 },
     tMin: -55, tMax: 30,
     pt: [
       [-55, 5.54], [-50, 6.82], [-45, 8.32], [-40,10.05],
@@ -180,6 +192,31 @@ export const REFRIGERANTS = [
       [ 25,64.34], [ 30,72.14],
     ],
   },
+
+  // ── PT 데이터 없음 — 특성 정보만 ──────────────────────────
+  { id:'R-11',   name:'R-11',   color:'#6B7280', type:'CFC',    note:'CCl₃F (Trichlorofluoromethane)',           pt:null, info:{ group:'A1',  gwp:4750,  odp:1.0,    tBoil:-23.8, tCrit:198.0, tCritP:4.41 } },
+  { id:'R-12',   name:'R-12',   color:'#6B7280', type:'CFC',    note:'CCl₂F₂ (Dichlorodifluoromethane)',         pt:null, info:{ group:'A1',  gwp:10900, odp:1.0,    tBoil:-29.8, tCrit:112.0, tCritP:4.14 } },
+  { id:'R-113',  name:'R-113',  color:'#6B7280', type:'CFC',    note:'CCl₂FCClF₂',                               pt:null, info:{ group:'A1',  gwp:6130,  odp:0.9,    tBoil:47.6,  tCrit:214.1, tCritP:3.44 } },
+  { id:'R-114',  name:'R-114',  color:'#6B7280', type:'CFC',    note:'CClF₂CClF₂',                               pt:null, info:{ group:'A1',  gwp:10000, odp:0.85,   tBoil:3.8,   tCrit:145.7, tCritP:3.26 } },
+  { id:'R-115',  name:'R-115',  color:'#6B7280', type:'CFC',    note:'CClF₂CF₃',                                 pt:null, info:{ group:'A1',  gwp:7370,  odp:0.4,    tBoil:-38.0, tCrit:80.0,  tCritP:3.13 } },
+  { id:'R-123',  name:'R-123',  color:'#A78BFA', type:'HCFC',   note:'CHCl₂CF₃',                                 pt:null, info:{ group:'B1',  gwp:77,    odp:0.02,   tBoil:27.8,  tCrit:183.7, tCritP:3.66 } },
+  { id:'R-124',  name:'R-124',  color:'#A78BFA', type:'HCFC',   note:'CHClFCF₃',                                 pt:null, info:{ group:'A1',  gwp:609,   odp:0.022,  tBoil:-12.0, tCrit:122.3, tCritP:3.62 } },
+  { id:'R-141b', name:'R-141b', color:'#A78BFA', type:'HCFC',   note:'CH₃CCl₂F',                                 pt:null, info:{ group:'A2',  gwp:725,   odp:0.11,   tBoil:32.1,  tCrit:204.2, tCritP:4.21 } },
+  { id:'R-142b', name:'R-142b', color:'#A78BFA', type:'HCFC',   note:'CH₃CClF₂',                                 pt:null, info:{ group:'A2',  gwp:2310,  odp:0.065,  tBoil:-9.8,  tCrit:137.2, tCritP:4.06 } },
+  { id:'R-23',   name:'R-23',   color:'#60A5FA', type:'HFC',    note:'CHF₃ (Trifluoromethane)',                  pt:null, info:{ group:'A1',  gwp:14800, odp:0,      tBoil:-82.1, tCrit:26.1,  tCritP:4.82 } },
+  { id:'R-125',  name:'R-125',  color:'#60A5FA', type:'HFC',    note:'CHF₂CF₃ (Pentafluoroethane)',              pt:null, info:{ group:'A1',  gwp:3500,  odp:0,      tBoil:-48.5, tCrit:66.3,  tCritP:3.62 } },
+  { id:'R-143a', name:'R-143a', color:'#60A5FA', type:'HFC',    note:'CH₃CF₃ (1,1,1-Trifluoroethane)',          pt:null, info:{ group:'A2L', gwp:4470,  odp:0,      tBoil:-47.4, tCrit:72.9,  tCritP:3.76 } },
+  { id:'R-152a', name:'R-152a', color:'#60A5FA', type:'HFC',    note:'CH₃CHF₂ (1,1-Difluoroethane)',            pt:null, info:{ group:'A2',  gwp:124,   odp:0,      tBoil:-24.0, tCrit:113.3, tCritP:4.52 } },
+  { id:'R-161',  name:'R-161',  color:'#60A5FA', type:'HFC',    note:'CH₃CH₂F (Fluoroethane)',                  pt:null, info:{ group:'A2',  gwp:12,    odp:0,      tBoil:-37.1, tCrit:102.2, tCritP:5.03 } },
+  { id:'R-1234yf',    name:'R-1234yf',    color:'#34D399', type:'HFO', note:'CF₃CF=CH₂ (2,3,3,3-Tetrafluoropropene)',              pt:null, info:{ group:'A2L', gwp:4,   odp:0,      tBoil:-29.4, tCrit:94.7,  tCritP:3.38 } },
+  { id:'R-1234ze(E)', name:'R-1234ze(E)', color:'#34D399', type:'HFO', note:'CF₃CH=CHF (trans-1,3,3,3-Tetrafluoropropene)',        pt:null, info:{ group:'A2L', gwp:7,   odp:0,      tBoil:-18.9, tCrit:109.4, tCritP:3.63 } },
+  { id:'R-1233zd(E)', name:'R-1233zd(E)', color:'#34D399', type:'HFO', note:'CF₃CH=CHCl (trans-1-Chloro-3,3,3-trifluoropropene)', pt:null, info:{ group:'A1',  gwp:1,   odp:0.00034,tBoil:18.3,  tCrit:166.5, tCritP:3.57 } },
+  { id:'R-1270', name:'R-1270', color:'#F97316', type:'자연냉매', note:'C₃H₆ (Propylene)',                        pt:null, info:{ group:'A3',  gwp:2,     odp:0,      tBoil:-47.6, tCrit:91.8,  tCritP:4.67 } },
+  { id:'R-401A', name:'R-401A', color:'#D97706', type:'혼합냉매', note:'R-22/152a/124 (53/13/34%)',               pt:null, info:{ group:'A1',  gwp:1182,  odp:0.033,  tBoil:-33.1, tCrit:107.6, tCritP:4.68 } },
+  { id:'R-422D', name:'R-422D', color:'#D97706', type:'혼합냉매', note:'R-125/134a/600a (65.1/31.5/3.4%)',        pt:null, info:{ group:'A1',  gwp:2729,  odp:0,      tBoil:-46.6, tCrit:79.5,  tCritP:4.01 } },
+  { id:'R-452A', name:'R-452A', color:'#D97706', type:'혼합냉매', note:'R-32/125/1234yf (11/59/30%)',             pt:null, info:{ group:'A2L', gwp:2140,  odp:0,      tBoil:-47.5, tCrit:73.0,  tCritP:3.99 } },
+  { id:'R-454B', name:'R-454B', color:'#D97706', type:'혼합냉매', note:'R-32/1234yf (68.9/31.1%)',                pt:null, info:{ group:'A2L', gwp:466,   odp:0,      tBoil:-51.7, tCrit:78.1,  tCritP:4.63 } },
+  { id:'R-513A', name:'R-513A', color:'#D97706', type:'혼합냉매', note:'R-134a/1234yf (44/56%)',                  pt:null, info:{ group:'A1',  gwp:631,   odp:0,      tBoil:-29.3, tCrit:97.3,  tCritP:3.77 } },
 ]
 
 // 온도 → 포화압력 (bar abs) 선형보간

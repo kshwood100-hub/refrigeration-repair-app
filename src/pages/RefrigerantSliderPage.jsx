@@ -28,8 +28,8 @@ export default function RefrigerantSliderPage() {
   const unit = UNITS[unitKey]
 
   useEffect(() => {
-    setTempC((v) => Math.min(rfg.tMax, Math.max(rfg.tMin, v)))
-  }, [rfgId, rfg.tMin, rfg.tMax])
+    if (rfg.pt) setTempC((v) => Math.min(rfg.tMax, Math.max(rfg.tMin, v)))
+  }, [rfgId, rfg])
 
   const calculatedPressure = useMemo(() => {
     const pAbs = tempToPressureAbs(rfg, tempC)
@@ -47,8 +47,11 @@ export default function RefrigerantSliderPage() {
 
   const filteredRfg = REFRIGERANTS.filter((r) =>
     r.id.toLowerCase().includes(search.toLowerCase()) ||
-    r.note.toLowerCase().includes(search.toLowerCase())
+    r.note.toLowerCase().includes(search.toLowerCase()) ||
+    (r.type ?? '').toLowerCase().includes(search.toLowerCase())
   )
+
+  const hasPT = rfg.pt !== null && rfg.pt !== undefined
 
   return (
     <div className="p-4 pb-8">
@@ -112,8 +115,15 @@ export default function RefrigerantSliderPage() {
         </div>
       )}
 
+      {/* PT 없는 냉매 안내 */}
+      {!hasPT && (
+        <div className="mb-4 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-700">
+          이 냉매는 PT 데이터가 수록되지 않았습니다. 특성 정보만 제공됩니다.
+        </div>
+      )}
+
       {/* 단위 선택 */}
-      <div className="flex gap-2 mb-4 flex-wrap">
+      <div className={`flex gap-2 mb-4 flex-wrap ${!hasPT ? 'opacity-30 pointer-events-none' : ''}`}>
         <div className="flex bg-gray-100 rounded-lg p-0.5 text-xs">
           {Object.entries(UNITS).map(([key, u]) => (
             <button
@@ -146,7 +156,7 @@ export default function RefrigerantSliderPage() {
       </div>
 
       {/* 모드 탭 */}
-      <div className="flex bg-gray-100 p-1 rounded-xl mb-5">
+      <div className={`flex bg-gray-100 p-1 rounded-xl mb-5 ${!hasPT ? 'opacity-30 pointer-events-none' : ''}`}>
         <button
           onClick={() => setMode('t2p')}
           className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${
@@ -165,8 +175,11 @@ export default function RefrigerantSliderPage() {
         </button>
       </div>
 
+      {/* PT 없는 냉매는 정보만 */}
+      {!hasPT && <RefInfo rfg={rfg} />}
+
       {/* 온도 → 압력 */}
-      {mode === 't2p' && (
+      {hasPT && mode === 't2p' && (
         <div className="space-y-3">
           <div className="bg-white border border-gray-300 rounded-2xl p-4 shadow-sm">
             <p className="text-xs font-medium text-gray-400 mb-3">온도 (°C)</p>
@@ -216,7 +229,7 @@ export default function RefrigerantSliderPage() {
       )}
 
       {/* 압력 → 온도 */}
-      {mode === 'p2t' && (
+      {hasPT && mode === 'p2t' && (
         <div className="space-y-3">
           <div className="bg-white border border-gray-300 rounded-2xl p-4 shadow-sm">
             <p className="text-xs font-medium text-gray-400 mb-2">압력 ({unitLabel})</p>
@@ -247,7 +260,7 @@ export default function RefrigerantSliderPage() {
       )}
 
       {/* 참조 표 */}
-      <div className="mt-5">
+      <div className={`mt-5 ${!hasPT ? 'hidden' : ''}`}>
         <button
           onClick={() => setShowTable((v) => !v)}
           className="w-full py-2.5 bg-gray-100 text-gray-600 text-sm font-medium rounded-xl active:bg-gray-200 flex items-center justify-center gap-2"
@@ -285,6 +298,22 @@ export default function RefrigerantSliderPage() {
   )
 }
 
+function gwpColor(gwp) {
+  if (gwp > 3000)  return { bg: '#FEE2E2', text: '#DC2626' } // 빨강
+  if (gwp > 1000)  return { bg: '#FEF3C7', text: '#D97706' } // 주황
+  if (gwp > 100)   return { bg: '#DBEAFE', text: '#2563EB' } // 파랑
+  return { bg: '#DCFCE7', text: '#16A34A' }                   // 초록
+}
+
+const TYPE_COLOR = {
+  'CFC':    { bg: '#FEE2E2', text: '#991B1B' },
+  'HCFC':   { bg: '#FEF3C7', text: '#92400E' },
+  'HFC':    { bg: '#DBEAFE', text: '#1E40AF' },
+  'HFO':    { bg: '#DCFCE7', text: '#065F46' },
+  '자연냉매': { bg: '#F0FDF4', text: '#15803D' },
+  '혼합냉매': { bg: '#F3F4F6', text: '#374151' },
+}
+
 function RefInfo({ rfg }) {
   const { info } = rfg
   if (!info) return null
@@ -294,27 +323,97 @@ function RefInfo({ rfg }) {
     B1: '#7C3AED', B2L: '#B45309', B2: '#9A3412', B3: '#991B1B',
   }[info.group] ?? '#6B7280'
 
+  const gwp = info.gwp
+  const gwpC = gwpColor(gwp)
+  const typeC = TYPE_COLOR[rfg.type] ?? { bg: '#F3F4F6', text: '#374151' }
+
   return (
     <div className="bg-white border border-gray-300 rounded-xl overflow-hidden shadow-sm">
-      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-4 py-2.5 border-b border-gray-50">
-        냉매 정보
-      </p>
+      {/* 헤더 */}
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-100">
+        <p className="text-xs font-semibold text-gray-500">냉매 정보</p>
+        {rfg.type && (
+          <span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ backgroundColor: typeC.bg, color: typeC.text }}>
+            {rfg.type}
+          </span>
+        )}
+      </div>
+
       <div className="divide-y divide-gray-50">
-        {[
-          { label: '안전그룹', value: info.group, badge: true },
-          { label: 'GWP',      value: info.gwp === 0 ? '~0' : info.gwp.toLocaleString() },
-          { label: 'ODP',      value: info.odp === 0 ? '0' : String(info.odp) },
-          { label: '끓는점',   value: info.tBoil != null ? `${info.tBoil}°C` : '대기압 액상 없음' },
-          { label: '임계온도', value: `${info.tCrit}°C` },
-        ].map(({ label, value, badge }) => (
-          <div key={label} className="flex items-center justify-between px-4 py-2.5">
-            <span className="text-xs text-gray-400">{label}</span>
-            {badge
-              ? <span className="px-2 py-0.5 rounded-full text-xs font-semibold text-white" style={{ backgroundColor: groupColor }}>{value}</span>
-              : <span className="text-xs font-semibold text-gray-800">{value}</span>
-            }
+        {/* 안전그룹 */}
+        <div className="flex items-center justify-between px-4 py-2.5">
+          <span className="text-xs text-gray-400">안전그룹</span>
+          <span className="px-2 py-0.5 rounded-full text-xs font-semibold text-white" style={{ backgroundColor: groupColor }}>{info.group}</span>
+        </div>
+
+        {/* GWP */}
+        <div className="flex items-center justify-between px-4 py-2.5">
+          <span className="text-xs text-gray-400">GWP <span className="text-gray-300">(온난화지수)</span></span>
+          <span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ backgroundColor: gwpC.bg, color: gwpC.text }}>
+            {gwp === 0 ? '~0' : gwp.toLocaleString()}
+          </span>
+        </div>
+
+        {/* ODP */}
+        <div className="flex items-center justify-between px-4 py-2.5">
+          <span className="text-xs text-gray-400">ODP <span className="text-gray-300">(오존영향)</span></span>
+          {info.odp > 0
+            ? <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-600">{info.odp}</span>
+            : <span className="text-xs font-semibold text-gray-800">0</span>
+          }
+        </div>
+
+        {/* 끓는점 */}
+        <div className="flex items-center justify-between px-4 py-2.5">
+          <span className="text-xs text-gray-400">끓는점</span>
+          <span className="text-xs font-semibold text-gray-800">
+            {info.tBoil != null ? `${info.tBoil}°C` : '대기압 액상 없음'}
+          </span>
+        </div>
+
+        {/* 임계온도 */}
+        <div className="flex items-center justify-between px-4 py-2.5">
+          <span className="text-xs text-gray-400">임계온도</span>
+          <span className="text-xs font-semibold text-gray-800">{info.tCrit}°C</span>
+        </div>
+
+        {/* 임계압력 */}
+        {info.tCritP && (
+          <div className="flex items-center justify-between px-4 py-2.5">
+            <span className="text-xs text-gray-400">임계압력</span>
+            <span className="text-xs font-semibold text-gray-800">{info.tCritP} MPa</span>
           </div>
-        ))}
+        )}
+
+        {/* 구성성분 */}
+        {rfg.note && (
+          <div className="flex items-start justify-between px-4 py-2.5 gap-4">
+            <span className="text-xs text-gray-400 shrink-0">구성</span>
+            <span className="text-xs text-gray-600 text-right">{rfg.note.replace(' (NIST)', '').replace(' (*근사)', '')}</span>
+          </div>
+        )}
+      </div>
+
+      {/* GWP 범례 */}
+      <div className="px-4 py-3 border-t border-gray-100 bg-gray-50">
+        <p className="text-xs text-gray-400 mb-1.5 font-medium">GWP 색상 기준</p>
+        <div className="flex gap-2 flex-wrap">
+          {[
+            { label: '3,000↑', bg: '#FEE2E2', text: '#DC2626' },
+            { label: '1,001~3,000', bg: '#FEF3C7', text: '#D97706' },
+            { label: '101~1,000', bg: '#DBEAFE', text: '#2563EB' },
+            { label: '100↓', bg: '#DCFCE7', text: '#16A34A' },
+          ].map((c) => (
+            <span key={c.label} className="px-1.5 py-0.5 rounded text-xs font-medium" style={{ backgroundColor: c.bg, color: c.text }}>
+              {c.label}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* 출처 */}
+      <div className="px-4 py-2 border-t border-gray-100">
+        <p className="text-xs text-gray-300">출처: ASHRAE · IPCC AR4/AR6 · 몬트리올의정서 · UNEP</p>
       </div>
     </div>
   )
