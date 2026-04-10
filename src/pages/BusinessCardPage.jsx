@@ -8,6 +8,7 @@ import {
 import { db } from '../db'
 import { loadSettings } from '../utils/settings'
 import { scanBusinessCard } from '../utils/scanBusinessCard'
+import { scanBusinessCardTesseract } from '../utils/scanBusinessCardTesseract'
 
 const EMPTY = {
   name: '', company: '', title: '', phone: '', mobile: '', email: '', address: '', memo: '',
@@ -21,7 +22,9 @@ export default function BusinessCardPage() {
   const [photoUrl, setPhotoUrl] = useState('')
   const [form, setForm] = useState(EMPTY)
   const [scanning, setScanning] = useState(false)
+  const [scanProgress, setScanProgress] = useState(0)
   const [saving, setSaving] = useState(false)
+  const [rawText, setRawText] = useState('')
   const [deleting, setDeleting] = useState(null)
 
   const cards = useLiveQuery(
@@ -50,6 +53,7 @@ export default function BusinessCardPage() {
       if (!apiKey) return   // 수동 입력으로 진행
 
       setScanning(true)
+      setScanProgress(0)
       try {
         const result = await scanBusinessCard(dataUrl, apiKey)
         setForm({
@@ -146,17 +150,85 @@ export default function BusinessCardPage() {
           <img src={photoUrl} alt="명함" className="w-full max-h-44 object-contain" />
         </div>
 
-        {/* AI 스캔 중 */}
+        {/* 스캔 중 */}
         {scanning && (
           <div className="flex items-center justify-center gap-2 py-3 mb-3 text-blue-600 text-sm bg-blue-50 rounded-xl">
             <Loader size={15} className="animate-spin" strokeWidth={2} />
-            AI가 명함 내용을 분석 중입니다…
+            {scanProgress > 0 ? `Tesseract 분석 중… ${scanProgress}%` : 'AI가 명함 내용을 분석 중입니다…'}
+          </div>
+        )}
+
+        {!scanning && (
+          <div className="flex gap-2 mb-3">
+            <button
+              onClick={async () => {
+                setScanning(true)
+                setScanProgress(0)
+                setRawText('')
+                try {
+                  const result = await scanBusinessCardTesseract(photoUrl, setScanProgress)
+                  setRawText(result._rawText ?? '')
+                  setForm({
+                    name:    result.name    ?? '',
+                    company: result.company ?? '',
+                    title:   result.title   ?? '',
+                    phone:   result.phone   ?? '',
+                    mobile:  result.mobile  ?? '',
+                    email:   result.email   ?? '',
+                    address: result.address ?? '',
+                    memo:    result.memo    ?? '',
+                  })
+                } catch (err) {
+                  alert('Tesseract 오류: ' + err.message)
+                } finally {
+                  setScanning(false)
+                }
+              }}
+              className="flex-1 py-2 text-xs font-medium bg-amber-50 border border-amber-300 text-amber-700 rounded-xl"
+            >
+              Tesseract 테스트
+            </button>
+            {loadSettings().claudeApiKey && (
+              <button
+                onClick={async () => {
+                  setScanning(true)
+                  setScanProgress(0)
+                  try {
+                    const result = await scanBusinessCard(photoUrl, loadSettings().claudeApiKey)
+                    setForm({
+                      name:    result.name    ?? '',
+                      company: result.company ?? '',
+                      title:   result.title   ?? '',
+                      phone:   result.phone   ?? '',
+                      mobile:  result.mobile  ?? '',
+                      email:   result.email   ?? '',
+                      address: result.address ?? '',
+                      memo:    result.memo    ?? '',
+                    })
+                  } catch (err) {
+                    alert('AI 스캔 오류: ' + err.message)
+                  } finally {
+                    setScanning(false)
+                  }
+                }}
+                className="flex-1 py-2 text-xs font-medium bg-blue-50 border border-blue-300 text-blue-700 rounded-xl"
+              >
+                Claude AI 재스캔
+              </button>
+            )}
+          </div>
+        )}
+
+        {rawText && (
+          <div className="mb-3 p-3 bg-gray-50 border border-gray-200 rounded-xl">
+            <p className="text-xs font-semibold text-gray-500 mb-1">Tesseract 인식 원문</p>
+            <p className="text-xs text-gray-600 whitespace-pre-wrap font-mono leading-relaxed">{rawText}</p>
           </div>
         )}
 
         {!scanning && !loadSettings().claudeApiKey && (
           <div className="py-2 px-3 mb-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-700">
-            AI API 키가 없어 수동 입력이 필요합니다. 설정 &gt; AI 기능 설정에서 등록하세요.
+            AI API 키가 없어 수동 입력 또는 Tesseract 테스트를 사용하세요.
           </div>
         )}
 
