@@ -105,7 +105,7 @@ export async function exportAllData() {
   const file = new File([blob], fileName, { type: 'application/json' })
 
   // 모바일: 기기 공유창 (메일, 드라이브, 카카오 등)
-  if (navigator.canShare?.({ files: [file] })) {
+  if (navigator.share) {
     try {
       await navigator.share({
         title: '냉동기수리 데이터 백업',
