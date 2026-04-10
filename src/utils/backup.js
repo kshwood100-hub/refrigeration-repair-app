@@ -118,13 +118,16 @@ export async function exportAllData() {
     }
   }
 
-  // 폴백: 파일 다운로드
+  // 파일 다운로드
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
   a.download = fileName
   a.click()
   URL.revokeObjectURL(url)
+  setTimeout(() => {
+    alert('파일이 저장됐습니다.\n\n화면 위 알림창을 내려서 파일을 길게 누르면\n이메일·카카오톡 등으로 공유할 수 있습니다.')
+  }, 500)
 }
 
 // JSON 파일에서 전체 데이터 가져오기
