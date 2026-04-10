@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronDown, Search, X, Check } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { loadSettings } from '../utils/settings'
 import {
-  REFRIGERANTS,
+  REFRIGERANTS as _REFRIGERANTS,
   UNITS,
   tempToPressureAbs,
   pressureAbsToTemp,
@@ -11,6 +11,12 @@ import {
   fromDisplay,
   REF_TEMPS,
 } from '../data/refrigerantsData'
+
+function rfgSortKey(id) {
+  const m = id.match(/R-(\d+)/)
+  return m ? parseFloat(m[1]) : 9999
+}
+const REFRIGERANTS = [..._REFRIGERANTS].sort((a, b) => rfgSortKey(a.id) - rfgSortKey(b.id))
 
 export default function RefrigerantSliderPage() {
   const navigate = useNavigate()
