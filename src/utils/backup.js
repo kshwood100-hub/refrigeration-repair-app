@@ -106,12 +106,16 @@ export async function exportAllData() {
 
   // 모바일: 기기 공유창 (메일, 드라이브, 카카오 등)
   if (navigator.canShare?.({ files: [file] })) {
-    await navigator.share({
-      title: '냉동기수리 데이터 백업',
-      text: `백업 날짜: ${new Date().toISOString().slice(0, 10)}`,
-      files: [file],
-    })
-    return
+    try {
+      await navigator.share({
+        title: '냉동기수리 데이터 백업',
+        text: `백업 날짜: ${new Date().toISOString().slice(0, 10)}`,
+        files: [file],
+      })
+      return
+    } catch {
+      // 공유 취소 또는 미지원 → 파일 다운로드로 전환
+    }
   }
 
   // 폴백: 파일 다운로드
