@@ -72,6 +72,71 @@ export async function restoreBackup(backup) {
   })
 }
 
+const CHUNK_SIZE = 3500 // chars per QR code
+
+// QR 내보내기용 청크 생성 (사진 제외)
+export async function exportQRChunks() {
+  const [customers, service_jobs, expenses, knowhow, business_cards] = await Promise.all([
+    db.customers.toArray(),
+    db.service_jobs.toArray(),
+    db.expenses.toArray(),
+    db.knowhow.toArray(),
+    db.business_cards.toArray(),
+  ])
+
+  const payload = JSON.stringify({
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    customers, service_jobs, expenses, knowhow, business_cards,
+  })
+
+  const blob = await compress(payload)
+  const buffer = await blob.arrayBuffer()
+  const uint8 = new Uint8Array(buffer)
+  let binary = ''
+  for (let i = 0; i < uint8.length; i += 8192) {
+    binary += String.fromCharCode(...uint8.subarray(i, Math.min(i + 8192, uint8.length)))
+  }
+  const base64 = btoa(binary)
+
+  const n = Math.ceil(base64.length / CHUNK_SIZE)
+  return Array.from({ length: n }, (_, i) => JSON.stringify({
+    i, n, d: base64.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE)
+  }))
+}
+
+// QR 스캔 청크 조합 후 복원
+export async function importQRChunks(chunkMap, total) {
+  const base64 = Array.from({ length: total }, (_, i) => JSON.parse(chunkMap[i]).d).join('')
+  const binary = atob(base64)
+  const uint8 = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i++) uint8[i] = binary.charCodeAt(i)
+  const text = await decompress(new Blob([uint8]))
+  const data = JSON.parse(text)
+
+  const customers      = data.customers      ?? []
+  const service_jobs   = data.service_jobs   ?? []
+  const expenses       = data.expenses       ?? []
+  const knowhow        = data.knowhow        ?? []
+  const business_cards = data.business_cards ?? []
+
+  await db.transaction('rw',
+    db.customers, db.service_jobs, db.expenses, db.knowhow, db.business_cards,
+    async () => {
+      await db.customers.clear()
+      await db.service_jobs.clear()
+      await db.expenses.clear()
+      await db.knowhow.clear()
+      await db.business_cards.clear()
+      if (customers.length)      await db.customers.bulkAdd(customers)
+      if (service_jobs.length)   await db.service_jobs.bulkAdd(service_jobs)
+      if (expenses.length)       await db.expenses.bulkAdd(expenses)
+      if (knowhow.length)        await db.knowhow.bulkAdd(knowhow)
+      if (business_cards.length) await db.business_cards.bulkAdd(business_cards)
+    }
+  )
+}
+
 export function formatSize(bytes) {
   if (bytes < 1024) return bytes + ' B'
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'

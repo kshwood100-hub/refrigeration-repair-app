@@ -2,7 +2,9 @@ import { useState, useRef } from 'react'
 import { UNITS } from '../data/refrigerantsData'
 import { loadSettings, saveSettings } from '../utils/settings'
 import { createBackup, listBackups, downloadBackup, restoreBackup, formatSize, exportAllData, importAllData } from '../utils/backup'
-import { Download, RotateCcw, Upload } from 'lucide-react'
+import { Download, RotateCcw, Upload, QrCode, ScanLine } from 'lucide-react'
+import QRExportModal from '../components/QRExportModal'
+import QRImportModal from '../components/QRImportModal'
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState(loadSettings)
@@ -11,6 +13,8 @@ export default function SettingsPage() {
   const [backupOpen, setBackupOpen] = useState(false)
   const [exportLoading, setExportLoading] = useState(false)
   const importRef = useRef()
+  const [qrExportOpen, setQrExportOpen] = useState(false)
+  const [qrImportOpen, setQrImportOpen] = useState(false)
 
   function update(patch) {
     const next = { ...settings, ...patch }
@@ -148,14 +152,34 @@ export default function SettingsPage() {
         <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">데이터 이전</div>
         <div className="bg-white border border-gray-300 rounded-xl overflow-hidden divide-y divide-gray-100">
           <button
+            onClick={() => setQrExportOpen(true)}
+            className="w-full flex items-center gap-3 px-4 py-3.5 text-sm active:bg-gray-50"
+          >
+            <QrCode size={16} strokeWidth={1.5} className="text-gray-500 shrink-0" />
+            <div className="flex-1 text-left">
+              <p className="font-medium text-gray-800">QR 내보내기</p>
+              <p className="text-xs text-gray-400 mt-0.5">새 폰으로 QR 스캔해서 바로 이전</p>
+            </div>
+          </button>
+          <button
+            onClick={() => setQrImportOpen(true)}
+            className="w-full flex items-center gap-3 px-4 py-3.5 text-sm active:bg-gray-50"
+          >
+            <ScanLine size={16} strokeWidth={1.5} className="text-gray-500 shrink-0" />
+            <div className="flex-1 text-left">
+              <p className="font-medium text-gray-800">QR 가져오기</p>
+              <p className="text-xs text-gray-400 mt-0.5">이전 폰 QR 코드를 카메라로 스캔</p>
+            </div>
+          </button>
+          <button
             onClick={handleExport}
             disabled={exportLoading}
             className="w-full flex items-center gap-3 px-4 py-3.5 text-sm active:bg-gray-50 disabled:opacity-50"
           >
             <Download size={16} strokeWidth={1.5} className="text-gray-500 shrink-0" />
             <div className="flex-1 text-left">
-              <p className="font-medium text-gray-800">{exportLoading ? '파일 생성 중...' : '데이터 내보내기'}</p>
-              <p className="text-xs text-gray-400 mt-0.5">메일·드라이브·카카오 등 원하는 앱으로 전송</p>
+              <p className="font-medium text-gray-800">{exportLoading ? '파일 생성 중...' : '파일 내보내기'}</p>
+              <p className="text-xs text-gray-400 mt-0.5">JSON 파일로 저장</p>
             </div>
           </button>
           <button
@@ -164,13 +188,21 @@ export default function SettingsPage() {
           >
             <Upload size={16} strokeWidth={1.5} className="text-gray-500 shrink-0" />
             <div className="flex-1 text-left">
-              <p className="font-medium text-gray-800">데이터 가져오기</p>
-              <p className="text-xs text-gray-400 mt-0.5">JSON 파일에서 복원 (기존 데이터 교체)</p>
+              <p className="font-medium text-gray-800">파일 가져오기</p>
+              <p className="text-xs text-gray-400 mt-0.5">JSON 파일에서 복원</p>
             </div>
           </button>
           <input ref={importRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
         </div>
       </section>
+
+      {qrExportOpen && <QRExportModal onClose={() => setQrExportOpen(false)} />}
+      {qrImportOpen && (
+        <QRImportModal
+          onClose={() => setQrImportOpen(false)}
+          onDone={() => setQrImportOpen(false)}
+        />
+      )}
 
       {/* 데이터 백업 */}
       <section className="mb-6">
