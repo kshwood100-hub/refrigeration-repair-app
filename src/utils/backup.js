@@ -100,9 +100,9 @@ export async function exportAllData() {
     business_cards,
   }, null, 2)
 
-  const fileName = `냉동기수리_데이터_${new Date().toISOString().slice(0, 10)}.json`
-  const blob = new Blob([payload], { type: 'application/json' })
-  const file = new File([blob], fileName, { type: 'application/json' })
+  const fileName = `naengdong_backup_${new Date().toISOString().slice(0, 10)}.json`
+  const blob = new Blob([payload], { type: 'text/plain' })
+  const file = new File([blob], fileName, { type: 'text/plain' })
 
   // 모바일: 기기 공유창 (메일, 드라이브, 카카오 등)
   if (navigator.share) {
