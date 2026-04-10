@@ -14,7 +14,7 @@ export default function RefrigerationBasicsPage() {
           <ChevronLeft size={18} strokeWidth={1.5} />
           <span className="text-sm">뒤로</span>
         </button>
-        <h2 className="text-base font-semibold text-gray-900">냉동기 기초 지식</h2>
+        <h2 className="text-base font-semibold text-gray-900">냉동 기초 지식</h2>
       </div>
 
       <p className="text-xs text-gray-400 mb-4">현장에서 꼭 알아야 할 냉동기 기본 개념 정리</p>

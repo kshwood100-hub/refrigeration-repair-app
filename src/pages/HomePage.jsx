@@ -25,7 +25,7 @@ export default function HomePage() {
   const menus = [
     { to: '/diagnosis',   label: '고장 진단',   Icon: ScanSearch },
     { to: '/refrigerant', label: '냉매 PT',     Icon: Thermometer },
-    { to: '/basics',      label: '냉동기 기초', Icon: BookOpen },
+    { to: '/basics',      label: '냉동 기초', Icon: BookOpen },
   ]
 
   return (
