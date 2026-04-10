@@ -155,7 +155,7 @@ export default function SettingsPage() {
             <Download size={16} strokeWidth={1.5} className="text-gray-500 shrink-0" />
             <div className="flex-1 text-left">
               <p className="font-medium text-gray-800">{exportLoading ? '파일 생성 중...' : '데이터 내보내기'}</p>
-              <p className="text-xs text-gray-400 mt-0.5">JSON 파일로 저장 → 이메일로 전송</p>
+              <p className="text-xs text-gray-400 mt-0.5">메일·드라이브·카카오 등 원하는 앱으로 전송</p>
             </div>
           </button>
           <button

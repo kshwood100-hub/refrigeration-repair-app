@@ -78,7 +78,7 @@ export function formatSize(bytes) {
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
 }
 
-// 전체 데이터 JSON 파일로 내보내기 (이메일 첨부용)
+// 전체 데이터 JSON 파일로 내보내기 (공유 or 다운로드)
 export async function exportAllData() {
   const [customers, service_jobs, job_photos, expenses, knowhow, business_cards] = await Promise.all([
     db.customers.toArray(),
@@ -100,11 +100,25 @@ export async function exportAllData() {
     business_cards,
   }, null, 2)
 
+  const fileName = `냉동기수리_데이터_${new Date().toISOString().slice(0, 10)}.json`
   const blob = new Blob([payload], { type: 'application/json' })
+  const file = new File([blob], fileName, { type: 'application/json' })
+
+  // 모바일: 기기 공유창 (메일, 드라이브, 카카오 등)
+  if (navigator.canShare?.({ files: [file] })) {
+    await navigator.share({
+      title: '냉동기수리 데이터 백업',
+      text: `백업 날짜: ${new Date().toISOString().slice(0, 10)}`,
+      files: [file],
+    })
+    return
+  }
+
+  // 폴백: 파일 다운로드
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `냉동기수리_데이터_${new Date().toISOString().slice(0, 10)}.json`
+  a.download = fileName
   a.click()
   URL.revokeObjectURL(url)
 }
