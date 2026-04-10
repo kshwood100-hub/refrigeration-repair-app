@@ -32,7 +32,7 @@ export default function App() {
   }, [])
 
   return (
-    <div className="flex flex-col h-[100dvh] max-w-lg mx-auto bg-slate-200">
+    <div className="flex flex-col h-full max-w-lg mx-auto bg-slate-200">
       <main className="flex-1 min-h-0 overflow-y-auto pb-20">
         <Routes>
           <Route path="/" element={<HomePage />} />

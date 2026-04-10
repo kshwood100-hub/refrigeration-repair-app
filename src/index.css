@@ -6,6 +6,11 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+html, body, #root {
+  height: 100%;
+  overflow: hidden;
+}
+
 body {
   @apply bg-slate-200 text-gray-900;
   font-family: 'Noto Sans KR', system-ui, sans-serif;
