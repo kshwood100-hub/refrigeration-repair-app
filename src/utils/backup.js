@@ -77,3 +77,66 @@ export function formatSize(bytes) {
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
 }
+
+// 전체 데이터 JSON 파일로 내보내기 (이메일 첨부용)
+export async function exportAllData() {
+  const [customers, service_jobs, job_photos, expenses, knowhow, business_cards] = await Promise.all([
+    db.customers.toArray(),
+    db.service_jobs.toArray(),
+    db.job_photos.toArray(),
+    db.expenses.toArray(),
+    db.knowhow.toArray(),
+    db.business_cards.toArray(),
+  ])
+
+  const payload = JSON.stringify({
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    customers,
+    service_jobs,
+    job_photos,
+    expenses,
+    knowhow,
+    business_cards,
+  }, null, 2)
+
+  const blob = new Blob([payload], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `냉동기수리_데이터_${new Date().toISOString().slice(0, 10)}.json`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+// JSON 파일에서 전체 데이터 가져오기
+export async function importAllData(file) {
+  const text = await file.text()
+  const data = JSON.parse(text)
+
+  const customers      = data.customers      ?? []
+  const service_jobs   = data.service_jobs   ?? []
+  const job_photos     = data.job_photos     ?? []
+  const expenses       = data.expenses       ?? []
+  const knowhow        = data.knowhow        ?? []
+  const business_cards = data.business_cards ?? []
+
+  await db.transaction('rw',
+    db.customers, db.service_jobs, db.job_photos, db.expenses, db.knowhow, db.business_cards,
+    async () => {
+      await db.customers.clear()
+      await db.service_jobs.clear()
+      await db.job_photos.clear()
+      await db.expenses.clear()
+      await db.knowhow.clear()
+      await db.business_cards.clear()
+
+      if (customers.length)      await db.customers.bulkAdd(customers)
+      if (service_jobs.length)   await db.service_jobs.bulkAdd(service_jobs)
+      if (job_photos.length)     await db.job_photos.bulkAdd(job_photos)
+      if (expenses.length)       await db.expenses.bulkAdd(expenses)
+      if (knowhow.length)        await db.knowhow.bulkAdd(knowhow)
+      if (business_cards.length) await db.business_cards.bulkAdd(business_cards)
+    }
+  )
+}

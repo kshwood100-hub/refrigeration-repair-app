@@ -1,14 +1,16 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { UNITS } from '../data/refrigerantsData'
 import { loadSettings, saveSettings } from '../utils/settings'
-import { createBackup, listBackups, downloadBackup, restoreBackup, formatSize } from '../utils/backup'
-import { Download, RotateCcw } from 'lucide-react'
+import { createBackup, listBackups, downloadBackup, restoreBackup, formatSize, exportAllData, importAllData } from '../utils/backup'
+import { Download, RotateCcw, Upload } from 'lucide-react'
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState(loadSettings)
   const [backups, setBackups] = useState([])
   const [backupLoading, setBackupLoading] = useState(false)
   const [backupOpen, setBackupOpen] = useState(false)
+  const [exportLoading, setExportLoading] = useState(false)
+  const importRef = useRef()
 
   function update(patch) {
     const next = { ...settings, ...patch }
@@ -32,6 +34,30 @@ export default function SettingsPage() {
       alert('백업 오류: ' + e.message)
     } finally {
       setBackupLoading(false)
+    }
+  }
+
+  async function handleExport() {
+    setExportLoading(true)
+    try {
+      await exportAllData()
+    } catch (e) {
+      alert('내보내기 오류: ' + e.message)
+    } finally {
+      setExportLoading(false)
+    }
+  }
+
+  async function handleImport(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    e.target.value = ''
+    if (!confirm('현재 기기의 모든 데이터가 파일 데이터로 교체됩니다.\n계속하시겠습니까?')) return
+    try {
+      await importAllData(file)
+      alert('가져오기 완료')
+    } catch (err) {
+      alert('가져오기 오류: ' + err.message)
     }
   }
 
@@ -114,6 +140,35 @@ export default function SettingsPage() {
             음성 자동 분류 AI 기능에 사용됩니다.<br />
             키는 이 기기에만 저장되며 외부로 전송되지 않습니다.
           </p>
+        </div>
+      </section>
+
+      {/* 데이터 내보내기 / 가져오기 */}
+      <section className="mb-6">
+        <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">데이터 이전</div>
+        <div className="bg-white border border-gray-300 rounded-xl overflow-hidden divide-y divide-gray-100">
+          <button
+            onClick={handleExport}
+            disabled={exportLoading}
+            className="w-full flex items-center gap-3 px-4 py-3.5 text-sm active:bg-gray-50 disabled:opacity-50"
+          >
+            <Download size={16} strokeWidth={1.5} className="text-gray-500 shrink-0" />
+            <div className="flex-1 text-left">
+              <p className="font-medium text-gray-800">{exportLoading ? '파일 생성 중...' : '데이터 내보내기'}</p>
+              <p className="text-xs text-gray-400 mt-0.5">JSON 파일로 저장 → 이메일로 전송</p>
+            </div>
+          </button>
+          <button
+            onClick={() => importRef.current?.click()}
+            className="w-full flex items-center gap-3 px-4 py-3.5 text-sm active:bg-gray-50"
+          >
+            <Upload size={16} strokeWidth={1.5} className="text-gray-500 shrink-0" />
+            <div className="flex-1 text-left">
+              <p className="font-medium text-gray-800">데이터 가져오기</p>
+              <p className="text-xs text-gray-400 mt-0.5">JSON 파일에서 복원 (기존 데이터 교체)</p>
+            </div>
+          </button>
+          <input ref={importRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
         </div>
       </section>
 
