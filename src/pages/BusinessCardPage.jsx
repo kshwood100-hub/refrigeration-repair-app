@@ -226,11 +226,6 @@ export default function BusinessCardPage() {
           </div>
         )}
 
-        {!scanning && !loadSettings().claudeApiKey && (
-          <div className="py-2 px-3 mb-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-700">
-            AI API 키가 없어 수동 입력 또는 Tesseract 테스트를 사용하세요.
-          </div>
-        )}
 
         {/* 폼 */}
         <div className="space-y-2.5">
@@ -306,7 +301,6 @@ export default function BusinessCardPage() {
         ref={fileRef}
         type="file"
         accept="image/*"
-        capture="environment"
         className="hidden"
         onChange={handleCapture}
       />
