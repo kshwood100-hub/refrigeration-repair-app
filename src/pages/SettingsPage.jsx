@@ -94,24 +94,16 @@ export default function SettingsPage() {
       {/* 언어 선택 */}
       <section className="mb-6">
         <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">언어 / Language</div>
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          {LANGUAGES.map(({ code, short, label }) => {
-            const active = i18n.language.startsWith(code)
-            return (
-              <button
-                key={code}
-                onClick={() => i18n.changeLanguage(code)}
-                className={`shrink-0 flex flex-col items-center px-4 py-2.5 rounded-xl border font-bold transition-colors ${
-                  active
-                    ? 'bg-blue-600 border-blue-600 text-white'
-                    : 'bg-white border-gray-300 text-gray-700 active:bg-gray-50'
-                }`}
-              >
-                <span className="text-sm font-black">{short}</span>
-                <span className="text-xs font-medium mt-0.5">{label}</span>
-              </button>
-            )
-          })}
+        <div className="bg-white border border-gray-300 rounded-xl px-4 py-3.5">
+          <select
+            value={LANGUAGES.find(l => i18n.language.startsWith(l.code))?.code ?? 'ko'}
+            onChange={e => i18n.changeLanguage(e.target.value)}
+            className="w-full text-base font-semibold text-gray-800 outline-none bg-white"
+          >
+            {LANGUAGES.map(({ code, short, label }) => (
+              <option key={code} value={code}>{short}  {label}</option>
+            ))}
+          </select>
         </div>
       </section>
 
