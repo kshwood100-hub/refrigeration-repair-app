@@ -165,11 +165,12 @@ export default function SettingsPage() {
             <input
               type="password"
               value={settings.claudeApiKey}
-              onChange={(e) => { update({ claudeApiKey: e.target.value }); setApiKeySaved(false) }}
+              onChange={(e) => update({ claudeApiKey: e.target.value })}
               placeholder="sk-ant-api03-..."
+              disabled={apiKeySaved}
               className={`flex-1 text-sm border rounded-lg px-3 py-2 outline-none transition-colors ${
                 apiKeySaved
-                  ? 'bg-gray-100 border-gray-200 text-gray-400'
+                  ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'
                   : 'bg-white border-gray-300 focus:border-blue-400'
               }`}
             />
@@ -185,6 +186,14 @@ export default function SettingsPage() {
               {apiKeySaved ? '저장됨' : '저장'}
             </button>
           </div>
+          {apiKeySaved && (
+            <button
+              onClick={() => setApiKeySaved(false)}
+              className="mt-2 w-full py-2 text-xs font-medium text-gray-500 border border-gray-300 rounded-lg active:bg-gray-50"
+            >
+              🔓 키 변경하기
+            </button>
+          )}
           <p className="text-xs text-gray-400 mt-1.5">
             음성 자동 분류 AI 기능에 사용됩니다.<br />
             키는 이 기기에만 저장되며 외부로 전송되지 않습니다.
