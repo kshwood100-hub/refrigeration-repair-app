@@ -92,7 +92,7 @@ export default function DiagnosisFlowPage() {
 
       {/* 헤더 */}
       <div className="mb-4">
-        <button onClick={() => navigate('/diagnosis')} className="text-blue-600 text-sm mb-2">
+        <button onClick={() => navigate('/diagnosis')} className="flex items-center justify-center gap-2 w-full py-3 mb-3 bg-blue-50 border border-blue-200 rounded-xl text-sm font-medium text-blue-600 active:bg-blue-100">
           ← {t('diagnosis.back')}
         </button>
         <div className="flex items-center gap-2">
@@ -160,7 +160,7 @@ export default function DiagnosisFlowPage() {
               {history.length > 1 && (
                 <button
                   onClick={handleBack}
-                  className="w-full py-3 text-gray-400 text-sm active:text-gray-600"
+                  className="w-full py-3 bg-gray-100 border border-gray-200 rounded-xl text-sm font-medium text-gray-500 active:bg-gray-200"
                 >
                   ← {t('diagnosis.prevQuestion')}
                 </button>
