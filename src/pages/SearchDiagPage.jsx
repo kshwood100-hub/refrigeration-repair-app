@@ -2,9 +2,15 @@ import { useState } from 'react'
 import { Search, X, ChevronDown, ChevronUp, Zap, AlertTriangle, Info } from 'lucide-react'
 import searchDb from '../data/searchDatabase.json'
 
-const PART_TAGS = ['전체', '압축기', '증발기', '응축기', '팽창밸브', '전기계통', '냉매계통', '팬모터', '제어계통']
-
-const POPULAR = ['고압트립', '착상', '냉각불량', '압축기소음', '차단기트립', '냉매부족', '팬불량', '액백', '결로', '헌팅']
+const POPULAR = [
+  '고압트립', '착상', '냉각불량', '압축기소음', '차단기트립', '냉매부족',
+  '팬불량', '액백', '결로', '헌팅', '오일부족', '과열', '저압',
+  '진동', '냉매누설', '기동불량', '제상불량', '드레인막힘', '인버터오류',
+  '브레이징', '과열도', '과냉도', '절연불량', '결상', '역회전',
+  '스크롤', '스크류', '터보', '액압축', '불응축', '진공작업',
+  '플레어', '보온', '에어쇼트', '냉각탑', '세관', '암모니아',
+  '감전', '산소결핍', 'HACCP', '언로더', 'EEV', 'TXV소음',
+]
 
 const SEVERITY_STYLE = {
   긴급: { bg: 'bg-red-50', border: 'border-red-200', badge: 'bg-red-100 text-red-700', icon: Zap },
@@ -78,16 +84,13 @@ function ResultCard({ entry }) {
 
 export default function SearchDiagPage() {
   const [query, setQuery] = useState('')
-  const [part, setPart] = useState('전체')
 
   const q = query.trim().toLowerCase()
 
   const results = q.length < 1 ? [] : searchDb.entries.filter(e => {
-    const matchPart = part === '전체' || e.part === part
-    const matchQuery = e.keywords.some(k => k.toLowerCase().includes(q)) ||
+    return e.keywords.some(k => k.toLowerCase().includes(q)) ||
       e.symptom.toLowerCase().includes(q) ||
       e.causes.some(c => c.toLowerCase().includes(q))
-    return matchPart && matchQuery
   })
 
   return (
@@ -111,21 +114,6 @@ export default function SearchDiagPage() {
             <X size={14} />
           </button>
         )}
-      </div>
-
-      {/* 부품 필터 */}
-      <div className="flex flex-wrap gap-1.5 mb-4">
-        {PART_TAGS.map(p => (
-          <button
-            key={p}
-            onClick={() => setPart(p)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              part === p ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500'
-            }`}
-          >
-            {p}
-          </button>
-        ))}
       </div>
 
       {/* 검색 전 — 자주 찾는 키워드 */}
