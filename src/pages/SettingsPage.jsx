@@ -26,6 +26,7 @@ export default function SettingsPage() {
   const importRef = useRef()
   const [qrExportOpen, setQrExportOpen] = useState(false)
   const [qrImportOpen, setQrImportOpen] = useState(false)
+  const [apiKeySaved, setApiKeySaved] = useState(!!loadSettings().claudeApiKey)
 
   function update(patch) {
     const next = { ...settings, ...patch }
@@ -160,13 +161,26 @@ export default function SettingsPage() {
         <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">AI 기능 설정</div>
         <div className="bg-white border border-gray-300 rounded-xl px-4 py-3">
           <label className="text-xs font-semibold text-gray-500 block mb-1">Claude API 키</label>
-          <input
-            type="password"
-            value={settings.claudeApiKey}
-            onChange={(e) => update({ claudeApiKey: e.target.value })}
-            placeholder="sk-ant-api03-..."
-            className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-400"
-          />
+          <div className="flex gap-2">
+            <input
+              type="password"
+              value={settings.claudeApiKey}
+              onChange={(e) => { update({ claudeApiKey: e.target.value }); setApiKeySaved(false) }}
+              placeholder="sk-ant-api03-..."
+              className="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-400"
+            />
+            <button
+              onClick={() => setApiKeySaved(true)}
+              disabled={apiKeySaved || !settings.claudeApiKey.trim()}
+              className={`px-4 py-2 text-sm font-semibold rounded-lg shrink-0 transition-colors ${
+                apiKeySaved
+                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  : 'bg-gray-900 text-white active:bg-gray-700'
+              }`}
+            >
+              {apiKeySaved ? '저장됨' : '저장'}
+            </button>
+          </div>
           <p className="text-xs text-gray-400 mt-1.5">
             음성 자동 분류 AI 기능에 사용됩니다.<br />
             키는 이 기기에만 저장되며 외부로 전송되지 않습니다.
