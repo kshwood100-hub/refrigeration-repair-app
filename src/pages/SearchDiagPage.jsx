@@ -125,7 +125,7 @@ export default function SearchDiagPage() {
               <button
                 key={k}
                 onClick={() => setQuery(k)}
-                className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs text-gray-600 shadow-sm active:bg-gray-50"
+                className="w-20 py-1.5 bg-white border border-gray-300 rounded-lg text-xs text-gray-600 shadow-sm active:bg-gray-50 text-center"
               >
                 {k}
               </button>
