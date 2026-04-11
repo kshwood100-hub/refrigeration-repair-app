@@ -179,6 +179,22 @@ db.version(13).stores({
   await tx.table('flow_nodes').clear()
 })
 
+db.version(14).stores({
+  symptoms: '++id, category, title',
+  checklist_templates: '++id, category, title',
+  repair_logs: '++id, date, symptomId, equipmentName',
+  flow_categories: '&id',
+  flow_nodes: '&nodeId, categoryId, type',
+  customers: '++id, name, phone',
+  service_jobs: '++id, customerId, status, receiptDate, visitDate',
+  job_photos: '++id, jobId',
+  backups: '++id, createdAt',
+  knowhow: '++id, category, location, createdAt, updatedAt',
+  business_cards: '++id, customerId, createdAt',
+  expenses: '++id, jobId, date, createdAt',
+  checklist_results: '++id, templateTitle, createdAt, level',
+})
+
 export async function seedIfEmpty() {
   const [symptomsCount, checklistCount, flowCatCount] = await Promise.all([
     db.symptoms.count(),
