@@ -157,71 +157,31 @@ export default function BusinessCardPage() {
         )}
 
         {!scanning && (
-          <div className="flex gap-2 mb-3">
-            <button
-              onClick={async () => {
-                setScanning(true)
-                setScanProgress(0)
-                setRawText('')
-                try {
-                  const result = await scanBusinessCardTesseract(photoUrl, setScanProgress)
-                  setRawText(result._rawText ?? '')
-                  setForm({
-                    name:    result.name    ?? '',
-                    company: result.company ?? '',
-                    title:   result.title   ?? '',
-                    phone:   result.phone   ?? '',
-                    mobile:  result.mobile  ?? '',
-                    email:   result.email   ?? '',
-                    address: result.address ?? '',
-                    memo:    result.memo    ?? '',
-                  })
-                } catch (err) {
-                  alert('Tesseract 오류: ' + err.message)
-                } finally {
-                  setScanning(false)
-                }
-              }}
-              className="flex-1 py-2 text-xs font-medium bg-amber-50 border border-amber-300 text-amber-700 rounded-xl"
-            >
-              Tesseract 테스트
-            </button>
-            {loadSettings().claudeApiKey && (
-              <button
-                onClick={async () => {
-                  setScanning(true)
-                  setScanProgress(0)
-                  try {
-                    const result = await scanBusinessCard(photoUrl, loadSettings().claudeApiKey)
-                    setForm({
-                      name:    result.name    ?? '',
-                      company: result.company ?? '',
-                      title:   result.title   ?? '',
-                      phone:   result.phone   ?? '',
-                      mobile:  result.mobile  ?? '',
-                      email:   result.email   ?? '',
-                      address: result.address ?? '',
-                      memo:    result.memo    ?? '',
-                    })
-                  } catch (err) {
-                    alert('AI 스캔 오류: ' + err.message)
-                  } finally {
-                    setScanning(false)
-                  }
-                }}
-                className="flex-1 py-2 text-xs font-medium bg-blue-50 border border-blue-300 text-blue-700 rounded-xl"
-              >
-                Claude AI 재스캔
-              </button>
-            )}
-          </div>
-        )}
-
-        {rawText && (
-          <div className="mb-3 p-3 bg-gray-50 border border-gray-200 rounded-xl">
-            <p className="text-xs font-semibold text-gray-500 mb-1">Tesseract 인식 원문</p>
-            <p className="text-xs text-gray-600 whitespace-pre-wrap font-mono leading-relaxed">{rawText}</p>
-          </div>
+          <button
+            onClick={async () => {
+              setScanning(true)
+              try {
+                const result = await scanBusinessCardGemini(photoUrl)
+                setForm({
+                  name:    result.name    ?? '',
+                  company: result.company ?? '',
+                  title:   result.title   ?? '',
+                  phone:   result.phone   ?? '',
+                  mobile:  result.mobile  ?? '',
+                  email:   result.email   ?? '',
+                  address: result.address ?? '',
+                  memo:    result.memo    ?? '',
+                })
+              } catch (err) {
+                alert('AI 스캔 오류: ' + err.message)
+              } finally {
+                setScanning(false)
+              }
+            }}
+            className="w-full py-2 mb-3 text-xs font-medium bg-blue-50 border border-blue-300 text-blue-700 rounded-xl"
+          >
+            AI 재스캔
+          </button>
         )}
 
 
