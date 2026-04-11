@@ -35,8 +35,8 @@ export default function HomePage() {
       {/* 헤더 */}
       <div className="relative flex items-center justify-between h-16">
         <div className="flex items-center gap-2">
-          <img src="/logo-transparent.png" alt="R-Pro" className="absolute top-0 left-0 w-12 h-12 z-10" style={{ filter: 'grayscale(100%)' }} />
-          <p className="text-xs text-gray-400 pl-14">{today()}</p>
+          <span className="text-xl font-bold text-gray-900 tracking-tight">R-Pro</span>
+          <p className="text-xs text-gray-400">{today()}</p>
         </div>
         <button
           onClick={() => navigate('/service/new')}
