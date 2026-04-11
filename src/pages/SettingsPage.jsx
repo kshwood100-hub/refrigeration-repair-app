@@ -191,7 +191,7 @@ export default function SettingsPage() {
               onClick={() => setApiKeySaved(false)}
               className="mt-2 w-full py-2 text-xs font-medium text-gray-500 border border-gray-300 rounded-lg active:bg-gray-50"
             >
-              🔓 키 변경하기
+              키 변경하기
             </button>
           )}
           <p className="text-xs text-gray-400 mt-1.5">
