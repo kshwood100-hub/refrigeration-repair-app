@@ -8,12 +8,12 @@ import QRImportModal from '../components/QRImportModal'
 import { useTranslation } from 'react-i18next'
 
 const LANGUAGES = [
-  { code: 'ko', label: '한국어',   flag: '🇰🇷' },
-  { code: 'en', label: 'English',  flag: '🇺🇸' },
-  { code: 'zh', label: '中文',     flag: '🇨🇳' },
-  { code: 'ja', label: '日本語',   flag: '🇯🇵' },
-  { code: 'es', label: 'Español',  flag: '🇪🇸' },
-  { code: 'hi', label: 'हिन्दी',  flag: '🇮🇳' },
+  { code: 'ko', short: 'KR', label: '한국어'  },
+  { code: 'en', short: 'EN', label: 'ENGLISH' },
+  { code: 'zh', short: 'CN', label: '中文'    },
+  { code: 'ja', short: 'JP', label: '日本語'  },
+  { code: 'es', short: 'ES', label: 'ESPAÑOL' },
+  { code: 'hi', short: 'IN', label: 'हिन्दी' },
 ]
 
 export default function SettingsPage() {
@@ -94,16 +94,24 @@ export default function SettingsPage() {
       {/* 언어 선택 */}
       <section className="mb-6">
         <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">언어 / Language</div>
-        <div className="bg-white border border-gray-300 rounded-xl px-4 py-3">
-          <select
-            value={LANGUAGES.find(l => i18n.language.startsWith(l.code))?.code ?? 'ko'}
-            onChange={e => i18n.changeLanguage(e.target.value)}
-            className="w-full text-sm text-gray-800 outline-none bg-white uppercase"
-          >
-            {LANGUAGES.map(({ code, label, flag }) => (
-              <option key={code} value={code}>{flag} {label}</option>
-            ))}
-          </select>
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {LANGUAGES.map(({ code, short, label }) => {
+            const active = i18n.language.startsWith(code)
+            return (
+              <button
+                key={code}
+                onClick={() => i18n.changeLanguage(code)}
+                className={`shrink-0 flex flex-col items-center px-4 py-2.5 rounded-xl border font-bold transition-colors ${
+                  active
+                    ? 'bg-blue-600 border-blue-600 text-white'
+                    : 'bg-white border-gray-300 text-gray-700 active:bg-gray-50'
+                }`}
+              >
+                <span className="text-sm font-black">{short}</span>
+                <span className="text-xs font-medium mt-0.5">{label}</span>
+              </button>
+            )
+          })}
         </div>
       </section>
 
