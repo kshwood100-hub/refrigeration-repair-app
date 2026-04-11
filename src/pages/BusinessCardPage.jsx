@@ -8,6 +8,7 @@ import {
 import { db } from '../db'
 import { loadSettings } from '../utils/settings'
 import { scanBusinessCard } from '../utils/scanBusinessCard'
+import { scanBusinessCardGemini } from '../utils/scanBusinessCardGemini'
 import { scanBusinessCardTesseract } from '../utils/scanBusinessCardTesseract'
 
 const EMPTY = {
@@ -49,13 +50,15 @@ export default function BusinessCardPage() {
       setForm(EMPTY)
       setMode('confirm')
 
-      const apiKey = loadSettings().claudeApiKey
-      if (!apiKey) return   // 수동 입력으로 진행
-
       setScanning(true)
       setScanProgress(0)
       try {
-        const result = await scanBusinessCard(dataUrl, apiKey)
+        // Gemini 우선, 없으면 Claude API 키로 시도
+        const result = await scanBusinessCardGemini(dataUrl).catch(() => {
+          const apiKey = loadSettings().claudeApiKey
+          if (!apiKey) throw new Error('API 키 없음')
+          return scanBusinessCard(dataUrl, apiKey)
+        })
         setForm({
           name:    result.name    ?? '',
           company: result.company ?? '',
