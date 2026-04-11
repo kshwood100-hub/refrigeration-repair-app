@@ -35,7 +35,9 @@ export default function HomePage() {
       {/* 헤더 */}
       <div className="relative flex items-center justify-between h-16">
         <div className="flex items-center gap-2">
-          <span className="text-xl font-bold text-gray-900 tracking-tight">R-Pro</span>
+          <span className="text-2xl font-black tracking-tight">
+            <span className="text-blue-600">R</span><span className="text-gray-800">-Pro</span>
+          </span>
           <p className="text-xs text-gray-400">{today()}</p>
         </div>
         <button
