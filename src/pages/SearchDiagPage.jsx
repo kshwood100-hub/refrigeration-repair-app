@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Search, X, ChevronDown, ChevronUp, Zap, AlertTriangle, Info } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Search, X, ChevronDown, ChevronUp, Zap, AlertTriangle, Info, ArrowLeft } from 'lucide-react'
 import searchDb from '../data/searchDatabase.json'
 
 const POPULAR = [
@@ -84,6 +85,7 @@ function ResultCard({ entry }) {
 
 export default function SearchDiagPage() {
   const [query, setQuery] = useState('')
+  const navigate = useNavigate()
 
   const q = query.trim().toLowerCase()
 
@@ -95,6 +97,13 @@ export default function SearchDiagPage() {
 
   return (
     <div className="p-4 pb-6">
+      <button
+        onClick={() => navigate('/diagnosis')}
+        className="flex items-center gap-2 w-full py-3 mb-4 bg-gray-100 rounded-xl text-sm font-medium text-gray-700 active:bg-gray-200 justify-center"
+      >
+        <ArrowLeft size={18} strokeWidth={2} />
+        진단 목록으로 돌아가기
+      </button>
       <h2 className="text-base font-semibold text-gray-900 mb-1">증상 검색</h2>
       <p className="text-xs text-gray-400 mb-4">증상·키워드를 입력하면 원인과 조치를 바로 보여줘</p>
 
