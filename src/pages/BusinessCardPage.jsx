@@ -53,12 +53,7 @@ export default function BusinessCardPage() {
       setScanning(true)
       setScanProgress(0)
       try {
-        // Gemini 우선, 없으면 Claude API 키로 시도
-        const result = await scanBusinessCardGemini(dataUrl).catch(() => {
-          const apiKey = loadSettings().claudeApiKey
-          if (!apiKey) throw new Error('API 키 없음')
-          return scanBusinessCard(dataUrl, apiKey)
-        })
+        const result = await scanBusinessCardGemini(dataUrl)
         setForm({
           name:    result.name    ?? '',
           company: result.company ?? '',
