@@ -98,7 +98,7 @@ export default function SettingsPage() {
           <select
             value={LANGUAGES.find(l => i18n.language.startsWith(l.code))?.code ?? 'ko'}
             onChange={e => i18n.changeLanguage(e.target.value)}
-            className="w-full text-sm text-gray-800 outline-none bg-white"
+            className="w-full text-sm text-gray-800 outline-none bg-white uppercase"
           >
             {LANGUAGES.map(({ code, label, flag }) => (
               <option key={code} value={code}>{flag} {label}</option>
