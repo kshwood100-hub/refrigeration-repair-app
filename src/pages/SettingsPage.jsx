@@ -167,7 +167,11 @@ export default function SettingsPage() {
               value={settings.claudeApiKey}
               onChange={(e) => { update({ claudeApiKey: e.target.value }); setApiKeySaved(false) }}
               placeholder="sk-ant-api03-..."
-              className="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-400"
+              className={`flex-1 text-sm border rounded-lg px-3 py-2 outline-none transition-colors ${
+                apiKeySaved
+                  ? 'bg-gray-100 border-gray-200 text-gray-400'
+                  : 'bg-white border-gray-300 focus:border-blue-400'
+              }`}
             />
             <button
               onClick={() => setApiKeySaved(true)}
