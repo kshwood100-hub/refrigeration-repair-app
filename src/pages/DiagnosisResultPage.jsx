@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { ChevronDown, ChevronRight, AlertTriangle } from 'lucide-react'
+import { ChevronDown, ChevronRight, ChevronLeft, AlertTriangle } from 'lucide-react'
 import { db } from '../db'
 
 export default function DiagnosisResultPage() {
@@ -33,8 +33,9 @@ export default function DiagnosisResultPage() {
     <div className="p-4 pb-8">
       {/* 헤더 */}
       <div className="mb-5">
-        <button onClick={() => navigate('/diagnosis')} className="text-blue-600 text-sm mb-2 block">
-          ← 진단 목록
+        <button onClick={() => navigate('/diagnosis')} className="flex items-center justify-center gap-2 w-full py-3 mb-3 bg-blue-50 border border-blue-200 rounded-xl text-sm font-medium text-blue-600 active:bg-blue-100">
+          <ChevronLeft size={18} strokeWidth={2} />
+          진단 목록으로
         </button>
         <div className="flex items-center gap-2">
           <span className="text-xl">{category.icon}</span>

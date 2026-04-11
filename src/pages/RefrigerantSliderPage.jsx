@@ -64,13 +64,11 @@ export default function RefrigerantSliderPage() {
   return (
     <div className="p-4 pb-8">
       {/* 헤더 */}
-      <div className="flex items-center gap-2 mb-5">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-gray-500">
-          <ChevronLeft size={18} strokeWidth={1.5} />
-          <span className="text-sm">뒤로</span>
-        </button>
-        <h2 className="text-base font-semibold text-gray-900 flex-1">냉매 PT 변환</h2>
-      </div>
+      <button onClick={() => navigate(-1)} className="flex items-center justify-center gap-2 w-full py-3 mb-4 bg-gray-100 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 active:bg-gray-200">
+        <ChevronLeft size={18} strokeWidth={2} />
+        뒤로
+      </button>
+      <h2 className="text-base font-semibold text-gray-900 mb-5">냉매 PT 변환</h2>
 
       {/* 냉매 선택 버튼 */}
       {!showPicker ? (

@@ -30,11 +30,11 @@ export default function ExpenseDetailPage() {
 
   return (
     <div className="p-4 pb-10">
+      <button onClick={() => navigate('/expenses')} className="flex items-center justify-center gap-2 w-full py-3 mb-4 bg-gray-100 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 active:bg-gray-200">
+        <ChevronLeft size={18} strokeWidth={2} />
+        경비 목록으로
+      </button>
       <div className="flex items-center justify-between mb-5">
-        <button onClick={() => navigate('/expenses')} className="flex items-center gap-1 text-gray-500">
-          <ChevronLeft size={18} strokeWidth={1.5} />
-          <span className="text-sm">뒤로</span>
-        </button>
         <h2 className="text-base font-semibold text-gray-900">경비 상세</h2>
         <div className="flex items-center gap-2">
           <button onClick={() => navigate(`/expenses/${id}/edit`)} className="p-1.5 text-gray-500">

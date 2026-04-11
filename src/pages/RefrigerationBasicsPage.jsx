@@ -9,13 +9,11 @@ export default function RefrigerationBasicsPage() {
 
   return (
     <div className="p-4 pb-8">
-      <div className="flex items-center gap-2 mb-5">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-gray-500">
-          <ChevronLeft size={18} strokeWidth={1.5} />
-          <span className="text-sm">뒤로</span>
-        </button>
-        <h2 className="text-base font-semibold text-gray-900">냉동 기초 지식</h2>
-      </div>
+      <button onClick={() => navigate(-1)} className="flex items-center justify-center gap-2 w-full py-3 mb-4 bg-gray-100 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 active:bg-gray-200">
+        <ChevronLeft size={18} strokeWidth={2} />
+        뒤로
+      </button>
+      <h2 className="text-base font-semibold text-gray-900 mb-5">냉동 기초 지식</h2>
 
       <p className="text-xs text-gray-400 mb-4">현장에서 꼭 알아야 할 냉동기 기본 개념 정리</p>
 
