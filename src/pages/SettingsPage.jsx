@@ -331,7 +331,7 @@ export default function SettingsPage() {
           </div>
           <div className="flex justify-between px-4 py-3 text-sm">
             <span className="text-gray-600">냉매 종류</span>
-            <span className="font-medium text-gray-800">11종</span>
+            <span className="font-medium text-gray-800">34종</span>
           </div>
           <div className="flex justify-between px-4 py-3 text-sm">
             <span className="text-gray-600">PT 데이터</span>
