@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Plus, Search, X, ChevronRight, MapPin, Tag } from 'lucide-react'
+import { Plus, Search, X, ChevronRight, MapPin, Tag, BookOpen } from 'lucide-react'
 import { db } from '../db'
 
 const CATEGORIES = ['전체', '압축기', '냉매계통', '전기/제어', '팬/모터', '착상/제상', '결로/배수', '소음/진동', '냉각불량', '오일계통', '기타']
@@ -63,6 +63,12 @@ export default function KnowhowPage() {
               첫 번째 노하우 기록하기
             </button>
             <button
+              onClick={() => navigate('/knowhow/failure-cases')}
+              className="w-full py-3.5 bg-blue-600 text-white text-sm font-semibold rounded-xl"
+            >
+              고장사례 가이드 보기
+            </button>
+            <button
               onClick={() => navigate('/service')}
               className="w-full py-3.5 bg-gray-50 text-gray-600 text-sm font-medium rounded-xl border border-gray-300"
             >
@@ -91,6 +97,21 @@ export default function KnowhowPage() {
         </button>
       </div>
 
+      {/* 고장사례 가이드 배너 */}
+      <button
+        onClick={() => navigate('/knowhow/failure-cases')}
+        className="w-full flex items-center justify-between px-4 py-3 mb-4 bg-blue-50 border border-blue-200 rounded-xl text-left active:bg-blue-100"
+      >
+        <div className="flex items-center gap-2">
+          <BookOpen size={16} strokeWidth={1.5} className="text-blue-600" />
+          <div>
+            <p className="text-sm font-semibold text-blue-800">고장사례 가이드</p>
+            <p className="text-xs text-blue-500">에어컨·칠러·냉동창고·압축기 사례집</p>
+          </div>
+        </div>
+        <ChevronRight size={14} strokeWidth={1.5} className="text-blue-400" />
+      </button>
+
       {/* 검색창 */}
       <div className="relative mb-3">
         <Search size={14} strokeWidth={1.5} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -109,12 +130,12 @@ export default function KnowhowPage() {
       </div>
 
       {/* 카테고리 */}
-      <div className="flex gap-1.5 overflow-x-auto pb-1 mb-4 scrollbar-hide">
+      <div className="flex flex-wrap gap-1.5 mb-4">
         {CATEGORIES.map((c) => (
           <button
             key={c}
             onClick={() => setCat(c)}
-            className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               cat === c ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-500'
             }`}
           >

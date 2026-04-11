@@ -38,11 +38,13 @@ export default function RefrigerantSliderPage() {
   }, [rfgId, rfg])
 
   const calculatedPressure = useMemo(() => {
+    if (!rfg.pt) return null
     const pAbs = tempToPressureAbs(rfg, tempC)
     return toDisplay(pAbs, unitKey, isGauge)
   }, [rfg, tempC, unitKey, isGauge])
 
   const calculatedTemp = useMemo(() => {
+    if (!rfg.pt) return null
     const pNum = parseFloat(pressureInput)
     if (isNaN(pNum)) return null
     const pAbs = fromDisplay(pNum, unitKey, isGauge)

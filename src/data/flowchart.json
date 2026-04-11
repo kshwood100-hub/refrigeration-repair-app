@@ -11,7 +11,13 @@
     { "id": "evap_fan_fail", "title": "증발기 팬이 안 돌아간다", "title_en": "Evaporator fan not running", "icon": "💨", "startNode": "eff_q1" },
     { "id": "cond_fan_fail", "title": "응축기 팬이 안 돌아간다", "title_en": "Condenser fan not running", "icon": "🌀", "startNode": "cff_q1" },
     { "id": "drainage_issue", "title": "물(결로)이 흘러내린다", "title_en": "Water dripping / drain blocked", "icon": "💧", "startNode": "di_q1" },
-    { "id": "no_power", "title": "냉동기가 전혀 반응이 없다", "title_en": "Unit completely dead", "icon": "🔌", "startNode": "np_q1" }
+    { "id": "no_power", "title": "냉동기가 전혀 반응이 없다", "title_en": "Unit completely dead", "icon": "🔌", "startNode": "np_q1" },
+    { "id": "comp_overheating", "title": "압축기가 과열된다 / 토출 온도가 높다", "title_en": "Compressor overheating / High discharge temp", "icon": "🌡️", "startNode": "co_q1" },
+    { "id": "oil_issue", "title": "오일 부족 / 오일 포밍 / 유압 이상", "title_en": "Oil shortage / Oil foaming / Abnormal oil pressure", "icon": "🛢️", "startNode": "oi_q1" },
+    { "id": "refrigerant_moisture", "title": "냉매 계통 수분·오염 의심", "title_en": "Moisture or contamination suspected in refrigerant circuit", "icon": "💧", "startNode": "rm_q1" },
+    { "id": "txv_issue", "title": "팽창밸브(TXV) 과열도 이상 / 헌팅", "title_en": "TXV superheat abnormal / hunting", "icon": "🔧", "startNode": "txv_q1" },
+    { "id": "inverter_issue", "title": "인버터 압축기 에러 / 속도 불안정", "title_en": "Inverter compressor error / unstable speed", "icon": "📟", "startNode": "inv_q1" },
+    { "id": "condenser_highpressure", "title": "응축기 측 고압이 반복 상승한다", "title_en": "Condenser-side high pressure keeps rising", "icon": "📈", "startNode": "chp_q1" }
   ],
   "nodes": {
     "cns_q1": {
@@ -2048,6 +2054,1171 @@
         "Consider adding surge protection device (SPD)"
       ],
       "warningLevel": "", "warning": "", "warning_en": ""
+    },
+
+    "co_q1": {
+      "type": "multi",
+      "question": "압축기 과열 시 어떤 증상이 함께 나타나나요?",
+      "question_en": "What other symptoms accompany compressor overheating?",
+      "choices": [
+        { "label": "토출 온도 130°C 이상 / 토출관이 손으로 못 잡을 만큼 뜨겁다", "next": "co_q_discharge_temp" },
+        { "label": "운전 전류가 정격의 1.2배 이상으로 높다", "next": "co_q_high_current" },
+        { "label": "과열 트립 후 재기동은 되나 단시간 내 반복 트립", "next": "co_q_repeat_trip" }
+      ]
+    },
+    "co_q_discharge_temp": {
+      "type": "question",
+      "question": "고압 측 압력이 정상 범위(R22: 14~18 bar, R404A: 18~24 bar)보다 높게 측정되나요?",
+      "question_en": "Is the high-side pressure above normal (R22: 14–18 bar, R404A: 18–24 bar)?",
+      "yes": "co_r_high_condensing",
+      "no": "co_q_suction_superheat"
+    },
+    "co_q_suction_superheat": {
+      "type": "question",
+      "question": "흡입 배관의 과열도(흡입 가스 온도 - 흡입 포화 온도)가 20°C 이상인가요?",
+      "question_en": "Is suction superheat (suction gas temp − suction sat. temp) above 20°C?",
+      "yes": "co_r_high_superheat",
+      "no": "co_r_comp_cooling_fail"
+    },
+    "co_q_high_current": {
+      "type": "question",
+      "question": "전원 전압이 정격 대비 10% 이상 낮게 측정되나요?",
+      "question_en": "Is supply voltage more than 10% below rated?",
+      "yes": "co_r_low_voltage_current",
+      "no": "co_r_overcharge_or_bearing"
+    },
+    "co_q_repeat_trip": {
+      "type": "question",
+      "question": "응축기 팬이 정상적으로 회전하고 응축기 코일이 청결한가요?",
+      "question_en": "Is the condenser fan running normally and the condenser coil clean?",
+      "yes": "co_r_refrigerant_shortage_heat",
+      "no": "co_r_condenser_poor_heat"
+    },
+    "co_r_high_condensing": {
+      "type": "result",
+      "title": "고압 상승으로 인한 압축기 과열",
+      "title_en": "Compressor Overheating from High Condensing Pressure",
+      "level": "medium",
+      "conclusion": "응축 압력이 높아 압축비가 커지고 토출 온도가 상승합니다. 응축기 방열 조건을 개선하세요.",
+      "conclusion_en": "High condensing pressure increases compression ratio and discharge temperature. Improve condenser heat rejection.",
+      "causes": ["응축기 코일·핀 오염(먼지, 그리스)", "응축기 팬 불량 또는 회전 방향 오류", "설치 공간 협소로 고온 공기 재순환", "냉매 과충전", "비응축 가스(공기) 혼입"],
+      "causes_en": ["Condenser coil/fin fouled with dust or grease", "Condenser fan faulty or wrong rotation direction", "Hot air recirculation from insufficient clearance", "Refrigerant overcharge", "Non-condensable gas (air) present"],
+      "steps": [
+        "응축기 핀 청소 (압축 공기 역방향 분사)",
+        "팬 모터 전류 측정 및 회전 방향 확인",
+        "응축기 주변 30cm 이상 이격 공간 확보",
+        "냉매 과충전 여부 확인 (과냉각도 5~8°C 기준)",
+        "고압이 정상화되어도 지속 상승 시 불응축 가스 퍼지"
+      ],
+      "steps_en": [
+        "Clean condenser fins (reverse-direction compressed air)",
+        "Measure fan motor current and check rotation direction",
+        "Ensure ≥30 cm clearance around condenser",
+        "Check for refrigerant overcharge (subcooling 5–8°C target)",
+        "If pressure remains high, purge non-condensable gas"
+      ],
+      "warningLevel": "caution",
+      "warning": "토출 온도 135°C 이상 지속 시 압축기 오일 탄화 및 내부 손상 위험이 있습니다. 즉시 가동 정지 후 원인 제거.",
+      "warning_en": "If discharge temperature exceeds 135°C continuously, oil carbonization and internal damage risk is high. Stop immediately and fix root cause."
+    },
+    "co_r_high_superheat": {
+      "type": "result",
+      "title": "흡입 과열도 과다로 인한 압축기 과열",
+      "title_en": "Compressor Overheating from Excessive Suction Superheat",
+      "level": "medium",
+      "conclusion": "흡입 가스가 과열되어 압축기로 들어오면 토출 온도가 급상승합니다. 냉매 부족 또는 팽창밸브 개도를 확인하세요.",
+      "conclusion_en": "Overheated suction gas causes discharge temperature to spike. Check for low refrigerant or TXV setting.",
+      "causes": ["냉매 부족으로 흡입 가스 과열", "TXV 개도 과소 설정 (과열도 너무 높게 설정됨)", "흡입 배관 단열 불량으로 열 흡수", "필터 드라이어 막힘"],
+      "causes_en": ["Refrigerant shortage causing suction gas overheat", "TXV set too restrictive (superheat set too high)", "Poor suction line insulation absorbing heat", "Filter drier clogged"],
+      "steps": [
+        "리크 디텍터로 냉매 누설 점검",
+        "TXV 과열도 측정: 증발기 출구 온도 - 흡입 포화 온도 (정상 5~10°C)",
+        "과열도 높을 시 TXV 조정 나사를 반시계 방향으로 1/4회전씩 조정",
+        "흡입 배관 단열재 손상 여부 확인",
+        "필터 드라이어 전후 온도차 측정 (2°C 이상이면 막힘 의심)"
+      ],
+      "steps_en": [
+        "Check for refrigerant leak with leak detector",
+        "Measure TXV superheat: evap outlet temp − suction sat. temp (normal 5–10°C)",
+        "If superheat is high, turn TXV adjustment screw counterclockwise 1/4 turn at a time",
+        "Inspect suction line insulation for damage",
+        "Measure temperature difference across filter drier (>2°C = blockage suspected)"
+      ],
+      "warningLevel": "caution",
+      "warning": "TXV 과열도를 너무 낮게 설정하면 액백이 발생하여 압축기를 손상시킵니다. 5°C 이하로 내리지 마세요.",
+      "warning_en": "Setting TXV superheat too low causes liquid slugging and compressor damage. Do not set below 5°C."
+    },
+    "co_r_comp_cooling_fail": {
+      "type": "result",
+      "title": "압축기 냉각 불량 (모터 냉각 가스 부족)",
+      "title_en": "Compressor Cooling Failure (Insufficient Motor Cooling Gas)",
+      "level": "medium",
+      "conclusion": "흡입 가스 압력·온도는 정상이나 압축기 외부 냉각 조건이 불량합니다. 주변 통풍 및 쿨링 팬을 점검하세요.",
+      "conclusion_en": "Suction conditions are normal but external cooling of the compressor is inadequate. Check ambient ventilation and cooling fan.",
+      "causes": ["기계실 환기 불량으로 주변 온도 상승", "압축기 헤드 쿨링 팬 고장", "냉매 충전량 부족으로 모터 냉각 불충분"],
+      "causes_en": ["Poor machine room ventilation raising ambient temperature", "Compressor head cooling fan failure", "Insufficient refrigerant charge reducing motor cooling"],
+      "steps": [
+        "기계실 주변 온도 측정 (설계 최대 주변 온도 초과 여부 확인)",
+        "압축기 헤드 쿨링 팬 동작 확인",
+        "압축기 표면에 손을 대지 말고 비접촉 온도계로 측정 (정상: ~80°C, 위험: 100°C 이상)",
+        "환기구 막힘 여부 확인 및 통풍 개선",
+        "냉매 충전량 확인 (저압 게이지로 흡입 압력 확인)"
+      ],
+      "steps_en": [
+        "Measure ambient temperature in machine room (check vs. max rated ambient)",
+        "Verify compressor head cooling fan is operating",
+        "Use non-contact thermometer on compressor body (normal: ~80°C, danger: ≥100°C)",
+        "Check for blocked ventilation openings and improve airflow",
+        "Check refrigerant charge (suction pressure via low-side gauge)"
+      ],
+      "warningLevel": "caution",
+      "warning": "기계실 온도가 43°C 이상이면 압축기 허용 범위를 초과할 수 있습니다. 강제 환기 설비를 추가하세요.",
+      "warning_en": "Machine room temperature above 43°C may exceed compressor ratings. Add forced ventilation."
+    },
+    "co_r_low_voltage_current": {
+      "type": "result",
+      "title": "저전압으로 인한 과전류 및 과열",
+      "title_en": "Overcurrent and Overheating from Low Voltage",
+      "level": "medium",
+      "conclusion": "전압 저하 시 압축기는 같은 출력을 내기 위해 전류를 더 많이 사용해 과열됩니다. 전원 계통을 점검하세요.",
+      "conclusion_en": "Under low voltage, the compressor draws more current to maintain output, causing overheating. Inspect the power supply.",
+      "causes": ["전력 공급선 길이 과다 또는 전선 굵기 부족", "단자 접촉 불량으로 전압 강하", "공급 전원 자체 전압 불안정"],
+      "causes_en": ["Excessively long supply wiring or undersized conductor", "Voltage drop from poor terminal contact", "Unstable supply voltage at source"],
+      "steps": [
+        "압축기 단자대에서 직접 전압 측정 (운전 중·기동 중 모두 측정)",
+        "정격 전압 ±10% 이내 여부 확인",
+        "전선 단면적 및 길이 대비 전압 강하 계산",
+        "단자 나사 조임 및 접촉 불량 점검",
+        "전압 불안정 시 전력 회사 또는 전기 기사에게 문의"
+      ],
+      "steps_en": [
+        "Measure voltage directly at compressor terminals (during both run and start)",
+        "Verify within ±10% of rated voltage",
+        "Calculate voltage drop based on wire gauge and length",
+        "Tighten terminal screws and check contact quality",
+        "If voltage is unstable, contact utility or licensed electrician"
+      ],
+      "warningLevel": "caution",
+      "warning": "전압 불균형이 3상 모터에서 3% 이상이면 과열 및 조기 소손 원인이 됩니다.",
+      "warning_en": "Voltage imbalance above 3% on a 3-phase motor causes overheating and premature failure."
+    },
+    "co_r_overcharge_or_bearing": {
+      "type": "result",
+      "title": "냉매 과충전 또는 압축기 베어링 마모",
+      "title_en": "Refrigerant Overcharge or Compressor Bearing Wear",
+      "level": "hard",
+      "conclusion": "과충전 시 액백으로 과전류가 발생하고, 베어링 마모 시에도 전류가 상승합니다. 우선 냉매량을 확인하세요.",
+      "conclusion_en": "Overcharge causes liquid slugging and overcurrent; bearing wear also raises current. Check refrigerant charge first.",
+      "causes": ["냉매 과충전으로 인한 액백 및 압축기 과부하", "베어링 마모로 내부 마찰 증가", "압축기 밸브 부분 파손으로 재압축 발생"],
+      "causes_en": ["Refrigerant overcharge causing liquid slugging and overload", "Increased friction from bearing wear", "Partial valve failure causing re-compression"],
+      "steps": [
+        "과냉각도 측정 (응축기 출구 온도 - 응축 포화 온도): 정상 5~8°C, 과충전 시 10°C 이상",
+        "과충전 확인 시 냉매 일부 회수 후 과냉각도·압력 재확인",
+        "펌프다운 후 흡입 압력 변화 관찰 (압력 상승 시 내부 누설·밸브 불량)",
+        "운전 중 압축기 소음 청취 (달달거리는 소리 → 베어링 마모)",
+        "전류가 정격 초과 지속 시 압축기 교체"
+      ],
+      "steps_en": [
+        "Measure subcooling (condenser outlet temp − condensing sat. temp): normal 5–8°C, overcharge >10°C",
+        "If overcharged, recover some refrigerant and recheck subcooling and pressures",
+        "Perform pump-down and watch suction pressure rise (rising = internal leak or valve fault)",
+        "Listen for rattling during operation (indicates bearing wear)",
+        "Replace compressor if current continuously exceeds rating"
+      ],
+      "warningLevel": "caution",
+      "warning": "냉매 회수 장비 없이 임의 방출은 불법입니다. 반드시 회수 장비를 사용하세요.",
+      "warning_en": "Releasing refrigerant without recovery equipment is illegal. Always use recovery equipment."
+    },
+    "co_r_refrigerant_shortage_heat": {
+      "type": "result",
+      "title": "냉매 부족으로 인한 모터 냉각 불량 → 과열",
+      "title_en": "Motor Cooling Failure from Low Refrigerant → Overheating",
+      "level": "medium",
+      "conclusion": "냉매가 부족하면 흡입 가스량이 줄어 모터 냉각이 불충분해지고 과열됩니다. 누설 수리 후 재충전하세요.",
+      "conclusion_en": "Low refrigerant reduces return gas volume, causing insufficient motor cooling and overheating. Repair leak and recharge.",
+      "causes": ["냉동 사이클 미세 누설로 냉매 서서히 감소", "필터 드라이어 막힘으로 흡입 가스량 감소"],
+      "causes_en": ["Slow circuit leak gradually depleting refrigerant", "Reduced suction gas flow from clogged filter drier"],
+      "steps": [
+        "저압 게이지로 흡입 압력 확인 (비정상 저압 여부)",
+        "리크 디텍터로 전체 배관 누설 점검",
+        "누설 수리 후 진공, 냉매 재충전 (중량 계량)",
+        "충전 후 흡입 압력·과열도 정상 범위 확인",
+        "필터 드라이어 전후 온도차 2°C 이상이면 교체"
+      ],
+      "steps_en": [
+        "Check suction pressure on low-side gauge (abnormally low?)",
+        "Scan all pipework with leak detector",
+        "Repair leak, evacuate, and recharge by weight",
+        "After charging, verify suction pressure and superheat are normal",
+        "Replace filter drier if temperature drop across it exceeds 2°C"
+      ],
+      "warningLevel": "caution",
+      "warning": "누설 원인을 수리하지 않고 냉매만 보충하는 것은 임시방편이며 반복 과열로 압축기가 소손됩니다.",
+      "warning_en": "Recharging without fixing the leak is a stopgap — repeated overheating will destroy the compressor."
+    },
+    "co_r_condenser_poor_heat": {
+      "type": "result",
+      "title": "응축기 방열 불량 → 반복 과열 트립",
+      "title_en": "Poor Condenser Heat Rejection → Repeated Overheating Trip",
+      "level": "medium",
+      "conclusion": "응축기 팬 불량 또는 코일 오염이 원인입니다. 팬 교체 및 코일 청소를 우선 실시하세요.",
+      "conclusion_en": "Condenser fan failure or coil fouling is the cause. Prioritize fan replacement and coil cleaning.",
+      "causes": ["응축기 팬 모터 베어링 마모 또는 소손", "팬 날개 이물질로 풍량 저하", "응축기 코일 핀 오염으로 방열 불량"],
+      "causes_en": ["Condenser fan motor bearing worn or burned", "Fan blade blocked by foreign material reducing airflow", "Condenser coil fin fouling reducing heat rejection"],
+      "steps": [
+        "응축기 팬 모터 전류 측정 (정격 대비 확인)",
+        "팬 날개 육안 점검 및 이물질 제거",
+        "응축기 코일 핀 청소 (압축 공기 또는 세정제)",
+        "팬 모터 베어링 소음 확인 (이상음 시 교체)",
+        "청소·교체 후 고압 측 압력 측정으로 개선 확인"
+      ],
+      "steps_en": [
+        "Measure condenser fan motor current vs. rating",
+        "Visually inspect fan blade and remove debris",
+        "Clean condenser coil fins (compressed air or cleaner)",
+        "Check fan motor bearing noise (replace if abnormal)",
+        "Measure high-side pressure after cleaning/replacement to confirm improvement"
+      ],
+      "warningLevel": "caution",
+      "warning": "팬 점검 시 전원을 차단하고 팬이 완전히 정지한 후 손을 대세요.",
+      "warning_en": "Cut power and wait for the fan to fully stop before touching it."
+    },
+
+    "oi_q1": {
+      "type": "multi",
+      "question": "오일 관련 어떤 증상이 발생했나요?",
+      "question_en": "What oil-related symptom has occurred?",
+      "choices": [
+        { "label": "유압 게이지가 낮게 나타난다 (또는 유압 보호 스위치 동작)", "next": "oi_q_low_oil_pressure" },
+        { "label": "시동 시 오일 포밍(거품)이 발생한다", "next": "oi_q_oil_foaming" },
+        { "label": "오일 색깔이 검게 변했거나 금속 분말이 보인다", "next": "oi_r_oil_contaminated" }
+      ]
+    },
+    "oi_q_low_oil_pressure": {
+      "type": "question",
+      "question": "오일 사이트 글라스(유면계)에서 오일 레벨이 낮거나 보이지 않나요?",
+      "question_en": "Is the oil level low or invisible in the oil sight glass?",
+      "yes": "oi_r_oil_shortage",
+      "no": "oi_q_oil_pump"
+    },
+    "oi_q_oil_pump": {
+      "type": "question",
+      "question": "유압 조정 밸브를 점검했을 때 과도하게 열려있나요?",
+      "question_en": "Is the oil pressure regulating valve found excessively open?",
+      "yes": "oi_r_oil_valve_adj",
+      "no": "oi_r_oil_pump_fail"
+    },
+    "oi_q_oil_foaming": {
+      "type": "question",
+      "question": "장기 정지 후 시동이거나, 기계실 온도가 낮았나요? (5°C 이하)",
+      "question_en": "Was this a start after long shutdown, or was the machine room below 5°C?",
+      "yes": "oi_r_refrigerant_dissolved",
+      "no": "oi_r_oil_foaming_valve"
+    },
+    "oi_r_oil_shortage": {
+      "type": "result",
+      "title": "오일 부족 (유면 낮음)",
+      "title_en": "Oil Shortage (Low Oil Level)",
+      "level": "hard",
+      "conclusion": "오일이 부족합니다. 오일 부족 원인(배관 오일 체류, 누설)을 파악하고 규격에 맞는 냉동유를 보충하세요.",
+      "conclusion_en": "Oil level is low. Identify cause (oil trapped in pipework or oil leak) and add refrigeration oil of correct specification.",
+      "causes": ["배관 트랩 불량으로 오일이 증발기·배관에 체류", "반유관 막힘으로 오일 미회수", "오일 분리기 불량"],
+      "causes_en": ["Oil trapped in evaporator or piping due to poor trap design", "Oil return line blocked", "Oil separator malfunction"],
+      "steps": [
+        "냉동유 규격 확인 (R22: 미네랄 오일, R404A/R410A: POE 오일)",
+        "오일 주입 전 반드시 냉매 계통 압력 확인 (고압 시 주입 불가)",
+        "오일 충전 밸브를 통해 규격 오일 보충",
+        "충전 후 유면계로 레벨 확인 (1/4~3/4 범위)",
+        "배관 트랩 설계 검토 (오일 회수 굴곡 확인)",
+        "오일 분리기 설치 여부 및 기능 확인"
+      ],
+      "steps_en": [
+        "Verify oil specification (R22: mineral oil; R404A/R410A: POE oil)",
+        "Check system pressure before adding oil (cannot add under high pressure)",
+        "Add correct oil through oil charging valve",
+        "After charging, confirm oil level in sight glass (1/4–3/4 range)",
+        "Review pipe trap design for oil return bends",
+        "Check oil separator presence and function"
+      ],
+      "warningLevel": "danger",
+      "warning": "오일 규격을 혼동하면 슬러지 발생 및 모세관 막힘, 압축기 소손이 발생합니다. 반드시 규격 확인 후 보충하세요.",
+      "warning_en": "Wrong oil type causes sludge, capillary blockage, and compressor burnout. Always verify the oil spec before adding."
+    },
+    "oi_r_oil_valve_adj": {
+      "type": "result",
+      "title": "유압 조정 밸브 과개방으로 유압 저하",
+      "title_en": "Low Oil Pressure from Overly Open Pressure Regulating Valve",
+      "level": "medium",
+      "conclusion": "유압 조정 밸브가 과도하게 열려 오일이 바이패스됩니다. 밸브를 재조정하세요.",
+      "conclusion_en": "The oil pressure regulating valve is too open, causing bypass. Re-adjust the valve.",
+      "causes": ["유압 조정 밸브 설정값 이탈", "밸브 스프링 노화 또는 파손"],
+      "causes_en": ["Oil pressure regulating valve set point drifted", "Valve spring aged or broken"],
+      "steps": [
+        "유압 게이지 정상 범위 확인 (일반적으로 흡입 압력 + 1.5~3 bar)",
+        "유압 조정 밸브를 시계 방향으로 서서히 조여 압력 상승 확인",
+        "목표 유압에 도달하면 잠금 너트 조임",
+        "조정 후에도 유압 불안정 시 밸브 스프링 교체 검토"
+      ],
+      "steps_en": [
+        "Confirm normal oil pressure range (typically suction pressure + 1.5–3 bar)",
+        "Slowly tighten oil pressure regulating valve clockwise to raise pressure",
+        "Once target pressure reached, tighten lock nut",
+        "If pressure remains unstable after adjustment, consider replacing valve spring"
+      ],
+      "warningLevel": "caution",
+      "warning": "유압을 과도하게 높이면 오일 시일이 손상될 수 있습니다. 사양서 기준값을 반드시 확인하세요.",
+      "warning_en": "Setting oil pressure too high can damage oil seals. Always refer to manufacturer specifications."
+    },
+    "oi_r_oil_pump_fail": {
+      "type": "result",
+      "title": "오일 펌프 불량",
+      "title_en": "Oil Pump Failure",
+      "level": "hard",
+      "conclusion": "오일 레벨은 정상이고 조정 밸브도 적절하나 유압이 낮습니다. 오일 펌프 자체를 점검하세요.",
+      "conclusion_en": "Oil level is normal and valve is correctly set, but oil pressure is low. Inspect the oil pump itself.",
+      "causes": ["오일 펌프 기어·로터 마모", "오일 필터 막힘으로 오일 공급 불량", "오일 스트레이너 오염"],
+      "causes_en": ["Oil pump gear or rotor worn", "Oil filter clogged causing poor oil supply", "Oil strainer fouled"],
+      "steps": [
+        "오일 필터·스트레이너 청소 또는 교체",
+        "오일 필터 전후 압력차 측정",
+        "오일 펌프 분해 점검 (기어 마모, 간극 측정)",
+        "오일 펌프 교체 (반드시 압축기 제조사 사양 부품 사용)",
+        "교체 후 유압 재측정으로 정상 확인"
+      ],
+      "steps_en": [
+        "Clean or replace oil filter and strainer",
+        "Measure pressure differential across oil filter",
+        "Disassemble and inspect oil pump (gear wear, clearance check)",
+        "Replace oil pump using manufacturer-specified parts",
+        "Re-measure oil pressure after replacement to confirm normal"
+      ],
+      "warningLevel": "danger",
+      "warning": "오일 펌프 교체는 압축기 분해를 수반하므로 냉매를 완전히 회수한 후 진행하세요.",
+      "warning_en": "Oil pump replacement requires compressor disassembly — fully recover refrigerant before proceeding."
+    },
+    "oi_r_refrigerant_dissolved": {
+      "type": "result",
+      "title": "오일에 냉매 용해 → 시동 시 오일 포밍",
+      "title_en": "Refrigerant Dissolved in Oil → Oil Foaming at Startup",
+      "level": "medium",
+      "conclusion": "정지 중 냉매가 오일에 용해되었다가 시동 시 급격히 기화하여 거품이 발생합니다. 크랭크케이스 히터를 확인하세요.",
+      "conclusion_en": "Refrigerant dissolved in oil during shutdown boils off rapidly at startup, causing foaming. Check crankcase heater.",
+      "causes": ["크랭크케이스 히터 미작동 또는 미설치", "장기 정지 중 기계실 저온으로 냉매 이동·용해", "시동 전 대기 시간 부족"],
+      "causes_en": ["Crankcase heater not operating or not installed", "Low machine room temperature during long shutdown causes refrigerant migration", "Insufficient pre-heat wait before startup"],
+      "steps": [
+        "크랭크케이스 히터 통전 확인 (멀티미터로 저항 측정)",
+        "히터 불량 시 동일 규격 교체",
+        "정지 후 재기동 시 최소 6시간 이상 히터 예열 후 기동",
+        "시동 초기 유면계 거품 관찰 (포밍 지속 5분 이상이면 히터 불량)",
+        "기계실 최저 온도가 10°C 이하가 되지 않도록 관리"
+      ],
+      "steps_en": [
+        "Verify crankcase heater is energized (measure resistance with multimeter)",
+        "Replace heater if faulty (same specification)",
+        "After shutdown, allow at least 6 hours of heater pre-heat before restarting",
+        "Observe oil sight glass at startup (foaming >5 min = heater deficiency)",
+        "Keep machine room minimum temperature above 10°C"
+      ],
+      "warningLevel": "caution",
+      "warning": "오일 포밍 상태로 계속 운전하면 베어링·크랭크샤프트 윤활 불량으로 압축기가 소손됩니다.",
+      "warning_en": "Continued operation during oil foaming causes bearing and crankshaft lubrication failure and compressor burnout."
+    },
+    "oi_r_oil_foaming_valve": {
+      "type": "result",
+      "title": "밸브 부분 파손으로 인한 재압축 및 오일 과열",
+      "title_en": "Valve Partial Failure Causing Re-compression and Oil Overheating",
+      "level": "hard",
+      "conclusion": "흡입·토출 밸브 부분 파손으로 재압축이 발생하여 오일이 과열됩니다. 압축기 점검 또는 교체가 필요합니다.",
+      "conclusion_en": "Partial valve failure causes re-compression and oil overheating. Compressor inspection or replacement needed.",
+      "causes": ["흡입 밸브 파손으로 고온 가스 역류", "토출 밸브 파손으로 재압축 발생", "액백으로 인한 밸브 변형"],
+      "causes_en": ["Suction valve failure causing hot gas back-flow", "Discharge valve failure causing re-compression", "Valve deformation from liquid slugging"],
+      "steps": [
+        "펌프다운 후 흡입 압력 변화 관찰 (압력 상승 시 밸브 불량 확인)",
+        "토출관 온도 측정 (비정상 고온 지속 시 밸브 의심)",
+        "압축기 교체 또는 밸브 플레이트 교체 (왕복동 압축기)",
+        "원인(액백) 제거 없이 교체 시 재발 가능성 높음"
+      ],
+      "steps_en": [
+        "Pump down and observe suction pressure rise (rising = valve fault)",
+        "Measure discharge line temperature (abnormally high = valve suspect)",
+        "Replace compressor or valve plate (reciprocating compressor)",
+        "High recurrence risk if root cause (liquid slugging) is not addressed"
+      ],
+      "warningLevel": "danger",
+      "warning": "오일이 고온으로 탄화되면 모세관·팽창밸브 막힘 등 2차 고장이 연속 발생합니다. 오일 전량 교체를 권장합니다.",
+      "warning_en": "Carbonized oil from overheating causes secondary failures (capillary or TXV blockage). Full oil replacement recommended."
+    },
+    "oi_r_oil_contaminated": {
+      "type": "result",
+      "title": "오일 오염 (탄화·금속 분말)",
+      "title_en": "Oil Contamination (Carbonization or Metal Particles)",
+      "level": "hard",
+      "conclusion": "오일 색이 검거나 금속 분말이 보이면 내부 마모 또는 소손이 진행된 것입니다. 압축기 교체와 계통 세정이 필요합니다.",
+      "conclusion_en": "Black oil or metal particles indicate internal wear or burnout. Compressor replacement and circuit flushing required.",
+      "causes": ["압축기 내부 베어링·피스톤 마모로 금속 분말 발생", "오일 과열로 탄화 (검게 변색)", "냉매 혼입 오일 점도 저하로 윤활 불량"],
+      "causes_en": ["Metal particles from internal bearing/piston wear", "Oil carbonization from overheating (black discoloration)", "Refrigerant dilution of oil causing lubrication failure"],
+      "steps": [
+        "오일 샘플 채취 후 색·점도 확인 (정상: 맑은 황갈색)",
+        "압축기 냉매 전량 회수 후 교체",
+        "교체 시 계통 내 필터 드라이어, 흡입 스트레이너 동시 교체",
+        "계통 세정 (질소 플러싱 또는 세정 냉매 사용)",
+        "오일 탄화 원인(과열·액백) 제거 후 재충전"
+      ],
+      "steps_en": [
+        "Take oil sample and check color/viscosity (normal: clear amber)",
+        "Recover all refrigerant and replace compressor",
+        "Simultaneously replace filter drier and suction strainer",
+        "Flush the circuit (nitrogen flush or flushing refrigerant)",
+        "Eliminate root cause (overheating/liquid slugging) before recharging"
+      ],
+      "warningLevel": "danger",
+      "warning": "오염된 오일을 그대로 두고 압축기만 교체하면 새 압축기도 단기간 내 재소손됩니다. 계통 세정을 반드시 병행하세요.",
+      "warning_en": "Replacing only the compressor without flushing the circuit will destroy the new compressor quickly. Always flush."
+    },
+
+    "rm_q1": {
+      "type": "multi",
+      "question": "냉매 계통 수분·오염 의심 시 어떤 증상이 있나요?",
+      "question_en": "What symptom suggests moisture or contamination in the refrigerant circuit?",
+      "choices": [
+        { "label": "팽창밸브나 모세관이 간헐적으로 막혔다 풀린다 (아이싱 막힘)", "next": "rm_q_ice_block" },
+        { "label": "필터 드라이어가 단기간에 막힌다 (반복 교체)", "next": "rm_r_heavy_moisture" },
+        { "label": "계통 전체 압력이 낮고 냉동유가 변색·점성이 낮다", "next": "rm_r_acid_contamination" }
+      ]
+    },
+    "rm_q_ice_block": {
+      "type": "question",
+      "question": "팽창밸브 또는 모세관 부위를 따뜻한 수건으로 감싸면 잠시 후 저압이 회복되나요?",
+      "question_en": "Does suction pressure recover temporarily when the expansion device is warmed with a warm cloth?",
+      "yes": "rm_r_ice_block_confirmed",
+      "no": "rm_r_debris_block"
+    },
+    "rm_r_ice_block_confirmed": {
+      "type": "result",
+      "title": "수분 동결에 의한 팽창 기기 얼음 막힘 확인",
+      "title_en": "Ice Blockage of Expansion Device Confirmed (Moisture Freeze)",
+      "level": "hard",
+      "conclusion": "수분이 팽창밸브/모세관 오리피스에서 얼어 막힘이 발생합니다. 수분 제거와 드라이어 교체가 필요합니다.",
+      "conclusion_en": "Moisture freezes at the expansion device orifice causing blockage. Moisture removal and drier replacement required.",
+      "causes": ["초기 설치 시 진공 불충분으로 수분 잔류", "수분 함유 냉매 충전", "서비스 시 계통 개방 후 장시간 방치"],
+      "causes_en": ["Residual moisture from insufficient initial evacuation", "Refrigerant charged with moisture", "System left open for too long during service"],
+      "steps": [
+        "냉매 전량 회수",
+        "필터 드라이어 교체 (수분 지시약 포함 드라이어 권장)",
+        "진공 펌프로 500μm Hg 이하까지 진공 (최소 1시간)",
+        "진공 게이지로 진공도 유지 확인 (진공 깨지면 누설 의심)",
+        "냉매 재충전 (중량 계량)",
+        "충전 후 수분 지시약 색상 확인 (초록색 = 건조, 노란색 = 수분 있음)"
+      ],
+      "steps_en": [
+        "Recover all refrigerant",
+        "Replace filter drier (drier with moisture indicator recommended)",
+        "Evacuate to ≤500 μm Hg (minimum 1 hour)",
+        "Verify vacuum holds on gauge (vacuum loss = suspected leak)",
+        "Recharge refrigerant by weight",
+        "Check moisture indicator color after charging (green = dry, yellow = moisture present)"
+      ],
+      "warningLevel": "caution",
+      "warning": "수분 지시약이 노란색으로 유지되면 계통 내 수분 제거가 불충분한 것입니다. 진공 및 드라이어 교체를 재실시하세요.",
+      "warning_en": "If the moisture indicator stays yellow, moisture removal is insufficient. Repeat evacuation and drier replacement."
+    },
+    "rm_r_debris_block": {
+      "type": "result",
+      "title": "이물질(슬러지·용접 찌꺼기)에 의한 막힘",
+      "title_en": "Debris Blockage (Sludge or Welding Residue)",
+      "level": "hard",
+      "conclusion": "이물질이 팽창밸브 또는 모세관을 막고 있습니다. 스크린 세정과 드라이어 교체로 대응하세요.",
+      "conclusion_en": "Debris is blocking the expansion valve or capillary tube. Clean the screen and replace the filter drier.",
+      "causes": ["배관 용접 시 플럭스·산화물 잔류", "냉동유 열화로 슬러지 생성", "계통 내 구리·철 분말"],
+      "causes_en": ["Flux or oxide residue from pipe brazing", "Sludge from oil degradation", "Copper or iron particles in circuit"],
+      "steps": [
+        "팽창밸브 스크린(여과망) 분리 세정",
+        "모세관인 경우 드라이어 교체 및 질소 역압으로 청소",
+        "냉매 전량 회수 후 드라이어 교체",
+        "계통 질소 플러싱",
+        "진공·재충전 후 압력·과열도 정상 확인"
+      ],
+      "steps_en": [
+        "Remove and clean TXV inlet screen",
+        "For capillary: replace drier and backflush with nitrogen",
+        "Recover all refrigerant and replace filter drier",
+        "Nitrogen flush the circuit",
+        "Evacuate, recharge, and confirm pressures and superheat are normal"
+      ],
+      "warningLevel": "caution",
+      "warning": "이물질 발생 원인(용접 불량, 오일 열화)을 제거하지 않으면 교체 후에도 재발합니다.",
+      "warning_en": "Recurrence is likely if the source of debris (poor brazing, oil degradation) is not addressed."
+    },
+    "rm_r_heavy_moisture": {
+      "type": "result",
+      "title": "심각한 수분 혼입 (드라이어 반복 막힘)",
+      "title_en": "Severe Moisture Ingress (Repeated Drier Blockage)",
+      "level": "hard",
+      "conclusion": "수분 함량이 매우 높습니다. 계통 전체 세정 및 장시간 진공 처리가 필요합니다.",
+      "conclusion_en": "Moisture level is very high. Full circuit cleaning and extended evacuation required.",
+      "causes": ["대기 노출 시간 과다 (서비스 시 장시간 개방)", "새 배관의 수분 제거 미실시 (트리플 에바큐에이션 미실시)"],
+      "causes_en": ["Excessive atmospheric exposure during service", "Moisture not removed from new piping (triple evacuation not performed)"],
+      "steps": [
+        "냉매 전량 회수",
+        "드라이어 2개 직렬 설치 또는 초대용량 드라이어 교체",
+        "트리플 에바큐에이션 실시 (진공-브레이크-재진공을 3회 반복)",
+        "최종 진공도 200μm Hg 이하 유지 30분",
+        "냉매 재충전 후 수분 지시약 확인"
+      ],
+      "steps_en": [
+        "Recover all refrigerant",
+        "Install two driers in series or replace with oversized drier",
+        "Perform triple evacuation (vacuum–break–re-evacuate × 3)",
+        "Hold final vacuum ≤200 μm Hg for 30 minutes",
+        "Recharge and check moisture indicator"
+      ],
+      "warningLevel": "danger",
+      "warning": "POE 오일(R404A·R410A 계통) 사용 시 수분에 매우 취약합니다. 계통 개방 시간을 최소화하고 즉시 진공 처리하세요.",
+      "warning_en": "POE oil (R404A/R410A circuits) is extremely hygroscopic. Minimize open time and evacuate immediately."
+    },
+    "rm_r_acid_contamination": {
+      "type": "result",
+      "title": "산성 오염 (모터 소손 후 계통 오염)",
+      "title_en": "Acid Contamination (Post Motor Burnout Circuit Contamination)",
+      "level": "hard",
+      "conclusion": "압축기 모터 소손으로 산성 물질이 계통 전체에 퍼진 상태입니다. 계통 세정 없이 압축기만 교체하면 재소손됩니다.",
+      "conclusion_en": "Motor burnout has spread acidic contaminants throughout the circuit. Replacing only the compressor without cleaning will cause re-burnout.",
+      "causes": ["압축기 모터 소손으로 구리 도금 현상 발생", "오일·냉매 산성화로 배관 부식"],
+      "causes_en": ["Motor burnout causing copper plating throughout circuit", "Oil and refrigerant acidification corroding pipework"],
+      "steps": [
+        "산성 오염 여부 확인: 오일 산도 테스트 키트 사용",
+        "냉매 전량 회수 (오염 냉매는 별도 처리)",
+        "세정 냉매 또는 질소로 계통 완전 세정",
+        "드라이어, 팽창밸브 스크린, 흡입 스트레이너 동시 교체",
+        "새 압축기 설치 및 진공 (500μm Hg 이하)",
+        "냉매 재충전 후 1주일 내 드라이어 추가 교체"
+      ],
+      "steps_en": [
+        "Check for acid contamination using oil acid test kit",
+        "Recover all refrigerant (contaminated refrigerant requires special disposal)",
+        "Flush entire circuit with flushing refrigerant or nitrogen",
+        "Simultaneously replace drier, TXV screen, and suction strainer",
+        "Install new compressor and evacuate (≤500 μm Hg)",
+        "After recharging, replace drier again within 1 week"
+      ],
+      "warningLevel": "danger",
+      "warning": "소손 후 오염 계통에 재기동 시 신규 압축기도 단기간 내 소손됩니다. 반드시 계통 세정을 완료 후 재기동하세요.",
+      "warning_en": "Starting a new compressor in a contaminated circuit will cause rapid re-burnout. Always complete circuit cleaning first."
+    },
+
+    "txv_q1": {
+      "type": "multi",
+      "question": "TXV(감온식 팽창밸브) 관련 어떤 증상이 나타나나요?",
+      "question_en": "What TXV-related symptom is present?",
+      "choices": [
+        { "label": "저압이 불안정하게 오르내린다 (헌팅)", "next": "txv_q_hunting" },
+        { "label": "저압이 지속적으로 낮고 흡입 과열도가 높다 (과폐쇄)", "next": "txv_q_closed" },
+        { "label": "저압이 지속적으로 높고 흡입 배관에 성에·결빙이 생긴다 (과개방)", "next": "txv_q_open" }
+      ]
+    },
+    "txv_q_hunting": {
+      "type": "question",
+      "question": "감온통(sensing bulb)이 흡입 배관에 단단히 밀착 고정되어 있나요?",
+      "question_en": "Is the TXV sensing bulb firmly clamped against the suction line?",
+      "yes": "txv_q_hunting2",
+      "no": "txv_r_bulb_contact"
+    },
+    "txv_q_hunting2": {
+      "type": "question",
+      "question": "증발기 부하가 자주 변동하는 환경인가요? (도어 빈번 개방, 온도 설정 변경 등)",
+      "question_en": "Is the evaporator load frequently changing? (frequent door opening, temperature changes, etc.)",
+      "yes": "txv_r_hunting_load",
+      "no": "txv_r_hunting_valve"
+    },
+    "txv_q_closed": {
+      "type": "question",
+      "question": "팽창밸브 전후 온도차가 크고 밸브 입구 배관이 차갑거나 서리가 끼나요?",
+      "question_en": "Is there a large temperature drop across the TXV, and is the inlet pipe cold or frosted?",
+      "yes": "txv_r_blockage",
+      "no": "txv_r_closed_spring"
+    },
+    "txv_q_open": {
+      "type": "question",
+      "question": "감온통이 흡입 배관에서 이탈되거나 느슨하게 되어 있나요?",
+      "question_en": "Has the sensing bulb become detached or loose from the suction line?",
+      "yes": "txv_r_bulb_contact",
+      "no": "txv_r_overcharge_or_open_valve"
+    },
+    "txv_r_bulb_contact": {
+      "type": "result",
+      "title": "TXV 감온통 접촉 불량",
+      "title_en": "TXV Sensing Bulb Poor Contact",
+      "level": "easy",
+      "conclusion": "감온통이 흡입 배관에 밀착되지 않으면 실제 온도를 잘못 읽어 밸브 개도가 불안정해집니다.",
+      "conclusion_en": "Poor sensing bulb contact causes incorrect temperature reading and unstable valve opening.",
+      "causes": ["클램프 느슨해짐", "감온통 단열재(폼) 이탈 또는 손상", "배관 부식으로 접촉면 불량"],
+      "causes_en": ["Clamp loosened", "Sensing bulb insulation (foam) missing or damaged", "Poor contact surface from pipe corrosion"],
+      "steps": [
+        "감온통을 흡입 배관 4시 또는 8시 방향에 밀착 고정",
+        "클램프를 단단히 조임",
+        "감온통 및 접촉 부위를 단열 테이프·폼으로 감싸 외기 영향 차단",
+        "고정 후 20분 운전하여 과열도 안정 여부 확인"
+      ],
+      "steps_en": [
+        "Fix sensing bulb against suction line at 4 o'clock or 8 o'clock position",
+        "Tighten clamp securely",
+        "Wrap bulb and contact area with insulating tape or foam to block ambient influence",
+        "Run for 20 minutes after fixing and confirm superheat stabilizes"
+      ],
+      "warningLevel": "",
+      "warning": "",
+      "warning_en": ""
+    },
+    "txv_r_hunting_load": {
+      "type": "result",
+      "title": "부하 변동으로 인한 TXV 헌팅",
+      "title_en": "TXV Hunting Due to Fluctuating Load",
+      "level": "medium",
+      "conclusion": "부하 변동이 심하면 TXV가 과열도를 쫓아가며 헌팅합니다. 과열도를 약간 높여 안정화하세요.",
+      "conclusion_en": "Heavy load fluctuations cause TXV hunting as it chases superheat. Increase superheat setting slightly to stabilize.",
+      "causes": ["TXV 과열도 설정값이 너무 낮아 민감하게 반응", "증발기 부하 변동 폭이 큼"],
+      "causes_en": ["TXV superheat setting too low causing oversensitive response", "Large evaporator load fluctuations"],
+      "steps": [
+        "현재 과열도 측정: 증발기 출구 온도 - 흡입 포화 온도 (현재 3°C 이하이면 너무 낮음)",
+        "TXV 조정 나사를 시계 방향으로 1/4회전씩 조정",
+        "20분 대기 후 과열도 재측정 (목표: 5~8°C)",
+        "안정 여부 확인 후 반복 조정"
+      ],
+      "steps_en": [
+        "Measure current superheat: evap outlet temp − suction sat. temp (if <3°C it is too low)",
+        "Turn TXV adjustment screw clockwise in 1/4-turn increments",
+        "Wait 20 minutes and re-measure superheat (target: 5–8°C)",
+        "Check stability and repeat if needed"
+      ],
+      "warningLevel": "caution",
+      "warning": "과열도를 10°C 이상으로 너무 높이면 냉각 능력이 저하됩니다. 5~8°C 범위를 목표로 하세요.",
+      "warning_en": "Setting superheat above 10°C reduces cooling capacity. Target the 5–8°C range."
+    },
+    "txv_r_hunting_valve": {
+      "type": "result",
+      "title": "TXV 밸브 내부 불량 (다이어프램·스프링 이상)",
+      "title_en": "TXV Internal Defect (Diaphragm or Spring Fault)",
+      "level": "hard",
+      "conclusion": "감온통 접촉과 부하 조건이 정상인데도 헌팅이 지속되면 밸브 내부 불량입니다. TXV를 교체하세요.",
+      "conclusion_en": "If hunting persists with normal bulb contact and load conditions, the TXV has an internal defect. Replace the TXV.",
+      "causes": ["다이어프램 가스 누출로 밸브 제어 불능", "스프링 노화로 설정값 유지 불가", "내부 오리피스 이물질 부분 막힘"],
+      "causes_en": ["Diaphragm gas leak causing loss of valve control", "Spring aging prevents maintaining set point", "Partial debris blockage of internal orifice"],
+      "steps": [
+        "냉매 전량 회수",
+        "동일 냉매·용량·오리피스 크기 TXV로 교체",
+        "드라이어 동시 교체",
+        "감온통 재설치 (4~8시 방향, 단열 처리)",
+        "진공 후 충전, 운전 20분 후 과열도 측정"
+      ],
+      "steps_en": [
+        "Recover all refrigerant",
+        "Replace TXV with same refrigerant, capacity, and orifice size",
+        "Replace filter drier at the same time",
+        "Re-install sensing bulb (4–8 o'clock position, insulated)",
+        "Evacuate, recharge, run 20 minutes, then measure superheat"
+      ],
+      "warningLevel": "caution",
+      "warning": "TXV는 냉매 종류와 용량에 맞는 제품을 사용해야 합니다. R404A용을 R22 계통에 사용하면 제어 불능이 됩니다.",
+      "warning_en": "Always use a TXV matched to the refrigerant type and system capacity. Using an R404A TXV in an R22 circuit causes loss of control."
+    },
+    "txv_r_blockage": {
+      "type": "result",
+      "title": "TXV 막힘 (이물질 또는 수분 동결)",
+      "title_en": "TXV Blockage (Debris or Moisture Ice)",
+      "level": "hard",
+      "conclusion": "팽창밸브가 막혀 냉매 공급이 차단됩니다. 막힘 유형(수분 vs 이물질)에 따라 대처하세요.",
+      "conclusion_en": "The TXV is blocked, cutting off refrigerant supply. Address based on blockage type (moisture vs. debris).",
+      "causes": ["수분 동결에 의한 오리피스 막힘", "이물질·슬러지에 의한 스크린 막힘"],
+      "causes_en": ["Orifice iced from moisture", "Screen clogged with debris or sludge"],
+      "steps": [
+        "따뜻한 수건으로 팽창밸브 부위 가열 → 저압 회복 여부 확인 (수분 막힘 판별)",
+        "수분 막힘: 냉매 회수 → 드라이어 교체 → 진공 → 재충전",
+        "이물질 막힘: 냉매 회수 → 스크린 분리 세정 또는 TXV 교체",
+        "원인에 따라 필터 드라이어 반드시 교체"
+      ],
+      "steps_en": [
+        "Warm TXV body with a warm cloth and check if low-side pressure recovers (confirms ice block)",
+        "Moisture block: recover refrigerant → replace drier → evacuate → recharge",
+        "Debris block: recover refrigerant → clean screen or replace TXV",
+        "Always replace filter drier based on root cause"
+      ],
+      "warningLevel": "caution",
+      "warning": "수분 막힘은 일시 해소 후 재발합니다. 반드시 드라이어 교체와 충분한 진공을 실시하세요.",
+      "warning_en": "Moisture blockage will recur after temporary relief. Always replace the drier and perform thorough evacuation."
+    },
+    "txv_r_closed_spring": {
+      "type": "result",
+      "title": "TXV 스프링 과압 또는 감온통 가스 누출 (과폐쇄)",
+      "title_en": "TXV Over-closure from Spring Over-tension or Bulb Gas Loss",
+      "level": "hard",
+      "conclusion": "TXV가 지속 과폐쇄 상태입니다. 감온통 가스 누출 여부를 확인하고 TXV를 교체하세요.",
+      "conclusion_en": "TXV is continuously over-closed. Check for sensing bulb gas loss and replace TXV.",
+      "causes": ["감온통 충전 가스 누출로 개방 신호 소실", "조정 스프링 과도 조임", "다이어프램 파손"],
+      "causes_en": ["Sensing bulb charge gas leak — opening signal lost", "Adjustment spring over-tightened", "Diaphragm damaged"],
+      "steps": [
+        "TXV 조정 나사 반시계 방향으로 2회전 조정 후 변화 확인",
+        "변화 없으면 감온통 가스 누출 의심 → TXV 교체",
+        "드라이어 동시 교체",
+        "교체 후 과열도 측정 (목표 5~8°C)"
+      ],
+      "steps_en": [
+        "Turn TXV adjustment screw counterclockwise 2 turns and check for change",
+        "If no change, suspect bulb gas loss → replace TXV",
+        "Replace filter drier at the same time",
+        "Measure superheat after replacement (target 5–8°C)"
+      ],
+      "warningLevel": "caution",
+      "warning": "과폐쇄 지속 시 냉매가 공급되지 않아 압축기 모터 냉각 불량으로 과열 소손됩니다.",
+      "warning_en": "Prolonged over-closure stops refrigerant supply, causing compressor motor cooling failure and burnout."
+    },
+    "txv_r_overcharge_or_open_valve": {
+      "type": "result",
+      "title": "냉매 과충전 또는 TXV 과개방",
+      "title_en": "Refrigerant Overcharge or TXV Over-opening",
+      "level": "medium",
+      "conclusion": "저압이 높고 흡입 배관에 성에가 끼면 냉매 과충전 또는 TXV 과개방입니다. 과냉각도와 과열도를 측정하세요.",
+      "conclusion_en": "High suction pressure and frost on suction line indicate overcharge or TXV over-opening. Measure subcooling and superheat.",
+      "causes": ["냉매 과충전 (과냉각도 10°C 이상)", "TXV 조정 스프링 과소 (과열도 설정 너무 낮음)"],
+      "causes_en": ["Refrigerant overcharge (subcooling >10°C)", "TXV adjustment spring under-tension (superheat set too low)"],
+      "steps": [
+        "과냉각도 측정: 응축기 출구 온도 - 응축 포화 온도 (정상 5~8°C, 과충전 시 10°C 이상)",
+        "과냉각도 정상이면 TXV 과열도 설정 문제",
+        "TXV 조정 나사를 시계 방향으로 1/4회전씩 조정 (과열도 상승)",
+        "과충전 확인 시 냉매 일부 회수"
+      ],
+      "steps_en": [
+        "Measure subcooling: condenser outlet temp − condensing sat. temp (normal 5–8°C, overcharge >10°C)",
+        "If subcooling is normal, the issue is TXV superheat setting",
+        "Adjust TXV screw clockwise in 1/4-turn steps (raises superheat)",
+        "If overcharged, recover excess refrigerant"
+      ],
+      "warningLevel": "caution",
+      "warning": "과열도를 3°C 이하로 내리면 액백 발생 위험이 있습니다. 5°C 이하로 내리지 마세요.",
+      "warning_en": "Superheat below 3°C risks liquid slugging. Do not set below 5°C."
+    },
+
+    "inv_q1": {
+      "type": "multi",
+      "question": "인버터 압축기에서 어떤 증상이 나타나나요?",
+      "question_en": "What symptom is occurring with the inverter compressor?",
+      "choices": [
+        { "label": "인버터 디스플레이에 에러 코드가 표시된다", "next": "inv_q_error_code" },
+        { "label": "압축기 속도가 불안정하게 변동되거나 갑자기 멈춘다", "next": "inv_q_unstable" },
+        { "label": "인버터 본체가 매우 뜨겁고 냉각 팬이 고속 회전한다", "next": "inv_q_inv_overheat" }
+      ]
+    },
+    "inv_q_error_code": {
+      "type": "question",
+      "question": "에러 코드가 과전류(OC), 과부하 관련 코드인가요?",
+      "question_en": "Is the error code related to overcurrent (OC) or overload?",
+      "yes": "inv_r_overcurrent",
+      "no": "inv_r_other_error"
+    },
+    "inv_q_unstable": {
+      "type": "question",
+      "question": "전원 전압이 정격 범위(±10%) 이내로 안정적인가요?",
+      "question_en": "Is supply voltage stable within the rated range (±10%)?",
+      "yes": "inv_r_pressure_issue",
+      "no": "inv_r_voltage_unstable"
+    },
+    "inv_q_inv_overheat": {
+      "type": "question",
+      "question": "인버터 냉각 핀(히트싱크)이 먼지·오물로 막혀있나요?",
+      "question_en": "Is the inverter cooling fin (heat sink) blocked by dust or debris?",
+      "yes": "inv_r_inv_heatsink",
+      "no": "inv_r_inv_overheat_load"
+    },
+    "inv_r_overcurrent": {
+      "type": "result",
+      "title": "인버터 과전류 에러 (압축기 부하 과다)",
+      "title_en": "Inverter Overcurrent Error (Excessive Compressor Load)",
+      "level": "medium",
+      "conclusion": "인버터가 과전류를 감지하여 압축기를 보호 차단합니다. 압축기 부하 원인을 제거하세요.",
+      "conclusion_en": "The inverter has detected overcurrent and stopped the compressor as protection. Eliminate the compressor load cause.",
+      "causes": ["냉매 과충전으로 액백 및 과부하 발생", "고압 상승으로 압축비 과대", "압축기 내부 베어링 마모"],
+      "causes_en": ["Refrigerant overcharge causing liquid slugging and overload", "High compression ratio from elevated head pressure", "Compressor internal bearing wear"],
+      "steps": [
+        "에러 코드 메모 및 제조사 매뉴얼에서 원인 확인",
+        "인버터 전원 차단 후 5분 대기 후 재기동 시도",
+        "재기동 시 전류 클램프로 운전 전류 측정 (정격 대비 확인)",
+        "고압·저압 게이지 측정 (과충전 또는 응축기 불량 확인)",
+        "반복 에러 시 압축기 권선 저항 및 절연 저항 측정"
+      ],
+      "steps_en": [
+        "Note error code and identify cause in manufacturer manual",
+        "Cut inverter power, wait 5 minutes, then attempt restart",
+        "During restart, measure running current with clamp meter (vs. rated)",
+        "Measure high/low side pressures (check for overcharge or condenser fault)",
+        "If error repeats, measure compressor winding and insulation resistance"
+      ],
+      "warningLevel": "caution",
+      "warning": "인버터를 바이패스하여 직접 전원 공급 시도는 압축기 소손 및 안전 장치 무력화로 화재 위험이 있습니다.",
+      "warning_en": "Bypassing the inverter to apply direct power risks compressor burnout and defeats safety protection — fire hazard."
+    },
+    "inv_r_other_error": {
+      "type": "result",
+      "title": "인버터 에러 코드 - 제조사 매뉴얼 참조 필요",
+      "title_en": "Inverter Error Code — Refer to Manufacturer Manual",
+      "level": "medium",
+      "conclusion": "에러 코드별 원인이 제조사마다 다릅니다. 매뉴얼에서 코드를 확인하고 지시에 따라 점검하세요.",
+      "conclusion_en": "Error code meanings vary by manufacturer. Look up the code in the manual and follow the indicated checks.",
+      "causes": ["통신 오류 (실내외기 배선 불량)", "센서 불량 (온도·압력 센서 단선)", "IGBT 모듈 과열 또는 불량"],
+      "causes_en": ["Communication error (indoor/outdoor unit wiring fault)", "Sensor failure (temperature or pressure sensor open)", "IGBT module overheating or failure"],
+      "steps": [
+        "에러 코드를 제조사 서비스 매뉴얼에서 조회",
+        "통신 에러: 실내외기 간 통신 배선(2선/3선) 연속성 확인",
+        "센서 에러: 해당 센서 저항값 측정 (온도별 저항 특성 비교)",
+        "IGBT 에러: 인버터 냉각 핀 청소 후 재기동",
+        "반복 에러 시 인버터 모듈 교체"
+      ],
+      "steps_en": [
+        "Look up error code in manufacturer service manual",
+        "Communication error: check continuity of indoor-outdoor communication wiring",
+        "Sensor error: measure sensor resistance (compare with temp-resistance chart)",
+        "IGBT error: clean inverter cooling fin and restart",
+        "Replace inverter module if error repeats"
+      ],
+      "warningLevel": "caution",
+      "warning": "인버터 내부 고전압 커패시터는 전원 차단 후 10분 이상 대기해야 방전됩니다. 즉시 내부 접촉 금지.",
+      "warning_en": "High-voltage capacitors inside the inverter take 10+ minutes to discharge after power-off. Do not touch internals immediately."
+    },
+    "inv_r_pressure_issue": {
+      "type": "result",
+      "title": "압력 이상으로 인한 인버터 불안정",
+      "title_en": "Inverter Instability from Pressure Abnormality",
+      "level": "medium",
+      "conclusion": "전원이 안정적임에도 불구하고 압력 이상(고압 또는 저압)이 인버터 불안정의 원인입니다.",
+      "conclusion_en": "Even with stable power, abnormal pressure (high or low) is causing inverter instability.",
+      "causes": ["고압 보호 스위치 동작으로 인버터 반복 정지", "저압 스위치 동작으로 빈번한 재기동", "냉매 부족으로 압축기 보호 기능 작동"],
+      "causes_en": ["Repeated inverter shutdown from high-pressure switch", "Frequent restarts from low-pressure switch", "Compressor protection triggered by refrigerant shortage"],
+      "steps": [
+        "압력 게이지로 고압·저압 동시 측정",
+        "고압 상승: 응축기 점검 (팬, 오염)",
+        "저압 저하: 냉매 누설 또는 팽창밸브 막힘 점검",
+        "압력 이상 원인 제거 후 인버터 에러 재발 여부 확인"
+      ],
+      "steps_en": [
+        "Measure both high-side and low-side pressures simultaneously",
+        "High pressure rising: check condenser (fan, fouling)",
+        "Low pressure dropping: check for refrigerant leak or expansion device blockage",
+        "Fix pressure issue and confirm inverter error does not recur"
+      ],
+      "warningLevel": "",
+      "warning": "",
+      "warning_en": ""
+    },
+    "inv_r_voltage_unstable": {
+      "type": "result",
+      "title": "전압 불안정으로 인한 인버터 오동작",
+      "title_en": "Inverter Malfunction from Unstable Supply Voltage",
+      "level": "medium",
+      "conclusion": "전원 전압이 불안정하면 인버터가 오동작하거나 보호 차단됩니다. 전원 품질을 점검하세요.",
+      "conclusion_en": "Unstable supply voltage causes inverter malfunction or protective shutdown. Check power quality.",
+      "causes": ["전선 가는 경우 기동 시 전압 강하", "단자 접촉 불량으로 운전 중 전압 변동", "동일 전원 계통의 다른 기기 영향"],
+      "causes_en": ["Voltage drop during startup from undersized wiring", "Voltage variation from poor terminal contact", "Interference from other equipment on the same circuit"],
+      "steps": [
+        "운전 중 및 기동 시 전압을 동시에 측정 (차이가 크면 배선 문제)",
+        "압축기 단자대 나사 조임 및 접촉 점검",
+        "전선 단면적 및 길이 확인 (기동 돌입 전류 고려)",
+        "같은 전원의 다른 기기 분리 후 재기동 테스트",
+        "전압 불안정 지속 시 전력 회사 또는 전기 기사 문의"
+      ],
+      "steps_en": [
+        "Measure voltage both during run and at startup (large gap = wiring issue)",
+        "Tighten compressor terminal screws and check contacts",
+        "Verify wire gauge and length (account for inrush current)",
+        "Disconnect other equipment from the circuit and retest",
+        "If voltage instability persists, contact utility or licensed electrician"
+      ],
+      "warningLevel": "caution",
+      "warning": "3상 인버터의 경우 결상(Phase loss)이 발생하면 즉시 보호 차단됩니다. 3상 전압을 모두 측정하세요.",
+      "warning_en": "For 3-phase inverters, phase loss causes immediate protective shutdown. Always measure all three phase voltages."
+    },
+    "inv_r_inv_heatsink": {
+      "type": "result",
+      "title": "인버터 방열판(히트싱크) 오염으로 과열",
+      "title_en": "Inverter Overheating from Fouled Heat Sink",
+      "level": "easy",
+      "conclusion": "인버터 방열판에 먼지가 쌓여 냉각이 불충분합니다. 청소로 즉시 개선됩니다.",
+      "conclusion_en": "Dust accumulation on the inverter heat sink is causing poor cooling. Cleaning will provide immediate improvement.",
+      "causes": ["먼지·오물에 의한 방열 핀 막힘", "냉각 팬 불량으로 풍량 감소", "인버터 설치 장소 통풍 불량"],
+      "causes_en": ["Cooling fin blocked by dust and debris", "Cooling fan failure reducing airflow", "Poor ventilation at inverter installation location"],
+      "steps": [
+        "전원 차단 후 인버터 커버 분리",
+        "방열판 핀을 압축 공기로 청소",
+        "냉각 팬 동작 및 소음 확인 (불량 시 교체)",
+        "인버터 주변 최소 10cm 이상 이격 공간 확인",
+        "청소 후 재기동하여 온도 정상화 확인"
+      ],
+      "steps_en": [
+        "Cut power and remove inverter cover",
+        "Clean heat sink fins with compressed air",
+        "Check cooling fan operation and noise (replace if faulty)",
+        "Confirm at least 10 cm clearance around inverter",
+        "Restart after cleaning and confirm temperature normalizes"
+      ],
+      "warningLevel": "caution",
+      "warning": "인버터 내부 고전압부는 전원 차단 후 10분 이상 대기해야 안전합니다.",
+      "warning_en": "High-voltage sections inside the inverter require 10+ minutes after power-off to be safe to touch."
+    },
+    "inv_r_inv_overheat_load": {
+      "type": "result",
+      "title": "인버터 과부하 운전으로 인한 과열",
+      "title_en": "Inverter Overheating from Overload Operation",
+      "level": "medium",
+      "conclusion": "방열판은 깨끗하나 인버터가 과열됩니다. 압축기 과부하 원인을 제거하세요.",
+      "conclusion_en": "Heat sink is clean but inverter is overheating. Eliminate the compressor overload cause.",
+      "causes": ["냉매 과충전으로 압축기 과부하", "고압 상승으로 압축비 과대", "주변 온도 과도하게 높음 (43°C 이상)"],
+      "causes_en": ["Compressor overloaded from refrigerant overcharge", "High compression ratio from elevated head pressure", "Ambient temperature too high (above 43°C)"],
+      "steps": [
+        "주변 온도 측정 (43°C 이하 여부 확인)",
+        "압력 게이지로 고압·저압 측정",
+        "냉매 과충전 여부 확인 (과냉각도 측정)",
+        "응축기 청소 및 팬 점검",
+        "기계실 환기 개선"
+      ],
+      "steps_en": [
+        "Measure ambient temperature (confirm below 43°C)",
+        "Measure high/low side pressures",
+        "Check for refrigerant overcharge (measure subcooling)",
+        "Clean condenser and check fan",
+        "Improve machine room ventilation"
+      ],
+      "warningLevel": "",
+      "warning": "",
+      "warning_en": ""
+    },
+
+    "chp_q1": {
+      "type": "multi",
+      "question": "응축기 측 고압이 반복 상승합니다. 냉각 방식은 무엇인가요?",
+      "question_en": "The condenser-side high pressure keeps rising. What type of cooling is used?",
+      "choices": [
+        { "label": "공랭식 (팬으로 외기 냉각)", "next": "chp_q_aircooled" },
+        { "label": "수랭식 (냉각수로 냉각)", "next": "chp_q_watercooled" }
+      ]
+    },
+    "chp_q_aircooled": {
+      "type": "question",
+      "question": "응축기 팬이 정상 회전하고 있나요? (소리·진동 확인)",
+      "question_en": "Is the condenser fan rotating normally? (Check sound and vibration)",
+      "yes": "chp_q_coil_dirty",
+      "no": "chp_r_fan_fail"
+    },
+    "chp_q_coil_dirty": {
+      "type": "question",
+      "question": "응축기 코일·핀이 오물·먼지·그리스로 막혀있나요?",
+      "question_en": "Is the condenser coil/fin blocked with dirt, dust, or grease?",
+      "yes": "chp_r_coil_clean",
+      "no": "chp_q_noncond"
+    },
+    "chp_q_noncond": {
+      "type": "question",
+      "question": "냉매 충전 후 또는 계통 수리 후에 고압 상승이 시작되었나요?",
+      "question_en": "Did the high-pressure rise start after a refrigerant charge or system repair?",
+      "yes": "chp_r_noncondensable",
+      "no": "chp_r_overcharge"
+    },
+    "chp_q_watercooled": {
+      "type": "question",
+      "question": "냉각수 유량이 정상인가요? (유량계 또는 입출구 온도차 확인: 정상 5~8°C)",
+      "question_en": "Is cooling water flow rate normal? (Check flowmeter or inlet-outlet temp diff: normal 5–8°C)",
+      "yes": "chp_q_scale",
+      "no": "chp_r_water_flow"
+    },
+    "chp_q_scale": {
+      "type": "question",
+      "question": "냉각관에 스케일(물때)이 두껍게 쌓인 흔적이 있나요?",
+      "question_en": "Is there heavy scale buildup on the cooling tubes?",
+      "yes": "chp_r_scale",
+      "no": "chp_r_water_temp"
+    },
+    "chp_r_fan_fail": {
+      "type": "result",
+      "title": "응축기 팬 불량으로 고압 상승",
+      "title_en": "High Pressure Rise from Condenser Fan Failure",
+      "level": "medium",
+      "conclusion": "응축기 팬이 작동하지 않아 방열이 이루어지지 않습니다. 팬 모터 또는 커패시터를 교체하세요.",
+      "conclusion_en": "The condenser fan is not operating, preventing heat rejection. Replace the fan motor or capacitor.",
+      "causes": ["팬 모터 권선 단선 또는 소손", "기동 커패시터 불량", "팬 날개 이물질로 과부하 정지"],
+      "causes_en": ["Fan motor winding open or burned out", "Start capacitor faulty", "Fan blade blocked by foreign object causing overload stop"],
+      "steps": [
+        "팬 모터 단자 전압 인가 확인",
+        "커패시터 용량 측정 (정격 ±10% 이내)",
+        "팬 날개 수동 회전 (잠겨있으면 베어링 불량 또는 이물질)",
+        "모터 권선 저항 측정 (단선이면 ∞)",
+        "동일 규격 팬 모터 또는 커패시터 교체"
+      ],
+      "steps_en": [
+        "Confirm voltage is applied to fan motor terminals",
+        "Measure capacitor capacitance (within ±10% of rated)",
+        "Try to turn fan blade by hand (seized = bearing failure or foreign object)",
+        "Measure motor winding resistance (open circuit = ∞)",
+        "Replace fan motor or capacitor with same specification"
+      ],
+      "warningLevel": "caution",
+      "warning": "팬 모터 점검 시 전원을 반드시 차단하세요. 팬이 잠시 후 재기동할 수 있습니다.",
+      "warning_en": "Always cut power before inspecting the fan motor. The fan may restart unexpectedly."
+    },
+    "chp_r_coil_clean": {
+      "type": "result",
+      "title": "응축기 코일 오염으로 고압 상승",
+      "title_en": "High Pressure Rise from Condenser Coil Fouling",
+      "level": "easy",
+      "conclusion": "응축기 코일·핀 청소로 즉시 개선됩니다. 정기 청소 주기를 설정하세요.",
+      "conclusion_en": "Cleaning the condenser coil/fins will provide immediate improvement. Establish a regular cleaning schedule.",
+      "causes": ["먼지·솜먼지 누적 (냉동 쇼케이스 등 다습 환경)", "그리스·기름 오염 (주방 인근 설치)", "핀 변형으로 공기 흐름 저항 증가"],
+      "causes_en": ["Dust/lint accumulation (humid environments like freezer showcases)", "Grease/oil fouling (installed near kitchens)", "Fin deformation increasing airflow resistance"],
+      "steps": [
+        "전원 차단 후 커버 분리",
+        "압축 공기로 핀 역방향에서 먼지 제거",
+        "그리스 오염 시 알칼리 세정제 도포 후 물 헹굼",
+        "핀 빗(Fin comb)으로 변형 핀 정리",
+        "청소 후 고압 측정으로 개선 확인 (기준: R22 응축 포화 온도 ≤ 주변 온도 + 15°C)"
+      ],
+      "steps_en": [
+        "Cut power and remove cover",
+        "Blow dust with compressed air from reverse direction",
+        "For grease: apply alkaline coil cleaner, then rinse with water",
+        "Straighten damaged fins with fin comb",
+        "Measure high-side pressure after cleaning (target: R22 condensing sat. temp ≤ ambient + 15°C)"
+      ],
+      "warningLevel": "caution",
+      "warning": "세정제가 전장 부품에 직접 닿지 않도록 비닐로 보호 후 세정하세요.",
+      "warning_en": "Protect electrical components with plastic wrap before applying coil cleaner."
+    },
+    "chp_r_noncondensable": {
+      "type": "result",
+      "title": "비응축 가스(공기) 혼입으로 고압 상승",
+      "title_en": "High Pressure Rise from Non-condensable Gas (Air) in Circuit",
+      "level": "medium",
+      "conclusion": "계통에 공기가 혼입되어 응축 불가능한 압력을 더하고 있습니다. 에어 퍼지를 실시하세요.",
+      "conclusion_en": "Air in the circuit is adding non-condensable pressure. Perform an air purge.",
+      "causes": ["진공 불충분 상태에서 냉매 충전", "냉매 회수 없이 계통 개방 후 재밀봉", "서비스 밸브 코어 누설로 공기 역유입"],
+      "causes_en": ["Refrigerant charged without adequate evacuation", "System opened and re-sealed without recovering refrigerant", "Air back-leaked through service valve core"],
+      "steps": [
+        "진단: 고압이 응축 온도에 해당하는 포화 압력보다 확연히 높으면 공기 혼입 의심",
+        "냉매 전량 회수",
+        "500μm Hg 이하로 충분히 진공 (최소 1시간)",
+        "진공도 30분 유지 확인 (진공 깨지면 누설 먼저 수리)",
+        "냉매 중량 계량 재충전"
+      ],
+      "steps_en": [
+        "Diagnosis: if high-side pressure is clearly above saturated pressure for the condensing temp, air is suspected",
+        "Recover all refrigerant",
+        "Evacuate to ≤500 μm Hg (minimum 1 hour)",
+        "Hold vacuum for 30 minutes (vacuum loss = repair leak first)",
+        "Recharge refrigerant by weight"
+      ],
+      "warningLevel": "caution",
+      "warning": "공기 혼입은 응축 압력을 비정상으로 높여 고압 스위치 반복 동작 및 압축기 소손으로 이어집니다.",
+      "warning_en": "Air contamination raises condensing pressure abnormally, causing repeated high-pressure switch trips and compressor burnout."
+    },
+    "chp_r_overcharge": {
+      "type": "result",
+      "title": "냉매 과충전으로 고압 상승",
+      "title_en": "High Pressure Rise from Refrigerant Overcharge",
+      "level": "medium",
+      "conclusion": "냉매 과충전으로 응축기에 액냉매가 차올라 고압이 상승합니다. 냉매를 일부 회수하세요.",
+      "conclusion_en": "Refrigerant overcharge floods the condenser with liquid, raising high-side pressure. Recover excess refrigerant.",
+      "causes": ["충전 시 중량 계량 없이 과다 충전", "이전 충전 기록 없이 추가 충전 반복"],
+      "causes_en": ["Overcharge during service without weighing", "Repeated refrigerant additions without tracking previous charges"],
+      "steps": [
+        "과냉각도 측정: 응축기 출구 온도 - 응축 포화 온도 (10°C 이상이면 과충전 의심)",
+        "냉매 회수 장비로 냉매 일부 회수",
+        "과냉각도가 5~8°C 범위가 될 때까지 조금씩 회수",
+        "과열도도 동시에 확인 (5~10°C 범위)"
+      ],
+      "steps_en": [
+        "Measure subcooling: condenser outlet temp − condensing sat. temp (>10°C = overcharge suspected)",
+        "Recover excess refrigerant with recovery equipment",
+        "Recover in small steps until subcooling reaches 5–8°C",
+        "Also verify superheat simultaneously (5–10°C range)"
+      ],
+      "warningLevel": "caution",
+      "warning": "냉매 대기 방출 금지. 반드시 회수 장비 사용.",
+      "warning_en": "Do not release refrigerant to atmosphere. Always use recovery equipment."
+    },
+    "chp_r_water_flow": {
+      "type": "result",
+      "title": "냉각수 유량 부족으로 고압 상승 (수랭식)",
+      "title_en": "High Pressure Rise from Insufficient Cooling Water Flow (Water-Cooled)",
+      "level": "medium",
+      "conclusion": "냉각수 유량이 부족하여 응축 온도가 상승합니다. 펌프, 배관, 밸브를 점검하세요.",
+      "conclusion_en": "Insufficient cooling water flow is raising condensing temperature. Check pump, piping, and valves.",
+      "causes": ["냉각수 펌프 불량 또는 용량 부족", "냉각수 배관 스케일·슬라임으로 유로 축소", "냉각수 밸브 미개방 또는 압력 손실 과다", "쿨링 타워 기능 저하로 냉각수 온도 상승"],
+      "causes_en": ["Cooling water pump faulty or undersized", "Flow path narrowed by scale/slime in cooling water piping", "Cooling water valve not fully open or excessive pressure drop", "Cooling tower degradation raising cooling water temperature"],
+      "steps": [
+        "냉각수 입출구 온도차 측정 (정상 5~8°C, 높으면 유량 부족)",
+        "펌프 운전 전류 측정 및 토출 압력 확인",
+        "밸브 개도 확인",
+        "쿨링 타워 팬·충진재 상태 점검",
+        "세관 (화학 세정) 주기 확인 (통상 연 1회)"
+      ],
+      "steps_en": [
+        "Measure cooling water inlet-outlet temperature difference (normal 5–8°C; high = insufficient flow)",
+        "Measure pump running current and discharge pressure",
+        "Check valve opening",
+        "Inspect cooling tower fan and fill media",
+        "Check chemical cleaning cycle (typically once a year)"
+      ],
+      "warningLevel": "caution",
+      "warning": "냉각수 온도가 32°C 이상이 되면 응축 성능이 급격히 저하됩니다. 쿨링 타워 관리를 강화하세요.",
+      "warning_en": "Condensing performance drops sharply when cooling water temperature exceeds 32°C. Improve cooling tower maintenance."
+    },
+    "chp_r_scale": {
+      "type": "result",
+      "title": "냉각관 스케일 퇴적으로 열전달 불량 (수랭식)",
+      "title_en": "Poor Heat Transfer from Scale Buildup on Cooling Tubes (Water-Cooled)",
+      "level": "medium",
+      "conclusion": "냉각관 내벽 스케일이 열전달을 방해하여 응축 온도·고압이 상승합니다. 세관 작업을 실시하세요.",
+      "conclusion_en": "Scale on cooling tube walls is impeding heat transfer, raising condensing temperature and high-side pressure. Descale the tubes.",
+      "causes": ["수질 관리 미흡으로 칼슘·마그네슘 스케일 퇴적", "냉각수 pH 관리 미실시", "세관 주기 미준수"],
+      "causes_en": ["Calcium/magnesium scale from poor water quality management", "Cooling water pH not managed", "Descaling schedule not followed"],
+      "steps": [
+        "냉각관 입출구 온도차 측정 (설계값 대비 2°C 이상 상승 시 스케일 의심)",
+        "화학 세관(산 세정) 실시 또는 기계적 세관(브러시 세관)",
+        "세관 후 냉각수 수질 분석 (pH 7~8 유지)",
+        "수처리제 자동 주입 장치 설치 검토",
+        "이후 연 1회 정기 세관 실시"
+      ],
+      "steps_en": [
+        "Measure cooling tube inlet-outlet temp diff (scale suspected if >2°C above design)",
+        "Perform chemical descaling (acid wash) or mechanical descaling (brush cleaning)",
+        "After descaling, analyze cooling water quality (maintain pH 7–8)",
+        "Consider installing automatic water treatment chemical dosing",
+        "Perform annual descaling thereafter"
+      ],
+      "warningLevel": "caution",
+      "warning": "산 세정 시 냉매 계통 내부로 세정액이 유입되지 않도록 밸브를 차단하세요.",
+      "warning_en": "Close refrigerant valves during acid wash to prevent cleaning solution from entering the refrigerant circuit."
+    },
+    "chp_r_water_temp": {
+      "type": "result",
+      "title": "냉각수 온도 상승 (수랭식)",
+      "title_en": "Cooling Water Temperature Rise (Water-Cooled)",
+      "level": "medium",
+      "conclusion": "유량은 정상이나 냉각수 자체 온도가 높습니다. 쿨링 타워 및 냉각수 계통을 점검하세요.",
+      "conclusion_en": "Flow is normal but the cooling water temperature itself is too high. Inspect the cooling tower and water circuit.",
+      "causes": ["쿨링 타워 팬 불량", "충진재 막힘 또는 노후화", "여름철 고온 다습으로 냉각 성능 저하"],
+      "causes_en": ["Cooling tower fan faulty", "Fill media clogged or aged", "Reduced cooling performance in hot humid summer conditions"],
+      "steps": [
+        "쿨링 타워 팬 전류 및 회전 확인",
+        "충진재 막힘 여부 점검 및 세정",
+        "냉각수 입구 온도 측정 (설계값: 32°C 이하)",
+        "냉각탑 살수 노즐 막힘 여부 확인",
+        "하절기 고온 시 냉각수 보조 냉각 방안 검토"
+      ],
+      "steps_en": [
+        "Check cooling tower fan current and rotation",
+        "Inspect and clean fill media if blocked",
+        "Measure cooling water inlet temperature (design: ≤32°C)",
+        "Check spray nozzles on cooling tower for blockage",
+        "In hot summer conditions, consider supplemental cooling water cooling measures"
+      ],
+      "warningLevel": "",
+      "warning": "",
+      "warning_en": ""
     }
   }
 }

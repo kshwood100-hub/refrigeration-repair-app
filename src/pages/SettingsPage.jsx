@@ -269,7 +269,7 @@ export default function SettingsPage() {
         <div className="bg-white border border-gray-300 rounded-xl divide-y divide-gray-100">
           <div className="flex justify-between px-4 py-3 text-sm">
             <span className="text-gray-600">앱 이름</span>
-            <span className="font-medium text-gray-800">냉동기수리실무</span>
+            <span className="font-medium text-gray-800">R-Pro</span>
           </div>
           <div className="flex justify-between px-4 py-3 text-sm">
             <span className="text-gray-600">버전</span>

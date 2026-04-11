@@ -70,26 +70,60 @@ export default function KnowhowFormPage() {
   const set = (field, val) => setForm((p) => ({ ...p, [field]: val }))
 
   // 음성 녹음
+  const finalTranscriptRef = useRef('')
+  const isRecordingRef = useRef(false)
+
   function startRecording() {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition
     if (!SR) { alert('Chrome 브라우저에서 사용해주세요.'); return }
-    const r = new SR()
-    r.lang = 'ko-KR'
-    r.continuous = true
-    r.interimResults = true
-    r.onresult = (e) => {
-      let text = ''
-      for (let i = 0; i < e.results.length; i++) text += e.results[i][0].transcript
-      setTranscript(text)
+    finalTranscriptRef.current = transcript
+    isRecordingRef.current = true
+
+    function createAndStart() {
+      const r = new SR()
+      r.lang = 'ko-KR'
+      r.continuous = false
+      r.interimResults = true
+      r.onresult = (e) => {
+        let interim = ''
+        let final = finalTranscriptRef.current
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          if (e.results[i].isFinal) {
+            const chunk = e.results[i][0].transcript.trim()
+            final += (final ? ' ' : '') + chunk
+            finalTranscriptRef.current = final
+          } else {
+            interim += e.results[i][0].transcript
+          }
+        }
+        setTranscript(final + interim)
+      }
+      r.onend = () => {
+        if (isRecordingRef.current) {
+          // 말이 끊겨도 자동 재시작
+          try { createAndStart() } catch(e) {}
+        } else {
+          setIsRecording(false)
+        }
+      }
+      r.onerror = (e) => {
+        if (e.error === 'no-speech' && isRecordingRef.current) {
+          try { createAndStart() } catch(err) {}
+        } else {
+          isRecordingRef.current = false
+          setIsRecording(false)
+        }
+      }
+      r.start()
+      recognitionRef.current = r
     }
-    r.onerror = () => setIsRecording(false)
-    r.onend   = () => setIsRecording(false)
-    r.start()
-    recognitionRef.current = r
+
+    createAndStart()
     setIsRecording(true)
   }
 
   function stopRecording() {
+    isRecordingRef.current = false
     recognitionRef.current?.stop()
     setIsRecording(false)
   }
@@ -119,6 +153,8 @@ export default function KnowhowFormPage() {
         }),
       })
       const data = await res.json()
+      if (data.error) throw new Error(data.error.message || JSON.stringify(data.error))
+      if (!data.content?.[0]?.text) throw new Error('API 응답 없음: ' + JSON.stringify(data))
       const match = data.content[0].text.match(/\{[\s\S]*\}/)
       if (match) {
         const r = JSON.parse(match[0])
@@ -146,12 +182,16 @@ export default function KnowhowFormPage() {
   async function handleSave() {
     if (!form.title.trim()) { alert('제목을 입력해주세요.'); return }
     const now = new Date().toISOString()
-    if (isNew) {
-      const newId = await db.knowhow.add({ ...form, createdAt: now, updatedAt: now })
-      navigate(`/knowhow/${newId}`, { replace: true })
-    } else {
-      await db.knowhow.update(Number(id), { ...form, updatedAt: now })
-      navigate(`/knowhow/${id}`, { replace: true })
+    try {
+      if (isNew) {
+        await db.knowhow.add({ ...form, createdAt: now, updatedAt: now })
+        navigate('/knowhow', { replace: true })
+      } else {
+        await db.knowhow.update(Number(id), { ...form, updatedAt: now })
+        navigate(`/knowhow/${id}`, { replace: true })
+      }
+    } catch (e) {
+      alert('저장 오류: ' + e.message)
     }
   }
 
@@ -324,6 +364,14 @@ export default function KnowhowFormPage() {
             className="w-full text-sm text-gray-900 outline-none resize-none"
           />
         </Section>
+
+        {/* 저장 버튼 (하단) */}
+        <button
+          onClick={handleSave}
+          className="w-full py-4 bg-gray-900 text-white text-base font-semibold rounded-xl"
+        >
+          저장
+        </button>
 
         {/* 삭제 */}
         {!isNew && (

@@ -161,6 +161,24 @@ db.version(12).stores({
   expenses: '++id, jobId, date, createdAt',
 })
 
+db.version(13).stores({
+  symptoms: '++id, category, title',
+  checklist_templates: '++id, category, title',
+  repair_logs: '++id, date, symptomId, equipmentName',
+  flow_categories: '&id',
+  flow_nodes: '&nodeId, categoryId, type',
+  customers: '++id, name, phone',
+  service_jobs: '++id, customerId, status, receiptDate, visitDate',
+  job_photos: '++id, jobId',
+  backups: '++id, createdAt',
+  knowhow: '++id, category, location, createdAt, updatedAt',
+  business_cards: '++id, customerId, createdAt',
+  expenses: '++id, jobId, date, createdAt',
+}).upgrade(async (tx) => {
+  await tx.table('flow_categories').clear()
+  await tx.table('flow_nodes').clear()
+})
+
 export async function seedIfEmpty() {
   const [symptomsCount, checklistCount, flowCatCount] = await Promise.all([
     db.symptoms.count(),

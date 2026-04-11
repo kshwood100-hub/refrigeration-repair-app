@@ -1,0 +1,19 @@
+<svg width="32" height="32" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="25%" y1="0%" x2="75%" y2="100%">
+      <stop offset="0%" stop-color="#1B3A6B"/>
+      <stop offset="100%" stop-color="#060E1C"/>
+    </linearGradient>
+    <linearGradient id="ring" x1="15%" y1="0%" x2="85%" y2="100%">
+      <stop offset="0%" stop-color="#94A3B8"/>
+      <stop offset="38%" stop-color="#F1F5F9"/>
+      <stop offset="72%" stop-color="#94A3B8"/>
+      <stop offset="100%" stop-color="#475569"/>
+    </linearGradient>
+  </defs>
+  <polygon points="60,5 108,33 108,88 60,115 12,88 12,33" fill="url(#ring)"/>
+  <polygon points="60,11 102,36 102,84 60,109 18,84 18,36" fill="url(#bg)"/>
+  <text x="60" y="67" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-size="46" font-weight="900" fill="#38BDF8">R</text>
+  <line x1="32" y1="73" x2="88" y2="73" stroke="#38BDF8" stroke-width="0.9" opacity="0.45"/>
+  <text x="60" y="89" text-anchor="middle" font-family="Arial,sans-serif" font-size="17" font-weight="700" fill="#E2E8F0" letter-spacing="5">PRO</text>
+</svg>

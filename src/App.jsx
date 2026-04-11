@@ -25,6 +25,9 @@ import CustomerDetailPage from './pages/CustomerDetailPage'
 import ExpensePage from './pages/ExpensePage'
 import ExpenseFormPage from './pages/ExpenseFormPage'
 import ExpenseDetailPage from './pages/ExpenseDetailPage'
+import FailureCasesPage from './pages/FailureCasesPage'
+import SearchDiagPage from './pages/SearchDiagPage'
+import LandingPage from './pages/LandingPage'
 
 export default function App() {
   useEffect(() => {
@@ -32,11 +35,21 @@ export default function App() {
   }, [])
 
   return (
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/*" element={<AppLayout />} />
+    </Routes>
+  )
+}
+
+function AppLayout() {
+  return (
     <div className="flex flex-col h-full max-w-lg mx-auto bg-slate-200">
       <main className="flex-1 min-h-0 overflow-y-auto pb-20">
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/home" element={<HomePage />} />
           <Route path="/diagnosis" element={<DiagnosisPage />} />
+          <Route path="/diagnosis/search" element={<SearchDiagPage />} />
           <Route path="/diagnosis/:categoryId" element={<DiagnosisFlowPage />} />
           <Route path="/diagnosis/:categoryId/results" element={<DiagnosisResultPage />} />
           <Route path="/symptoms" element={<SymptomsPage />} />
@@ -51,6 +64,7 @@ export default function App() {
           <Route path="/service/:id" element={<JobDetailPage />} />
           <Route path="/service/:id/edit" element={<JobFormPage />} />
           <Route path="/knowhow" element={<KnowhowPage />} />
+          <Route path="/knowhow/failure-cases" element={<FailureCasesPage />} />
           <Route path="/knowhow/new" element={<KnowhowFormPage />} />
           <Route path="/knowhow/:id" element={<KnowhowDetailPage />} />
           <Route path="/knowhow/:id/edit" element={<KnowhowFormPage />} />

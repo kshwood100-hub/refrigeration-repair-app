@@ -1,3 +1,4 @@
+import RProLogo from '../components/RProLogo'
 import { useNavigate, Link } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Plus, ChevronRight, Wrench, ScanSearch, ClipboardList, Thermometer, Calendar, AlertCircle, BookOpen } from 'lucide-react'
@@ -32,10 +33,10 @@ export default function HomePage() {
     <div className="p-4 pb-6 space-y-5">
 
       {/* 헤더 */}
-      <div className="flex items-center justify-between pt-1">
-        <div>
-          <h1 className="text-lg font-bold text-gray-900">냉동기수리실무</h1>
-          <p className="text-xs text-gray-400 mt-0.5">{today()}</p>
+      <div className="relative flex items-center justify-between h-16">
+        <div className="flex items-center gap-2">
+          <img src="/logo-transparent.png" alt="R-Pro" className="absolute top-0 left-0 w-12 h-12 z-10" />
+          <p className="text-xs text-gray-400 pl-14">{today()}</p>
         </div>
         <button
           onClick={() => navigate('/service/new')}
