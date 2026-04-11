@@ -5,8 +5,19 @@ import { createBackup, listBackups, downloadBackup, restoreBackup, formatSize, e
 import { Download, RotateCcw, Upload, QrCode, ScanLine } from 'lucide-react'
 import QRExportModal from '../components/QRExportModal'
 import QRImportModal from '../components/QRImportModal'
+import { useTranslation } from 'react-i18next'
+
+const LANGUAGES = [
+  { code: 'ko', label: '한국어',   flag: '🇰🇷' },
+  { code: 'en', label: 'English',  flag: '🇺🇸' },
+  { code: 'zh', label: '中文',     flag: '🇨🇳' },
+  { code: 'ja', label: '日本語',   flag: '🇯🇵' },
+  { code: 'es', label: 'Español',  flag: '🇪🇸' },
+  { code: 'hi', label: 'हिन्दी',  flag: '🇮🇳' },
+]
 
 export default function SettingsPage() {
+  const { i18n } = useTranslation()
   const [settings, setSettings] = useState(loadSettings)
   const [backups, setBackups] = useState([])
   const [backupLoading, setBackupLoading] = useState(false)
@@ -79,6 +90,27 @@ export default function SettingsPage() {
   return (
     <div className="p-4 pb-8">
       <h2 className="text-lg font-bold mb-5">⚙️ 설정</h2>
+
+      {/* 언어 선택 */}
+      <section className="mb-6">
+        <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">언어 / Language</div>
+        <div className="grid grid-cols-3 gap-2">
+          {LANGUAGES.map(({ code, label, flag }) => (
+            <button
+              key={code}
+              onClick={() => i18n.changeLanguage(code)}
+              className={`flex flex-col items-center gap-1 py-3 rounded-xl border text-sm font-medium transition-colors ${
+                i18n.language.startsWith(code)
+                  ? 'bg-blue-600 border-blue-600 text-white'
+                  : 'bg-white border-gray-300 text-gray-700 active:bg-gray-50'
+              }`}
+            >
+              <span className="text-xl">{flag}</span>
+              <span className="text-xs">{label}</span>
+            </button>
+          ))}
+        </div>
+      </section>
 
       {/* 압력 단위 */}
       <section className="mb-6">
