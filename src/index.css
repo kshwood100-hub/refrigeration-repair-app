@@ -47,8 +47,8 @@ html.theme-dark .text-gray-900 { color: #f1f5f9 !important; }
 html.theme-dark .text-gray-800 { color: #e2e8f0 !important; }
 html.theme-dark .text-gray-700 { color: #cbd5e1 !important; }
 html.theme-dark .text-gray-600 { color: #94a3b8 !important; }
-html.theme-dark .text-gray-500 { color: #64748b !important; }
-html.theme-dark .text-gray-400 { color: #475569 !important; }
+html.theme-dark .text-gray-500 { color: #94a3b8 !important; }
+html.theme-dark .text-gray-400 { color: #64748b !important; }
 
 /* 다크 — 테두리 */
 html.theme-dark .border-gray-300 { border-color: #334155 !important; }
