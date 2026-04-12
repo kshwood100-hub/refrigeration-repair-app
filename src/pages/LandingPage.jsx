@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 export default function LandingPage() {
   const navigate = useNavigate()
@@ -43,12 +43,12 @@ export default function LandingPage() {
 
       {/* CTA 버튼 */}
       <div className="w-full max-w-sm space-y-3">
-        <button
-          onClick={() => navigate('/home')}
-          className="w-full py-4 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 rounded-xl text-sm font-semibold transition-colors"
+        <Link
+          to="/home"
+          className="block w-full py-4 bg-blue-600 active:bg-blue-700 rounded-xl text-sm font-semibold text-center transition-colors"
         >
           앱 시작하기
-        </button>
+        </Link>
         <p className="text-xs text-gray-500 text-center">
           인터넷 없이도 사용 가능 · 무료 체험
         </p>
