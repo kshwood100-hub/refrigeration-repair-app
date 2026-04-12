@@ -1,15 +1,6 @@
-import { useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
 export default function LandingPage() {
-  const navigate = useNavigate()
-
-  useEffect(() => {
-    // 설치된 앱(홈화면 아이콘)으로 열었을 때 바로 홈으로
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      navigate('/home', { replace: true })
-    }
-  }, [])
 
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center px-6 text-white">
