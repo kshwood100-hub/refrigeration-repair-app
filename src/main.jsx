@@ -7,6 +7,10 @@ import './index.css'
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').catch(() => {})
+  // 새 서비스워커가 활성화되면 자동 새로고침
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    window.location.reload()
+  })
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(
