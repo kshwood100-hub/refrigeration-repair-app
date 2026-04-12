@@ -5,6 +5,11 @@ self.addEventListener('activate', event => {
     caches.keys()
       .then(keys => Promise.all(keys.map(k => caches.delete(k))))
       .then(() => self.clients.claim())
+      .then(async () => {
+        // 캐시 삭제 후 모든 열린 페이지 강제 새로고침
+        const clients = await self.clients.matchAll({ type: 'window' })
+        clients.forEach(client => client.navigate(client.url))
+      })
   )
 })
 // No fetch handler → all requests go straight to network
