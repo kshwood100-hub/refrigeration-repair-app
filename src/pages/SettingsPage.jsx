@@ -156,6 +156,20 @@ export default function SettingsPage() {
       </section>
 
 
+      {/* 앱 업데이트 */}
+      <section className="mb-6">
+        <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">앱 업데이트</div>
+        <div className="bg-white border border-gray-300 rounded-xl px-4 py-3">
+          <p className="text-xs text-gray-400 mb-3">새 버전이 배포되면 아래 버튼을 눌러 최신 버전으로 업데이트하세요.</p>
+          <button
+            onClick={() => window.location.reload(true)}
+            className="w-full py-2.5 text-sm font-medium bg-gray-900 text-white rounded-xl active:bg-gray-700"
+          >
+            최신 버전으로 업데이트
+          </button>
+        </div>
+      </section>
+
       {/* 데이터 내보내기 / 가져오기 */}
       <section className="mb-6">
         <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">데이터 이전</div>
