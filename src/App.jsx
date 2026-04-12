@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { seedIfEmpty } from './db'
 import BottomNav from './components/BottomNav'
@@ -30,47 +30,15 @@ import SearchDiagPage from './pages/SearchDiagPage'
 import LandingPage from './pages/LandingPage'
 
 export default function App() {
-  const [showBanner, setShowBanner] = useState(false)
-  const [waitingWorker, setWaitingWorker] = useState(null)
-
   useEffect(() => {
     seedIfEmpty()
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.ready.then((reg) => {
-        reg.addEventListener('updatefound', () => {
-          const newWorker = reg.installing
-          newWorker?.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              setWaitingWorker(newWorker)
-              setShowBanner(true)
-            }
-          })
-        })
-      })
-    }
   }, [])
 
-  function doUpdate() {
-    waitingWorker?.postMessage({ type: 'SKIP_WAITING' })
-    setShowBanner(false)
-    window.location.reload()
-  }
-
   return (
-    <>
-      {showBanner && (
-        <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-3 bg-gray-900 text-white text-sm shadow-lg max-w-lg mx-auto">
-          <span>새 버전이 있습니다</span>
-          <button onClick={doUpdate} className="px-3 py-1 bg-blue-500 rounded-lg text-xs font-semibold">
-            업데이트
-          </button>
-        </div>
-      )}
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/*" element={<AppLayout />} />
-      </Routes>
-    </>
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/*" element={<AppLayout />} />
+    </Routes>
   )
 }
 
