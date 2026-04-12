@@ -83,16 +83,66 @@ function ResultCard({ entry }) {
   )
 }
 
+const SYNONYMS = {
+  '소리': ['소음', '소리', '잡음', '노이즈'],
+  '소음': ['소음', '소리', '잡음', '노이즈'],
+  '잡음': ['소음', '소리', '잡음'],
+  '새다': ['누설', '누기', '누출', '새'],
+  '새는': ['누설', '누기', '누출'],
+  '누기': ['누설', '누기', '누출', '새'],
+  '누출': ['누설', '누기', '누출'],
+  '얼다': ['착상', '결빙', '동결', '얼'],
+  '얼음': ['착상', '결빙', '동결'],
+  '결빙': ['착상', '결빙', '동결', '얼'],
+  '과열': ['과열', '뜨겁', '고온', '열'],
+  '뜨겁': ['과열', '고온'],
+  '떨림': ['진동', '떨림', '흔들'],
+  '흔들': ['진동', '떨림', '흔들'],
+  '진동': ['진동', '떨림', '흔들'],
+  '안켜': ['기동불량', '기동', '정지', '안켜'],
+  '기동': ['기동불량', '기동', '기동안됨'],
+  '이상': ['이상', '불량', '고장', '오류'],
+  '고장': ['고장', '불량', '오류', '이상'],
+  '불량': ['불량', '고장', '오류', '이상'],
+  '오류': ['오류', '에러', '고장', '불량'],
+  '에러': ['에러', '오류', '고장', '불량'],
+  '트립': ['트립', '차단', '보호'],
+  '차단': ['트립', '차단', '열림'],
+  '냉각': ['냉각', '냉방', '시원'],
+  '결로': ['결로', '습기', '물맺힘'],
+  '막힘': ['막힘', '막힌', '폐쇄', '드레인'],
+  '연기': ['연기', '냄새', '타는'],
+  '냄새': ['냄새', '연기', '가스'],
+}
+
+function expandWord(word) {
+  for (const [key, syns] of Object.entries(SYNONYMS)) {
+    if (word.includes(key) || key.includes(word)) return syns
+  }
+  return [word]
+}
+
 export default function SearchDiagPage() {
   const [query, setQuery] = useState('')
   const navigate = useNavigate()
 
   const q = query.trim().toLowerCase()
+  const words = q.split(/\s+/).filter(Boolean)
 
-  const results = q.length < 1 ? [] : searchDb.entries.filter(e => {
-    return e.keywords.some(k => k.toLowerCase().includes(q)) ||
-      e.symptom.toLowerCase().includes(q) ||
-      e.causes.some(c => c.toLowerCase().includes(q))
+  const results = words.length === 0 ? [] : searchDb.entries.filter(e => {
+    const haystack = [
+      e.symptom ?? '',
+      ...(e.keywords ?? []),
+      ...(e.causes ?? []),
+      e.part ?? '',
+      ...(e.checks ?? []),
+      ...(e.actions ?? []),
+    ].join(' ').toLowerCase()
+
+    return words.every(word => {
+      const variants = expandWord(word)
+      return variants.some(v => haystack.includes(v))
+    })
   })
 
   return (
