@@ -137,6 +137,7 @@ export default function KnowhowFormPage() {
 
   async function handleAiClassify() {
     if (!transcript.trim()) return
+    stopRecording()
     setAiLoading(true)
     try {
       const res = await fetch('/api/classify-knowhow', {
