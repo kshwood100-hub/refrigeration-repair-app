@@ -162,7 +162,10 @@ export default function SettingsPage() {
         <div className="bg-white border border-gray-300 rounded-xl px-4 py-3">
           <p className="text-xs text-gray-400 mb-3">새 버전이 배포되면 아래 버튼을 눌러 최신 버전으로 업데이트하세요.</p>
           <button
-            onClick={() => window.location.reload(true)}
+            onClick={() => {
+              document.body.innerHTML = '<div style="height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0f172a;color:white;font-family:sans-serif;gap:12px"><img src="/logo-transparent.png" style="width:72px;height:72px"/><div style="font-size:18px;font-weight:700">R-Pro</div><div style="font-size:13px;color:#94a3b8">업데이트 중...</div></div>'
+              setTimeout(() => { window.location.href = '/' }, 800)
+            }}
             className="w-full py-2.5 text-sm font-medium bg-gray-900 text-white rounded-xl active:bg-gray-700"
           >
             최신 버전으로 업데이트
