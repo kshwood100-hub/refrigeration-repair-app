@@ -183,7 +183,7 @@ export default function SearchDiagPage() {
       </div>
 
       {/* 타이핑 중 — 키워드 추천 */}
-      {q && suggestions.length > 0 && results.length === 0 && (
+      {q && suggestions.length > 0 && (
         <div className="mb-3">
           <p className="text-xs text-gray-400 mb-2">이런 키워드로 검색해봐</p>
           <div className="flex flex-wrap gap-1.5">
