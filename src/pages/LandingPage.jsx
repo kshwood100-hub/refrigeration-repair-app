@@ -26,18 +26,18 @@ export default function LandingPage() {
       {/* 기능 소개 */}
       <div className="w-full max-w-sm space-y-3 mb-10">
         {[
-          { emoji: '🔍', title: '고장 진단', desc: '증상 키워드로 원인과 조치 즉시 확인' },
-          { emoji: '❄️', title: '냉매 PT 차트', desc: '34종 냉매 압력-온도 정보 한눈에' },
-          { emoji: '📋', title: '수리 이력 관리', desc: '고객별 수리 기록 오프라인 저장' },
-          { emoji: '📝', title: '노하우 기록', desc: '현장 경험을 내 앱에 저장' },
-        ].map(({ emoji, title, desc }) => (
-          <div key={title} className="flex items-start gap-3 bg-gray-900 rounded-xl px-4 py-3">
+          { emoji: '🔍', title: '고장 진단', desc: '증상 키워드로 원인과 조치 즉시 확인', to: '/diagnosis' },
+          { emoji: '❄️', title: '냉매 PT 차트', desc: '34종 냉매 압력-온도 정보 한눈에', to: '/refrigerant' },
+          { emoji: '📋', title: '수리 이력 관리', desc: '고객별 수리 기록 오프라인 저장', to: '/service' },
+          { emoji: '📝', title: '노하우 기록', desc: '현장 경험을 내 앱에 저장', to: '/knowhow' },
+        ].map(({ emoji, title, desc, to }) => (
+          <Link key={title} to={to} className="flex items-start gap-3 bg-gray-900 rounded-xl px-4 py-3 active:bg-gray-800">
             <span className="text-xl shrink-0">{emoji}</span>
             <div>
               <p className="text-sm font-semibold">{title}</p>
               <p className="text-xs text-gray-400 mt-0.5">{desc}</p>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 
