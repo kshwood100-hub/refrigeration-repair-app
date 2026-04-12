@@ -122,12 +122,19 @@ function expandWord(word) {
   return [word]
 }
 
+const ALL_KEYWORDS = [...new Set(searchDb.entries.flatMap(e => e.keywords ?? []))]
+
 export default function SearchDiagPage() {
   const [query, setQuery] = useState('')
   const navigate = useNavigate()
 
   const q = query.trim().toLowerCase()
   const words = q.split(/\s+/).filter(Boolean)
+
+  // 입력 중 키워드 추천 (결과 없을 때만)
+  const suggestions = q.length >= 1
+    ? ALL_KEYWORDS.filter(k => k.toLowerCase().includes(q)).slice(0, 12)
+    : []
 
   const results = words.length === 0 ? [] : searchDb.entries.filter(e => {
     const haystack = [
@@ -174,6 +181,24 @@ export default function SearchDiagPage() {
           </button>
         )}
       </div>
+
+      {/* 타이핑 중 — 키워드 추천 */}
+      {q && suggestions.length > 0 && results.length === 0 && (
+        <div className="mb-3">
+          <p className="text-xs text-gray-400 mb-2">이런 키워드로 검색해봐</p>
+          <div className="flex flex-wrap gap-1.5">
+            {suggestions.map(k => (
+              <button
+                key={k}
+                onClick={() => setQuery(k)}
+                className="px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700 active:bg-blue-100"
+              >
+                {k}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 검색 전 — 자주 찾는 키워드 */}
       {!q && (
