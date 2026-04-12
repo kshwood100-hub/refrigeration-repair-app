@@ -96,11 +96,11 @@ export default function ExpenseFormPage() {
       updatedAt: new Date().toISOString(),
     }
     if (isNew) {
-      const newId = await db.expenses.add({ ...data, createdAt: new Date().toISOString() })
-      navigate(`/expenses/${newId}`)
+      await db.expenses.add({ ...data, createdAt: new Date().toISOString() })
+      navigate('/expenses')
     } else {
       await db.expenses.update(Number(id), data)
-      navigate(`/expenses/${id}`)
+      navigate('/expenses')
     }
   }
 
