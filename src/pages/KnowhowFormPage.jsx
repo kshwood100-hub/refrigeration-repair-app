@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { ChevronLeft, Trash2, Mic, MicOff, Sparkles, Plus, X } from 'lucide-react'
@@ -127,6 +127,13 @@ export default function KnowhowFormPage() {
     recognitionRef.current?.stop()
     setIsRecording(false)
   }
+
+  useEffect(() => {
+    return () => {
+      isRecordingRef.current = false
+      recognitionRef.current?.stop()
+    }
+  }, [])
 
   async function handleAiClassify() {
     if (!transcript.trim()) return

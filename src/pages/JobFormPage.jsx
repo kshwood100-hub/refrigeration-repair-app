@@ -58,6 +58,10 @@ export default function JobFormPage() {
     [preloadCustomerId]
   )
   useEffect(() => {
+    return () => { recognitionRef.current?.stop() }
+  }, [])
+
+  useEffect(() => {
     if (isNew && preloadCustomer && !initialized) {
       setCustomer({
         name: preloadCustomer.name ?? '',
