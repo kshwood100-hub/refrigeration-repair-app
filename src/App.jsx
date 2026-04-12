@@ -34,7 +34,7 @@ export default function App() {
   useEffect(() => {
     seedIfEmpty()
     const { theme } = loadSettings()
-    document.documentElement.className = theme === 'dark' ? '' : `theme-${theme}`
+    document.documentElement.className = `theme-${theme}`
   }, [])
 
   return (
