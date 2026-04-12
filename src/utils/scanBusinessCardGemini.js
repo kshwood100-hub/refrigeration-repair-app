@@ -1,7 +1,7 @@
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY
 
 export async function scanBusinessCardGemini(dataUrl) {
-  if (!GEMINI_API_KEY) throw new Error('Gemini API 키가 설정되지 않았습니다. (길이:' + (GEMINI_API_KEY?.length ?? 'undef') + ' / VITE keys:' + Object.keys(import.meta.env).filter(k=>k.startsWith('VITE_')).join(',') + ')')
+  if (!GEMINI_API_KEY) throw new Error('Gemini API 키가 설정되지 않았습니다.')
 
   const base64    = dataUrl.split(',')[1]
   const mediaType = dataUrl.split(';')[0].split(':')[1] || 'image/jpeg'
