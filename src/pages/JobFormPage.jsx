@@ -223,7 +223,7 @@ export default function JobFormPage() {
       await db.job_photos.add({ jobId, dataUrl: photo.dataUrl, caption: photo.caption, takenAt: new Date().toISOString() })
     }
 
-    navigate(`/service/${jobId}`)
+    navigate('/service')
   }
 
   const filteredCustomers = (allCustomers ?? []).filter((c) =>
