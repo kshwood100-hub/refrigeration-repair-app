@@ -130,32 +130,17 @@ export default function KnowhowFormPage() {
 
   async function handleAiClassify() {
     if (!transcript.trim()) return
-    const apiKey = loadSettings().claudeApiKey
-    if (!apiKey) { alert('설정 > AI 기능 설정에서 API 키를 입력해주세요.'); return }
     setAiLoading(true)
     try {
-      // 노하우 특화 프롬프트
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const res = await fetch('/api/classify-knowhow', {
         method: 'POST',
-        headers: {
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true',
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'claude-haiku-4-5-20251001',
-          max_tokens: 1024,
-          messages: [{
-            role: 'user',
-            content: `냉동기 수리 노하우를 아래 형식 JSON으로 정리해줘. JSON만 반환.\n\n"${transcript}"\n\n{"title":"한줄 제목","category":"압축기/냉매/전기/팬/착상/결로/소음/기타 중 하나","location":"압축기/응축기/증발기/전기패널/배관·냉매/팬·모터/컨트롤러/기타 중 하나","symptoms":"증상 키워드들 (콤마로 구분)","cause":"원인 설명","checkSteps":"1. 점검 순서\\n2. 다음 단계\\n3. ...","solution":"해결 방법","parts":"교체 부품 (없으면 빈값)","notes":"추가 메모 (없으면 빈값)"}`,
-          }],
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transcript }),
       })
       const data = await res.json()
-      if (data.error) throw new Error(data.error.message || JSON.stringify(data.error))
-      if (!data.content?.[0]?.text) throw new Error('API 응답 없음: ' + JSON.stringify(data))
-      const match = data.content[0].text.match(/\{[\s\S]*\}/)
+      if (!res.ok) throw new Error(data.error ?? `API 오류 ${res.status}`)
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
+      const match = text.match(/\{[\s\S]*\}/)
       if (match) {
         const r = JSON.parse(match[0])
         setForm((p) => ({
