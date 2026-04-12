@@ -10,7 +10,10 @@ import './index.css'
   try {
     const s = JSON.parse(localStorage.getItem('rfg_settings') || '{}')
     const theme = s.theme || 'dark'
-    document.documentElement.className = `theme-${theme}`
+    const fontSize = s.fontSize || 'medium'
+    const cls = [`theme-${theme}`]
+    if (fontSize !== 'medium') cls.push(`font-${fontSize === 'large' ? 'large' : 'xlarge'}`)
+    document.documentElement.className = cls.join(' ')
   } catch (e) {
     document.documentElement.className = 'theme-dark'
   }

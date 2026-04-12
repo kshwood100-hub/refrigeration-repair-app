@@ -138,6 +138,40 @@ export default function SettingsPage() {
         </div>
       </section>
 
+      {/* 글자 크기 */}
+      <section className="mb-6">
+        <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">글자 크기</div>
+        <div className="bg-white border border-gray-300 rounded-xl overflow-hidden">
+          {[
+            { val: 'medium', label: '보통',     desc: '기본 크기' },
+            { val: 'large',  label: '크게',     desc: '글자가 약간 커짐' },
+            { val: 'xlarge', label: '아주 크게', desc: '눈이 편한 큰 글자' },
+          ].map(({ val, label, desc }, i) => (
+            <button
+              key={val}
+              onClick={() => {
+                update({ fontSize: val })
+                const { theme } = settings
+                const cls = [`theme-${theme}`]
+                if (val !== 'medium') cls.push(`font-${val === 'large' ? 'large' : 'xlarge'}`)
+                document.documentElement.className = cls.join(' ')
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-3 active:bg-gray-50 ${i > 0 ? 'border-t border-gray-300' : ''}`}
+            >
+              <div className="flex-1 text-left">
+                <div className="font-medium text-gray-800 text-sm">{label}</div>
+                <div className="text-xs text-gray-400 mt-0.5">{desc}</div>
+              </div>
+              <span className={`w-5 h-5 rounded-full border-2 shrink-0 flex items-center justify-center ${
+                (settings.fontSize ?? 'medium') === val ? 'border-blue-600 bg-blue-600' : 'border-gray-300'
+              }`}>
+                {(settings.fontSize ?? 'medium') === val && <span className="w-2 h-2 rounded-full bg-white" />}
+              </span>
+            </button>
+          ))}
+        </div>
+      </section>
+
       {/* 압력 단위 */}
       <section className="mb-6">
         <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">압력 단위 기본값</div>

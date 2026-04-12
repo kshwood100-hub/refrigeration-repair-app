@@ -80,6 +80,11 @@ html.theme-dark .active\:bg-gray-200:active { background-color: #334155 !importa
 /* 다크 — 배지/태그 */
 html.theme-dark .bg-gray-100.text-gray-600 { background-color: #273549 !important; color: #94a3b8 !important; }
 
+/* ── 글자 크기 ── */
+html { font-size: 16px; }
+html.font-large  { font-size: 19px; }
+html.font-xlarge { font-size: 22px; }
+
 html, body, #root {
   height: 100%;
 }

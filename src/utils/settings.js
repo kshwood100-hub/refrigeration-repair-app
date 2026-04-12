@@ -5,6 +5,7 @@ const DEFAULTS = {
   isGauge: true,
   claudeApiKey: '',
   theme: 'dark',
+  fontSize: 'medium',
 }
 
 export function loadSettings() {

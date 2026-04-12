@@ -33,8 +33,10 @@ import LandingPage from './pages/LandingPage'
 export default function App() {
   useEffect(() => {
     seedIfEmpty()
-    const { theme } = loadSettings()
-    document.documentElement.className = `theme-${theme}`
+    const { theme, fontSize } = loadSettings()
+    const cls = [`theme-${theme}`]
+    if (fontSize && fontSize !== 'medium') cls.push(`font-${fontSize === 'large' ? 'large' : 'xlarge'}`)
+    document.documentElement.className = cls.join(' ')
   }, [])
 
   return (
