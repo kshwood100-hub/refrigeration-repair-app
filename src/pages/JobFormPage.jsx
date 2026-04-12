@@ -120,17 +120,15 @@ export default function JobFormPage() {
   }
 
   async function handleAiClassify() {
-    const apiKey = loadSettings().claudeApiKey
     if (!transcript.trim()) { alert('음성 내용이 없습니다.'); return }
-    if (!navigator.onLine || !apiKey) {
-      const prefix = !navigator.onLine ? '[오프라인 음성기록]\n' : '[API 키 없음 — 음성 원문]\n'
-      setJ('notes', job.notes ? job.notes + '\n\n' + prefix + transcript : prefix + transcript)
+    if (!navigator.onLine) {
+      setJ('notes', job.notes ? job.notes + '\n\n[오프라인 음성기록]\n' + transcript : '[오프라인 음성기록]\n' + transcript)
       setTranscript('')
       return
     }
     setAiLoading(true)
     try {
-      const result = await classifyRepairNote(transcript, apiKey)
+      const result = await classifyRepairNote(transcript)
       if (result.symptom)   setJ('symptom',   result.symptom)
       if (result.diagnosis) setJ('diagnosis', result.diagnosis)
       if (result.materials) setJ('materials', result.materials)
