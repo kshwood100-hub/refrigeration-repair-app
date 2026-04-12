@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
@@ -104,18 +104,20 @@ export default function JobDetailPage() {
     setIsRecording(false)
   }
 
+  useEffect(() => {
+    return () => { recognitionRef.current?.stop() }
+  }, [])
+
   async function handleAiClassify() {
-    const apiKey = loadSettings().claudeApiKey
     if (!transcript.trim()) { alert('음성 내용이 없습니다.'); return }
-    if (!navigator.onLine || !apiKey) {
-      const prefix = !navigator.onLine ? '[오프라인 음성기록]\n' : '[API 키 없음]\n'
-      await patch({ notes: job.notes ? job.notes + '\n\n' + prefix + transcript : prefix + transcript })
+    if (!navigator.onLine) {
+      await patch({ notes: job.notes ? job.notes + '\n\n[오프라인 음성기록]\n' + transcript : '[오프라인 음성기록]\n' + transcript })
       setTranscript('')
       return
     }
     setClassifyLoading(true)
     try {
-      const result = await classifyRepairNote(transcript, apiKey)
+      const result = await classifyRepairNote(transcript)
       const updates = {}
       if (result.symptom)   updates.symptom   = result.symptom
       if (result.diagnosis) updates.diagnosis = result.diagnosis
@@ -132,15 +134,13 @@ export default function JobDetailPage() {
   }
 
   async function handleExtract() {
-    const apiKey = loadSettings().claudeApiKey
-    if (!apiKey) { alert('설정 > AI 기능 설정에서 Claude API 키를 입력해주세요.'); return }
     if (!job.symptom && !job.diagnosis && !job.workDone) {
       alert('증상, 진단, 수리 내용 중 하나 이상을 입력해야 노하우를 추출할 수 있습니다.')
       return
     }
     setAiLoading(true)
     try {
-      const result = await extractKnowhow(job, customer, apiKey)
+      const result = await extractKnowhow(job, customer)
       const now = new Date().toISOString()
       const newId = await db.knowhow.add({
         title: result.title, category: result.category,
