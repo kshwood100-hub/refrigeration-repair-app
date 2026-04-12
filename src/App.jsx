@@ -1,4 +1,5 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { useRegisterSW } from 'virtual:pwa-register/react'
 import { Routes, Route } from 'react-router-dom'
 import { seedIfEmpty } from './db'
 import BottomNav from './components/BottomNav'
@@ -30,15 +31,30 @@ import SearchDiagPage from './pages/SearchDiagPage'
 import LandingPage from './pages/LandingPage'
 
 export default function App() {
-  useEffect(() => {
-    seedIfEmpty()
-  }, [])
+  const { needRefresh, updateServiceWorker } = useRegisterSW()
+  const [showBanner, setShowBanner] = useState(false)
+
+  useEffect(() => { seedIfEmpty() }, [])
+  useEffect(() => { if (needRefresh[0]) setShowBanner(true) }, [needRefresh])
 
   return (
-    <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/*" element={<AppLayout />} />
-    </Routes>
+    <>
+      {showBanner && (
+        <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-3 bg-gray-900 text-white text-sm shadow-lg max-w-lg mx-auto">
+          <span>새 버전이 있습니다</span>
+          <button
+            onClick={() => { updateServiceWorker(true); setShowBanner(false) }}
+            className="px-3 py-1 bg-blue-500 rounded-lg text-xs font-semibold"
+          >
+            업데이트
+          </button>
+        </div>
+      )}
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/*" element={<AppLayout />} />
+      </Routes>
+    </>
   )
 }
 
