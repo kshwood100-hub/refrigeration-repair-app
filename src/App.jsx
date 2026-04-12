@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { seedIfEmpty } from './db'
+import { loadSettings } from './utils/settings'
 import BottomNav from './components/BottomNav'
 import HomePage from './pages/HomePage'
 import DiagnosisPage from './pages/DiagnosisPage'
@@ -32,6 +33,8 @@ import LandingPage from './pages/LandingPage'
 export default function App() {
   useEffect(() => {
     seedIfEmpty()
+    const { theme } = loadSettings()
+    document.documentElement.className = theme === 'dark' ? '' : `theme-${theme}`
   }, [])
 
   return (
@@ -44,7 +47,7 @@ export default function App() {
 
 function AppLayout() {
   return (
-    <div className="flex flex-col h-full max-w-lg mx-auto bg-slate-200">
+    <div className="flex flex-col h-full max-w-lg mx-auto" style={{ backgroundColor: 'var(--app-bg)' }}>
       <main className="flex-1 min-h-0 overflow-y-auto pb-20">
         <Routes>
           <Route path="/home" element={<HomePage />} />

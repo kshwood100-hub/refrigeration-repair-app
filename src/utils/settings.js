@@ -4,6 +4,7 @@ const DEFAULTS = {
   unitKey: 'bar',
   isGauge: true,
   claudeApiKey: '',
+  theme: 'dark',
 }
 
 export function loadSettings() {

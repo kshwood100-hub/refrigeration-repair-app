@@ -6,13 +6,38 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+:root {
+  --landing-bg: #030712;
+  --landing-card: #111827;
+  --landing-text: #ffffff;
+  --landing-muted: #9ca3af;
+  --app-bg: #e2e8f0;
+}
+
+html.theme-gray {
+  --landing-bg: #374151;
+  --landing-card: #4b5563;
+  --landing-text: #ffffff;
+  --landing-muted: #d1d5db;
+  --app-bg: #d1d5db;
+}
+
+html.theme-light {
+  --landing-bg: #f8fafc;
+  --landing-card: #ffffff;
+  --landing-text: #0f172a;
+  --landing-muted: #6b7280;
+  --app-bg: #f1f5f9;
+}
+
 html, body, #root {
   height: 100%;
 }
 
 body {
   overflow: hidden;
-  @apply bg-slate-200 text-gray-900;
+  background-color: var(--app-bg);
+  @apply text-gray-900;
   font-family: 'Noto Sans KR', system-ui, sans-serif;
 }
 

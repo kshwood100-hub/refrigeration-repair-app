@@ -107,6 +107,37 @@ export default function SettingsPage() {
         </div>
       </section>
 
+      {/* 테마 */}
+      <section className="mb-6">
+        <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">앱 테마</div>
+        <div className="bg-white border border-gray-300 rounded-xl overflow-hidden">
+          {[
+            { val: 'dark',  label: '다크',  desc: '어두운 배경 — 야간 현장 작업에 적합' },
+            { val: 'gray',  label: '그레이', desc: '중간 톤 배경' },
+            { val: 'light', label: '흰색',  desc: '밝은 배경 — 야외 낮 환경에 적합' },
+          ].map(({ val, label, desc }, i) => (
+            <button
+              key={val}
+              onClick={() => {
+                update({ theme: val })
+                document.documentElement.className = val === 'dark' ? '' : `theme-${val}`
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-3 active:bg-gray-50 ${i > 0 ? 'border-t border-gray-300' : ''}`}
+            >
+              <div className="flex-1 text-left">
+                <div className="font-medium text-gray-800 text-sm">{label}</div>
+                <div className="text-xs text-gray-400 mt-0.5">{desc}</div>
+              </div>
+              <span className={`w-5 h-5 rounded-full border-2 shrink-0 flex items-center justify-center ${
+                settings.theme === val ? 'border-blue-600 bg-blue-600' : 'border-gray-300'
+              }`}>
+                {settings.theme === val && <span className="w-2 h-2 rounded-full bg-white" />}
+              </span>
+            </button>
+          ))}
+        </div>
+      </section>
+
       {/* 압력 단위 */}
       <section className="mb-6">
         <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">압력 단위 기본값</div>
