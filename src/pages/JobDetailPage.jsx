@@ -110,6 +110,7 @@ export default function JobDetailPage() {
 
   async function handleAiClassify() {
     if (!transcript.trim()) { alert('음성 내용이 없습니다.'); return }
+    stopRecording()
     if (!navigator.onLine) {
       await patch({ notes: job.notes ? job.notes + '\n\n[오프라인 음성기록]\n' + transcript : '[오프라인 음성기록]\n' + transcript })
       setTranscript('')
