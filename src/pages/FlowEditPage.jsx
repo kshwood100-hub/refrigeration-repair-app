@@ -35,7 +35,7 @@ export default function FlowEditPage() {
   const [addCtx, setAddCtx] = useState(null) // { parentNodeId, slot }
   const [form, setForm] = useState({})
 
-  const categories = useLiveQuery(() => db.flow_categories.toArray())
+  const categories = useLiveQuery(() => db.flow_categories.toArray(), [])
   const nodes = useLiveQuery(
     () => selCatId
       ? db.flow_nodes.where('categoryId').equals(selCatId).toArray()

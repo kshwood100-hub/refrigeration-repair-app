@@ -7,9 +7,7 @@ import {
 } from 'lucide-react'
 import { db } from '../db'
 import { loadSettings } from '../utils/settings'
-import { scanBusinessCard } from '../utils/scanBusinessCard'
 import { scanBusinessCardGemini } from '../utils/scanBusinessCardGemini'
-import { scanBusinessCardTesseract } from '../utils/scanBusinessCardTesseract'
 
 const EMPTY = {
   name: '', company: '', title: '', phone: '', mobile: '', email: '', address: '', memo: '',

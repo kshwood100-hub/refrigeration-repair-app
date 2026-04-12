@@ -35,7 +35,7 @@ export default function DiagnosisPage() {
   const { t } = useTranslation()
   const lf = useLocalField()
   const navigate = useNavigate()
-  const categories = useLiveQuery(() => db.flow_categories.toArray())
+  const categories = useLiveQuery(() => db.flow_categories.toArray(), [])
 
   if (!categories) return <div className="p-4 text-gray-400 text-sm">불러오는 중...</div>
 

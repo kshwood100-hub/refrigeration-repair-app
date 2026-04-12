@@ -2,6 +2,10 @@ import Dexie from 'dexie'
 
 export const db = new Dexie('RefrigerationRepairDB')
 
+// 다른 탭이 DB를 열고 있을 때 자동 새로고침
+db.on('versionchange', () => { db.close(); window.location.reload() })
+db.on('blocked', () => window.location.reload())
+
 db.version(1).stores({
   symptoms: '++id, category, title',
   checklist_templates: '++id, category, title',
