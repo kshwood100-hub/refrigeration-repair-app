@@ -26,7 +26,6 @@ export default function SettingsPage() {
   const importRef = useRef()
   const [qrExportOpen, setQrExportOpen] = useState(false)
   const [qrImportOpen, setQrImportOpen] = useState(false)
-  const [apiKeySaved, setApiKeySaved] = useState(!!loadSettings().claudeApiKey)
 
   function update(patch) {
     const next = { ...settings, ...patch }
@@ -156,50 +155,6 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      {/* Claude API 키 */}
-      <section className="mb-6">
-        <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">AI 기능 설정</div>
-        <div className="bg-white border border-gray-300 rounded-xl px-4 py-3">
-          <label className="text-xs font-semibold text-gray-500 block mb-1">Claude API 키</label>
-          <div className="flex gap-2">
-            <input
-              type="password"
-              value={settings.claudeApiKey}
-              onChange={(e) => update({ claudeApiKey: e.target.value })}
-              placeholder="sk-ant-api03-..."
-              disabled={apiKeySaved}
-              className={`flex-1 text-sm border rounded-lg px-3 py-2 outline-none transition-colors ${
-                apiKeySaved
-                  ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'
-                  : 'bg-white border-gray-300 focus:border-blue-400'
-              }`}
-            />
-            <button
-              onClick={() => setApiKeySaved(true)}
-              disabled={apiKeySaved || !settings.claudeApiKey.trim()}
-              className={`px-4 py-2 text-sm font-semibold rounded-lg shrink-0 transition-colors ${
-                apiKeySaved
-                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  : 'bg-gray-900 text-white active:bg-gray-700'
-              }`}
-            >
-              {apiKeySaved ? '저장됨' : '저장'}
-            </button>
-          </div>
-          {apiKeySaved && (
-            <button
-              onClick={() => setApiKeySaved(false)}
-              className="mt-2 w-full py-2 text-xs font-medium text-gray-500 border border-gray-300 rounded-lg active:bg-gray-50"
-            >
-              키 변경하기
-            </button>
-          )}
-          <p className="text-xs text-gray-400 mt-1.5">
-            음성 자동 분류 AI 기능에 사용됩니다.<br />
-            키는 이 기기에만 저장되며 외부로 전송되지 않습니다.
-          </p>
-        </div>
-      </section>
 
       {/* 데이터 내보내기 / 가져오기 */}
       <section className="mb-6">
