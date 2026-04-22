@@ -10,6 +10,7 @@
 :root {
   --landing-bg: #f8fafc;
   --landing-card: #ffffff;
+  --landing-card-border: #e2e8f0;
   --landing-text: #0f172a;
   --landing-muted: #6b7280;
   --app-bg: #f1f5f9;
@@ -19,15 +20,196 @@
 html.theme-gray {
   --landing-bg: #374151;
   --landing-card: #4b5563;
+  --landing-card-border: #6b7280;
   --landing-text: #ffffff;
   --landing-muted: #d1d5db;
   --app-bg: #d1d5db;
 }
 
+/* 그레이 — 앱 전체 배경 / 텍스트 */
+html.theme-gray body { color: #1f2937; }
+
+/* 그레이 — 카드/패널 배경 */
+html.theme-gray .bg-white  { background-color: #e5e7eb !important; }
+html.theme-gray .bg-gray-50 { background-color: #e5e7eb !important; }
+html.theme-gray .bg-gray-100 { background-color: #d1d5db !important; }
+html.theme-gray .bg-slate-50 { background-color: #e5e7eb !important; }
+
+/* 그레이 — 텍스트 (회색 배경 위 가독성) */
+html.theme-gray .text-gray-900 { color: #111827 !important; }
+html.theme-gray .text-gray-800 { color: #1f2937 !important; }
+html.theme-gray .text-gray-700 { color: #1f2937 !important; }
+html.theme-gray .text-gray-600 { color: #374151 !important; }
+html.theme-gray .text-gray-500 { color: #374151 !important; }
+html.theme-gray .text-gray-400 { color: #4b5563 !important; }
+html.theme-gray .text-gray-300 { color: #6b7280 !important; }
+html.theme-gray .text-slate-600 { color: #374151 !important; }
+html.theme-gray .text-slate-500 { color: #4b5563 !important; }
+html.theme-gray .text-slate-400 { color: #6b7280 !important; }
+
+/* 그레이 — 테두리 */
+html.theme-gray .border-gray-300 { border-color: #9ca3af !important; }
+html.theme-gray .border-gray-200 { border-color: #9ca3af !important; }
+html.theme-gray .border-gray-100 { border-color: #9ca3af !important; }
+html.theme-gray .divide-gray-100 > * + * { border-color: #9ca3af !important; }
+html.theme-gray .divide-y > * + * { border-color: #9ca3af !important; }
+html.theme-gray .border-t { border-color: #9ca3af !important; }
+
+/* 그레이 — 입력 필드 */
+html.theme-gray input:not([type=range]):not([type=checkbox]),
+html.theme-gray textarea,
+html.theme-gray select {
+  background-color: #f3f4f6 !important;
+  color: #1f2937 !important;
+  border-color: #9ca3af !important;
+}
+html.theme-gray input::placeholder,
+html.theme-gray textarea::placeholder { color: #6b7280 !important; }
+
+/* 그레이 — 버튼 활성화 */
+html.theme-gray .active\:bg-gray-50:active { background-color: #d1d5db !important; }
+html.theme-gray .active\:bg-gray-200:active { background-color: #bcc1c9 !important; }
+
+/* 그레이 — 배지/태그 */
+html.theme-gray .bg-gray-100.text-gray-600 { background-color: #d1d5db !important; color: #374151 !important; }
+
+/* 그레이 — 컬러 배경 (light tint → gray tint) */
+html.theme-gray .bg-red-50    { background-color: #e8d5d5 !important; }
+html.theme-gray .bg-red-100   { background-color: #dfc8c8 !important; }
+html.theme-gray .bg-amber-50  { background-color: #e5dcc8 !important; }
+html.theme-gray .bg-orange-50 { background-color: #e5daca !important; }
+html.theme-gray .bg-yellow-50 { background-color: #e3e2c8 !important; }
+html.theme-gray .bg-blue-50   { background-color: #d1d8e8 !important; }
+html.theme-gray .bg-blue-100  { background-color: #c8d0e0 !important; }
+html.theme-gray .bg-green-50  { background-color: #cfe0d3 !important; }
+html.theme-gray .bg-emerald-50 { background-color: #cce0d5 !important; }
+
+/* 그레이 — 컬러 텍스트 (회색 배경 위 가독성) */
+html.theme-gray .text-red-700    { color: #b91c1c !important; }
+html.theme-gray .text-red-600    { color: #dc2626 !important; }
+html.theme-gray .text-red-500    { color: #ef4444 !important; }
+html.theme-gray .text-red-400    { color: #dc2626 !important; }
+html.theme-gray .text-amber-700  { color: #b45309 !important; }
+html.theme-gray .text-orange-900 { color: #9a3412 !important; }
+html.theme-gray .text-green-700  { color: #15803d !important; }
+html.theme-gray .text-blue-700   { color: #1d4ed8 !important; }
+html.theme-gray .text-blue-800   { color: #1e40af !important; }
+html.theme-gray .text-blue-600   { color: #2563eb !important; }
+html.theme-gray .text-blue-500   { color: #2563eb !important; }
+html.theme-gray .text-blue-400   { color: #1d4ed8 !important; }
+html.theme-gray .text-blue-200   { color: #1e40af !important; }
+html.theme-gray .text-emerald-600 { color: #059669 !important; }
+
+/* 그레이 — 컬러 테두리 */
+html.theme-gray .border-red-200   { border-color: #c5a0a0 !important; }
+html.theme-gray .border-red-300   { border-color: #b88a8a !important; }
+html.theme-gray .border-amber-200 { border-color: #c5b58a !important; }
+html.theme-gray .border-blue-200  { border-color: #a0afc5 !important; }
+html.theme-gray .border-blue-300  { border-color: #8a9fb8 !important; }
+html.theme-gray .border-orange-300 { border-color: #b8a08a !important; }
+html.theme-gray .border-green-200 { border-color: #a0c5a8 !important; }
+html.theme-gray .border-green-300 { border-color: #8ab898 !important; }
+html.theme-gray .border-yellow-200 { border-color: #c5c28a !important; }
+
+/* ── 라벤더 미스트 테마 (부드러운 연보라) ── */
+html.theme-lavender {
+  --landing-bg: #ece9ff;
+  --landing-card: #f4f2ff;
+  --landing-card-border: #c9c2e8;
+  --landing-text: #2e2548;
+  --landing-muted: #6e6590;
+  --app-bg: #ece9ff;
+}
+
+html.theme-lavender body { color: #2e2548; }
+
+/* 라벤더 — 카드/패널 배경 */
+html.theme-lavender .bg-white  { background-color: #f7f5ff !important; }
+html.theme-lavender .bg-gray-50 { background-color: #f2f0ff !important; }
+html.theme-lavender .bg-gray-100 { background-color: #e4dff8 !important; }
+html.theme-lavender .bg-slate-50 { background-color: #f7f5ff !important; }
+
+/* 라벤더 — 텍스트 */
+html.theme-lavender .text-gray-900 { color: #1e1538 !important; }
+html.theme-lavender .text-gray-800 { color: #2e2548 !important; }
+html.theme-lavender .text-gray-700 { color: #3a2f58 !important; }
+html.theme-lavender .text-gray-600 { color: #4e4270 !important; }
+html.theme-lavender .text-gray-500 { color: #5c5080 !important; }
+html.theme-lavender .text-gray-400 { color: #7a6e99 !important; }
+html.theme-lavender .text-gray-300 { color: #9a8eb8 !important; }
+html.theme-lavender .text-slate-600 { color: #4e4270 !important; }
+html.theme-lavender .text-slate-500 { color: #5c5080 !important; }
+html.theme-lavender .text-slate-400 { color: #7a6e99 !important; }
+
+/* 라벤더 — 테두리 */
+html.theme-lavender .border-gray-300 { border-color: #b8aed8 !important; }
+html.theme-lavender .border-gray-200 { border-color: #c9c2e8 !important; }
+html.theme-lavender .border-gray-100 { border-color: #d9d4ee !important; }
+html.theme-lavender .divide-gray-100 > * + * { border-color: #d9d4ee !important; }
+html.theme-lavender .divide-y > * + * { border-color: #b8aed8 !important; }
+html.theme-lavender .border-t { border-color: #b8aed8 !important; }
+
+/* 라벤더 — 입력 필드 */
+html.theme-lavender input:not([type=range]):not([type=checkbox]),
+html.theme-lavender textarea,
+html.theme-lavender select {
+  background-color: #faf8ff !important;
+  color: #2e2548 !important;
+  border-color: #b8aed8 !important;
+}
+html.theme-lavender input::placeholder,
+html.theme-lavender textarea::placeholder { color: #9a8eb8 !important; }
+
+/* 라벤더 — 버튼 활성화 */
+html.theme-lavender .active\:bg-gray-50:active { background-color: #e4dff8 !important; }
+html.theme-lavender .active\:bg-gray-200:active { background-color: #c9c2e8 !important; }
+
+/* 라벤더 — 배지/태그 */
+html.theme-lavender .bg-gray-100.text-gray-600 { background-color: #e4dff8 !important; color: #4e4270 !important; }
+
+/* 라벤더 — 컬러 배경 (연한 보라 틴트 유지) */
+html.theme-lavender .bg-red-50    { background-color: #f3dde0 !important; }
+html.theme-lavender .bg-red-100   { background-color: #edcfd3 !important; }
+html.theme-lavender .bg-amber-50  { background-color: #f0e6cc !important; }
+html.theme-lavender .bg-orange-50 { background-color: #f0e0ce !important; }
+html.theme-lavender .bg-yellow-50 { background-color: #eee8cc !important; }
+html.theme-lavender .bg-blue-50   { background-color: #dde1f5 !important; }
+html.theme-lavender .bg-blue-100  { background-color: #ced5ee !important; }
+html.theme-lavender .bg-green-50  { background-color: #dae6da !important; }
+html.theme-lavender .bg-emerald-50 { background-color: #d7e5de !important; }
+
+/* 라벤더 — 컬러 텍스트 */
+html.theme-lavender .text-red-700    { color: #9f1239 !important; }
+html.theme-lavender .text-red-600    { color: #be123c !important; }
+html.theme-lavender .text-red-500    { color: #dc2626 !important; }
+html.theme-lavender .text-red-400    { color: #9f1239 !important; }
+html.theme-lavender .text-amber-700  { color: #92400e !important; }
+html.theme-lavender .text-orange-900 { color: #7c2d12 !important; }
+html.theme-lavender .text-green-700  { color: #15803d !important; }
+html.theme-lavender .text-blue-700   { color: #3730a3 !important; }
+html.theme-lavender .text-blue-800   { color: #312e81 !important; }
+html.theme-lavender .text-blue-600   { color: #4338ca !important; }
+html.theme-lavender .text-blue-500   { color: #4338ca !important; }
+html.theme-lavender .text-blue-400   { color: #3730a3 !important; }
+html.theme-lavender .text-blue-200   { color: #312e81 !important; }
+html.theme-lavender .text-emerald-600 { color: #047857 !important; }
+
+/* 라벤더 — 컬러 테두리 */
+html.theme-lavender .border-red-200   { border-color: #d4a8b0 !important; }
+html.theme-lavender .border-red-300   { border-color: #c4939d !important; }
+html.theme-lavender .border-amber-200 { border-color: #d4bc95 !important; }
+html.theme-lavender .border-blue-200  { border-color: #aeb0d4 !important; }
+html.theme-lavender .border-blue-300  { border-color: #9595c4 !important; }
+html.theme-lavender .border-orange-300 { border-color: #c4a595 !important; }
+html.theme-lavender .border-green-200 { border-color: #a8c8b0 !important; }
+html.theme-lavender .border-green-300 { border-color: #93b89d !important; }
+html.theme-lavender .border-yellow-200 { border-color: #c9c095 !important; }
+
 /* ── 다크 테마 ── */
 html.theme-dark {
   --landing-bg: #030712;
   --landing-card: #111827;
+  --landing-card-border: #334155;
   --landing-text: #ffffff;
   --landing-muted: #9ca3af;
   --app-bg: #0f172a;
@@ -66,9 +248,9 @@ html.theme-dark .border-t { border-color: #334155 !important; }
 html.theme-dark input:not([type=range]):not([type=checkbox]),
 html.theme-dark textarea,
 html.theme-dark select {
-  background-color: #1e293b !important;
+  background-color: #0f1a2e !important;
   color: #e2e8f0 !important;
-  border-color: #334155 !important;
+  border-color: #5a6a82 !important;
 }
 html.theme-dark input::placeholder,
 html.theme-dark textarea::placeholder { color: #475569 !important; }
@@ -79,6 +261,41 @@ html.theme-dark .active\:bg-gray-200:active { background-color: #334155 !importa
 
 /* 다크 — 배지/태그 */
 html.theme-dark .bg-gray-100.text-gray-600 { background-color: #273549 !important; color: #94a3b8 !important; }
+
+/* 다크 — 컬러 배경 (light tint → dark tint) */
+html.theme-dark .bg-red-50    { background-color: #1f0f0f !important; }
+html.theme-dark .bg-red-100   { background-color: #2d1010 !important; }
+html.theme-dark .bg-amber-50  { background-color: #1a1205 !important; }
+html.theme-dark .bg-orange-50 { background-color: #1a1108 !important; }
+html.theme-dark .bg-yellow-50 { background-color: #18180a !important; }
+html.theme-dark .bg-blue-50   { background-color: #0c1525 !important; }
+html.theme-dark .bg-blue-100  { background-color: #0f1c2e !important; }
+html.theme-dark .bg-green-50  { background-color: #0c1a10 !important; }
+html.theme-dark .bg-emerald-50 { background-color: #0a1a12 !important; }
+
+/* 다크 — 컬러 텍스트 (가독성 강화) */
+html.theme-dark .text-red-700    { color: #f87171 !important; }
+html.theme-dark .text-amber-700  { color: #fbbf24 !important; }
+html.theme-dark .text-orange-900 { color: #fdba74 !important; }
+html.theme-dark .text-green-700  { color: #4ade80 !important; }
+html.theme-dark .text-blue-700   { color: #60a5fa !important; }
+html.theme-dark .text-blue-800   { color: #93c5fd !important; }
+html.theme-dark .text-blue-600   { color: #60a5fa !important; }
+html.theme-dark .text-blue-500   { color: #60a5fa !important; }
+html.theme-dark .text-blue-400   { color: #93c5fd !important; }
+html.theme-dark .text-blue-200   { color: #bfdbfe !important; }
+html.theme-dark .text-emerald-600 { color: #34d399 !important; }
+
+/* 다크 — 컬러 테두리 */
+html.theme-dark .border-red-200   { border-color: #3d1515 !important; }
+html.theme-dark .border-red-300   { border-color: #4d1a1a !important; }
+html.theme-dark .border-amber-200 { border-color: #3d2d10 !important; }
+html.theme-dark .border-blue-200  { border-color: #1e3a5f !important; }
+html.theme-dark .border-blue-300  { border-color: #1e4080 !important; }
+html.theme-dark .border-orange-300 { border-color: #4d2a10 !important; }
+html.theme-dark .border-green-200 { border-color: #1a3d20 !important; }
+html.theme-dark .border-green-300 { border-color: #1a4525 !important; }
+html.theme-dark .border-yellow-200 { border-color: #3d3a10 !important; }
 
 /* ── 글자 크기 ── */
 html { font-size: 16px; }

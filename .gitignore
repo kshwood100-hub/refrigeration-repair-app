@@ -4,3 +4,7 @@ dist/
 *.log
 
 .vercel
+
+# 내부 문서 (깃 제외)
+APP_MANUAL.md
+APP_MANUAL.html

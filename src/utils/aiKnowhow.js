@@ -11,7 +11,7 @@ export async function extractKnowhow(job, customer) {
   }
 
   const data = await res.json()
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
+  const text = data.choices?.[0]?.message?.content ?? ''
   const match = text.match(/\{[\s\S]*\}/)
   if (!match) throw new Error('AI 응답 파싱 실패')
   return JSON.parse(match[0])

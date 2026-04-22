@@ -1,21 +1,23 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
+import { useTranslation } from 'react-i18next'
 import { ChevronLeft, Pencil, MapPin, Tag } from 'lucide-react'
 import { db } from '../db'
 
 export default function KnowhowDetailPage() {
   const navigate = useNavigate()
   const { id } = useParams()
+  const { t } = useTranslation()
 
   const item = useLiveQuery(() => db.knowhow.get(Number(id)), [id])
 
-  if (!item) return <div className="p-4 text-gray-400 text-sm">불러오는 중...</div>
+  if (!item) return <div className="p-4 text-gray-400 text-sm">{t('knowhow.loading')}</div>
 
   return (
     <div className="p-4 pb-10">
-      <button onClick={() => navigate('/knowhow')} className="flex items-center justify-center gap-2 w-full py-3 mb-4 bg-gray-100 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 active:bg-gray-200">
+      <button onClick={() => navigate(-1)} className="flex items-center justify-center gap-2 w-full py-3 mb-4 bg-gray-100 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 active:bg-gray-200">
         <ChevronLeft size={18} strokeWidth={2} />
-        노하우 목록으로
+        {t('knowhow.backToList')}
       </button>
       {/* 헤더 */}
       <div className="flex items-center justify-end mb-5">
@@ -24,7 +26,7 @@ export default function KnowhowDetailPage() {
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-gray-300 rounded-lg text-gray-700"
         >
           <Pencil size={12} strokeWidth={1.5} />
-          수정
+          {t('knowhow.edit')}
         </button>
       </div>
 
@@ -46,9 +48,25 @@ export default function KnowhowDetailPage() {
           </div>
         </div>
 
+        {/* 장비 사진 */}
+        {(item.equipPhotos ?? []).length > 0 && (
+          <Card title={t('knowhow.equipPhotos')}>
+            <div className="flex gap-2 flex-wrap">
+              {item.equipPhotos.map((url, i) => (
+                <img
+                  key={i}
+                  src={url}
+                  alt=""
+                  className="w-24 h-24 object-cover rounded-lg border border-gray-200"
+                />
+              ))}
+            </div>
+          </Card>
+        )}
+
         {/* 설비 종류 */}
         {item.equipType && (
-          <Card title="설비 종류">
+          <Card title={t('knowhow.equipType')}>
             <div className="flex flex-wrap gap-1.5">
               {item.equipType.split(',').map((e) => e.trim()).filter(Boolean).map((e) => (
                 <span key={e} className="text-xs font-medium text-gray-600 bg-gray-100 px-2.5 py-1 rounded-lg">
@@ -61,7 +79,7 @@ export default function KnowhowDetailPage() {
 
         {/* 증상 키워드 */}
         {item.symptoms && (
-          <Card title="증상 키워드">
+          <Card title={t('knowhow.symptomKeywords')}>
             <div className="flex flex-wrap gap-1.5">
               {item.symptoms.split(',').map((s) => s.trim()).filter(Boolean).map((s) => (
                 <span key={s} className="flex items-center gap-1 text-xs text-gray-600 bg-gray-100 px-2.5 py-1 rounded-lg">
@@ -75,42 +93,42 @@ export default function KnowhowDetailPage() {
 
         {/* 원인 */}
         {item.cause && (
-          <Card title="원인">
+          <Card title={t('knowhow.sectionCause')}>
             <p className="text-sm text-gray-800 whitespace-pre-wrap">{item.cause}</p>
           </Card>
         )}
 
         {/* 점검 순서 */}
         {item.checkSteps && (
-          <Card title="점검 순서">
+          <Card title={t('knowhow.checkStepsLabel')}>
             <p className="text-sm text-gray-800 whitespace-pre-wrap">{item.checkSteps}</p>
           </Card>
         )}
 
         {/* 해결 방법 */}
         {item.solution && (
-          <Card title="해결 방법">
+          <Card title={t('knowhow.solutionLabel')}>
             <p className="text-sm text-gray-800 whitespace-pre-wrap">{item.solution}</p>
           </Card>
         )}
 
         {/* 교체 부품 */}
         {item.parts && (
-          <Card title="교체 부품">
+          <Card title={t('knowhow.partsLabel')}>
             <p className="text-sm text-gray-800">{item.parts}</p>
           </Card>
         )}
 
         {/* 추가 메모 */}
         {item.notes && (
-          <Card title="추가 메모">
+          <Card title={t('knowhow.sectionNotes')}>
             <p className="text-sm text-gray-700 whitespace-pre-wrap">{item.notes}</p>
           </Card>
         )}
 
         {/* 날짜 */}
         <p className="text-xs text-gray-300 text-center pt-2">
-          {item.updatedAt?.slice(0, 10)} 기록
+          {t('knowhow.dateLabel', { date: item.updatedAt?.slice(0, 10) })}
         </p>
 
       </div>

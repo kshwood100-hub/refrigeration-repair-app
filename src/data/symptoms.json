@@ -36,7 +36,79 @@
         "6. Resolve high-pressure trip cause (overcharge, condenser fouling) then reset"
       ],
       "notes": "기동 실패 반복 시 압축기 권선 과열 우려 - 인터벌 두고 재시도",
-      "notes_en": "Repeated start failures risk winding overheat — allow cooling interval before retrying"
+      "notes_en": "Repeated start failures risk winding overheat — allow cooling interval before retrying",
+      "category_zh": "压缩机",
+      "title_zh": "压缩机无法启动",
+      "causes_zh": [
+        "电源故障（断路器跳闸、保险丝熔断）",
+        "过载继电器动作（过电流）",
+        "启动电容器故障",
+        "压缩机内部抱死",
+        "高压保护开关动作"
+      ],
+      "procedures_zh": [
+        "1. 测量供电电压——确认在额定电压 ±10% 范围内",
+        "2. 检查并复位断路器/保险丝",
+        "3. 手动复位过载继电器后尝试重新启动",
+        "4. 测量启动电容器容量（在额定值 ±5% 范围内）",
+        "5. 测量压缩机各接线端之间的电阻——检查断路/接地故障",
+        "6. 排除高压跳闸原因（过充、冷凝器污垢）后复位"
+      ],
+      "notes_zh": "反复启动失败有过热绕组的风险——冷却后再重试",
+      "category_ja": "圧縮機",
+      "title_ja": "圧縮機が起動しない",
+      "causes_ja": [
+        "電源供給不良（ブレーカートリップ、ヒューズ断線）",
+        "過負荷リレー動作（過電流）",
+        "起動コンデンサ不良",
+        "圧縮機内部固着",
+        "高圧カットアウトスイッチ動作"
+      ],
+      "procedures_ja": [
+        "1. 電源電圧測定 — 定格電圧±10%以内を確認",
+        "2. ブレーカー・ヒューズの状態確認および復旧",
+        "3. 過負荷リレー手動リセット後に再起動を試みる",
+        "4. 起動コンデンサ容量測定（定格±5%以内）",
+        "5. 圧縮機端子間抵抗測定 — 断線・地絡確認",
+        "6. 高圧スイッチトリップ原因（冷媒過充填、凝縮器汚染）解決後にリセット"
+      ],
+      "notes_ja": "起動失敗が繰り返される場合、圧縮機巻線過熱のおそれあり — インターバルをおいて再試行すること",
+      "category_hi": "कंप्रेसर",
+      "title_hi": "कंप्रेसर चालू नहीं होता",
+      "causes_hi": [
+        "बिजली आपूर्ति खराब (सर्किट ब्रेकर ट्रिप, फ्यूज उड़ा)",
+        "ओवरलोड रिले सक्रिय (अधिक धारा)",
+        "खराब स्टार्ट कैपेसिटर",
+        "कंप्रेसर आंतरिक रूप से जाम",
+        "हाई प्रेशर स्विच सक्रिय"
+      ],
+      "procedures_hi": [
+        "1. आपूर्ति वोल्टेज मापें - रेटेड वोल्टेज के ±10% के भीतर सुनिश्चित करें",
+        "2. सर्किट ब्रेकर / फ्यूज जाँचें और रीसेट करें",
+        "3. ओवरलोड रिले मैन्युअल रूप से रीसेट करें और पुनः चालू करने का प्रयास करें",
+        "4. स्टार्ट कैपेसिटर क्षमता मापें (रेटेड मान के ±5% के भीतर)",
+        "5. कंप्रेसर टर्मिनलों के बीच प्रतिरोध मापें - ओपन/ग्राउंड फॉल्ट जाँचें",
+        "6. हाई प्रेशर ट्रिप का कारण (अत्यधिक चार्ज, कंडेनसर गंदगी) हल करें फिर रीसेट करें"
+      ],
+      "notes_hi": "बार-बार स्टार्ट विफलता से वाइंडिंग ओवरहीट का खतरा — पुनः प्रयास से पहले ठंडा होने का अंतराल दें",
+      "category_es": "Compresor",
+      "title_es": "El compresor no arranca",
+      "causes_es": [
+        "Fallo de suministro eléctrico (disparo del disyuntor, fusible fundido)",
+        "Activación del relé de sobrecarga (sobrecorriente)",
+        "Condensador de arranque defectuoso",
+        "Bloqueo interno del compresor",
+        "Activación del presostato de alta presión"
+      ],
+      "procedures_es": [
+        "1. Medir la tensión de alimentación — confirmar dentro del ±10% de la tensión nominal",
+        "2. Verificar y restablecer el disyuntor / fusible",
+        "3. Resetear manualmente el relé de sobrecarga e intentar rearranque",
+        "4. Medir la capacidad del condensador de arranque (dentro del ±5% del valor nominal)",
+        "5. Medir la resistencia entre los bornes del compresor — verificar circuito abierto/fallo a tierra",
+        "6. Resolver la causa del disparo por alta presión (sobrecarga de refrigerante, suciedad en condensador) y resetear"
+      ],
+      "notes_es": "Fallos de arranque repetidos pueden sobrecalentar los bobinados — dejar enfriar antes de reintentar"
     },
     {
       "category": "압축기",
@@ -74,7 +146,79 @@
         "6. Inspect machine room ventilation"
       ],
       "notes": "트립 후 최소 10분 냉각 후 재기동",
-      "notes_en": "Wait at least 10 minutes for cooling before restarting after trip"
+      "notes_en": "Wait at least 10 minutes for cooling before restarting after trip",
+      "category_zh": "压缩机",
+      "title_zh": "压缩机热保护反复动作",
+      "causes_zh": [
+        "吸气压力过低（制冷剂不足）",
+        "冷凝压力过高（冷凝器污垢）",
+        "冷冻油不足或受污染",
+        "吸气过滤器堵塞",
+        "环境温度过高"
+      ],
+      "procedures_zh": [
+        "1. 测量吸气压力和排气压力",
+        "2. 检查制冷剂充注量——观察视液镜是否有气泡",
+        "3. 检查并清洁冷凝器翅片",
+        "4. 清洁或更换吸气过滤网",
+        "5. 检查冷冻油油位和颜色",
+        "6. 检查机房通风状况"
+      ],
+      "notes_zh": "跳闸后至少等待10分钟冷却后再重新启动",
+      "category_ja": "圧縮機",
+      "title_ja": "圧縮機の過熱トリップが繰り返される",
+      "causes_ja": [
+        "吸入圧力が低すぎる（冷媒不足）",
+        "凝縮圧力が高すぎる（凝縮器汚染）",
+        "冷凍機油不足または汚染",
+        "吸入フィルター詰まり",
+        "周囲温度が過度に高い"
+      ],
+      "procedures_ja": [
+        "1. 吸入圧力および吐出圧力の測定",
+        "2. 冷媒充填量確認 — サイトグラスの気泡の有無",
+        "3. 凝縮器フィン状態確認および清掃",
+        "4. 吸入ストレーナー清掃または交換",
+        "5. 冷凍機油レベルおよび色確認",
+        "6. 機械室換気状態点検"
+      ],
+      "notes_ja": "トリップ後、最低10分冷却してから再起動すること",
+      "category_hi": "कंप्रेसर",
+      "title_hi": "कंप्रेसर थर्मल ट्रिप बार-बार होता है",
+      "causes_hi": [
+        "सक्शन प्रेशर बहुत कम (रेफ्रिजरेंट कम)",
+        "कंडेंसिंग प्रेशर बहुत अधिक (कंडेनसर गंदा)",
+        "रेफ्रिजरेशन ऑयल अपर्याप्त या दूषित",
+        "सक्शन फिल्टर बंद",
+        "परिवेश तापमान अत्यधिक अधिक"
+      ],
+      "procedures_hi": [
+        "1. सक्शन और डिस्चार्ज प्रेशर मापें",
+        "2. रेफ्रिजरेंट चार्ज जाँचें — साइट ग्लास में बुलबुले देखें",
+        "3. कंडेनसर फिन्स जाँचें और साफ करें",
+        "4. सक्शन स्ट्रेनर साफ करें या बदलें",
+        "5. ऑयल स्तर और रंग जाँचें",
+        "6. मशीन रूम वेंटिलेशन की जाँच करें"
+      ],
+      "notes_hi": "ट्रिप के बाद पुनः चालू करने से पहले कम से कम 10 मिनट ठंडा होने दें",
+      "category_es": "Compresor",
+      "title_es": "El térmico del compresor dispara repetidamente",
+      "causes_es": [
+        "Presión de aspiración demasiado baja (falta de refrigerante)",
+        "Presión de condensación demasiado alta (condensador sucio)",
+        "Aceite de refrigeración insuficiente o contaminado",
+        "Filtro de aspiración obstruido",
+        "Temperatura ambiente excesivamente alta"
+      ],
+      "procedures_es": [
+        "1. Medir presiones de aspiración y descarga",
+        "2. Verificar la carga de refrigerante — inspeccionar el visor de líquido",
+        "3. Limpiar las aletas del condensador",
+        "4. Limpiar o sustituir el filtro de aspiración",
+        "5. Verificar nivel y color del aceite",
+        "6. Revisar la ventilación de la sala de máquinas"
+      ],
+      "notes_es": "Esperar al menos 10 minutos de enfriamiento antes de rearrancar tras el disparo"
     },
     {
       "category": "냉각 불량",
@@ -112,7 +256,79 @@
         "6. Assess compressor suction/discharge valve efficiency"
       ],
       "notes": "착상이 심한 경우 강제 제상 후 재측정",
-      "notes_en": "If heavy icing is present, force a defrost cycle before re-measuring"
+      "notes_en": "If heavy icing is present, force a defrost cycle before re-measuring",
+      "category_zh": "制冷不良",
+      "title_zh": "冷却温度无法达到设定值",
+      "causes_zh": [
+        "制冷剂不足（泄漏）",
+        "膨胀阀开度异常",
+        "蒸发器结霜过多",
+        "压缩机性能下降",
+        "冷负荷过大"
+      ],
+      "procedures_zh": [
+        "1. 通过测量吸/排气压力确认制冷剂量",
+        "2. 目视检查蒸发器结霜状况",
+        "3. 检查除霜加热器和定时器的运行状况",
+        "4. 确认膨胀阀感温包接触是否良好",
+        "5. 使用检漏仪或肥皂水检查制冷剂泄漏",
+        "6. 评估压缩机吸/排气阀效率"
+      ],
+      "notes_zh": "若结霜严重，强制除霜后再重新测量",
+      "category_ja": "冷却不良",
+      "title_ja": "冷却温度が設定値に達しない",
+      "causes_ja": [
+        "冷媒不足（漏れ）",
+        "膨張弁開度不良",
+        "蒸発器への過剰な着霜",
+        "圧縮機性能低下",
+        "冷却負荷過大"
+      ],
+      "procedures_ja": [
+        "1. 吸入・吐出圧力測定で冷媒量確認",
+        "2. 蒸発器着霜状態の目視確認",
+        "3. デフロストヒーター・タイマー動作確認",
+        "4. 膨張弁感温筒の密着確認",
+        "5. 冷媒漏れ箇所を検知器または石けん水で点検",
+        "6. 圧縮機吸入・吐出弁効率確認"
+      ],
+      "notes_ja": "着霜が著しい場合は強制除霜後に再測定すること",
+      "category_hi": "खराब कूलिंग",
+      "title_hi": "कूलिंग तापमान सेटपॉइंट तक नहीं पहुँचता",
+      "causes_hi": [
+        "रेफ्रिजरेंट कम (लीक)",
+        "एक्सपेंशन वाल्व ओपनिंग खराब",
+        "इवेपोरेटर पर अत्यधिक बर्फ जमाव",
+        "कंप्रेसर प्रदर्शन में गिरावट",
+        "अत्यधिक कूलिंग लोड"
+      ],
+      "procedures_hi": [
+        "1. सक्शन/डिस्चार्ज प्रेशर मापकर रेफ्रिजरेंट स्तर आंकें",
+        "2. इवेपोरेटर बर्फ जमाव का दृश्य निरीक्षण",
+        "3. डीफ्रॉस्ट हीटर और टाइमर का संचालन जाँचें",
+        "4. एक्सपेंशन वाल्व सेंसिंग बल्ब का संपर्क सुनिश्चित करें",
+        "5. डिटेक्टर या साबुन के पानी से रेफ्रिजरेंट लीक जाँचें",
+        "6. कंप्रेसर सक्शन/डिस्चार्ज वाल्व दक्षता आंकें"
+      ],
+      "notes_hi": "यदि अत्यधिक बर्फ जमाव है, तो पुनः माप से पहले जबरन डीफ्रॉस्ट चक्र चलाएं",
+      "category_es": "Enfriamiento deficiente",
+      "title_es": "La temperatura de enfriamiento no alcanza el punto de ajuste",
+      "causes_es": [
+        "Falta de refrigerante (fuga)",
+        "Mal funcionamiento de la apertura de la válvula de expansión",
+        "Formación excesiva de hielo en el evaporador",
+        "Degradación del rendimiento del compresor",
+        "Carga de enfriamiento excesiva"
+      ],
+      "procedures_es": [
+        "1. Medir presiones de aspiración/descarga para evaluar el nivel de refrigerante",
+        "2. Inspección visual del hielo en el evaporador",
+        "3. Verificar el funcionamiento del calefactor y temporizador de desescarche",
+        "4. Verificar el contacto del bulbo sensor de la válvula de expansión",
+        "5. Comprobar fugas de refrigerante con detector o agua jabonosa",
+        "6. Evaluar la eficiencia de las válvulas de aspiración/descarga del compresor"
+      ],
+      "notes_es": "Si hay mucho hielo, forzar un ciclo de desescarche antes de volver a medir"
     },
     {
       "category": "냉각 불량",
@@ -148,7 +364,75 @@
         "5. Visually inspect door gasket seal"
       ],
       "notes": "강제 제상 모드로 진입해 히터 동작 전류 직접 측정 권장",
-      "notes_en": "Recommended: enter forced defrost mode and directly measure heater operating current"
+      "notes_en": "Recommended: enter forced defrost mode and directly measure heater operating current",
+      "category_zh": "制冷不良",
+      "title_zh": "蒸发器结霜过多",
+      "causes_zh": [
+        "除霜加热器断路",
+        "除霜定时器或传感器故障",
+        "蒸发器风扇电机故障",
+        "门封条损坏（外部湿气侵入）",
+        "制冷剂过充（吸气压力过低）"
+      ],
+      "procedures_zh": [
+        "1. 确认除霜定时器循环时长",
+        "2. 测量除霜加热器电阻（检查断路）",
+        "3. 测试除霜终止传感器（温度保险丝）导通性",
+        "4. 检查蒸发器风扇电机电流和转向",
+        "5. 目视检查门封条密封状况"
+      ],
+      "notes_zh": "建议：进入强制除霜模式，直接测量加热器运行电流",
+      "category_ja": "冷却不良",
+      "title_ja": "蒸発器に霜（着霜）が過剰に付着する",
+      "causes_ja": [
+        "デフロストヒーター断線",
+        "デフロストタイマー・センサー不良",
+        "蒸発器ファンモーター不良",
+        "ドアパッキン不良（外部湿気の侵入）",
+        "冷媒過充填（吸入圧力が過度に低い）"
+      ],
+      "procedures_ja": [
+        "1. デフロストタイマー動作時間確認",
+        "2. デフロストヒーター抵抗測定（断線確認）",
+        "3. デフロスト終了センサー（温度ヒューズ）の導通確認",
+        "4. 蒸発器ファンモーターの電流および回転方向確認",
+        "5. ドアパッキンの密着状態を目視点検"
+      ],
+      "notes_ja": "強制除霜モードで入ってヒーター動作電流を直接測定することを推奨",
+      "category_hi": "खराब कूलिंग",
+      "title_hi": "इवेपोरेटर पर अत्यधिक बर्फ जमाव",
+      "causes_hi": [
+        "डीफ्रॉस्ट हीटर ओपन सर्किट",
+        "डीफ्रॉस्ट टाइमर या सेंसर खराब",
+        "इवेपोरेटर फैन मोटर विफलता",
+        "दरवाजे की गैस्केट खराब (नमी प्रवेश)",
+        "रेफ्रिजरेंट अधिक चार्ज (सक्शन प्रेशर बहुत कम)"
+      ],
+      "procedures_hi": [
+        "1. डीफ्रॉस्ट टाइमर चक्र अवधि सत्यापित करें",
+        "2. डीफ्रॉस्ट हीटर प्रतिरोध मापें (ओपन सर्किट जाँचें)",
+        "3. डीफ्रॉस्ट टर्मिनेशन सेंसर (थर्मल फ्यूज) की निरंतरता परीक्षण करें",
+        "4. इवेपोरेटर फैन मोटर करंट और रोटेशन दिशा जाँचें",
+        "5. दरवाजे की गैस्केट सील का दृश्य निरीक्षण करें"
+      ],
+      "notes_hi": "अनुशंसा: जबरन डीफ्रॉस्ट मोड में प्रवेश करें और हीटर ऑपरेटिंग करंट सीधे मापें",
+      "category_es": "Enfriamiento deficiente",
+      "title_es": "Acumulación excesiva de escarcha en el evaporador",
+      "causes_es": [
+        "Calefactor de desescarche en circuito abierto",
+        "Fallo del temporizador o sensor de desescarche",
+        "Fallo del motor del ventilador del evaporador",
+        "Fallo de la junta de la puerta (entrada de humedad)",
+        "Sobrecarga de refrigerante (presión de aspiración demasiado baja)"
+      ],
+      "procedures_es": [
+        "1. Verificar el tiempo del ciclo del temporizador de desescarche",
+        "2. Medir la resistencia del calefactor de desescarche (comprobar circuito abierto)",
+        "3. Comprobar la continuidad del sensor de fin de desescarche (fusible térmico)",
+        "4. Verificar la corriente y dirección de giro del motor del ventilador del evaporador",
+        "5. Inspeccionar visualmente el sellado de la junta de la puerta"
+      ],
+      "notes_es": "Recomendado: entrar en modo de desescarche forzado y medir directamente la corriente del calefactor"
     },
     {
       "category": "소음/진동",
@@ -184,7 +468,75 @@
         "5. Measure discharge temperature — lower than normal suggests liquid slugging"
       ],
       "notes": "액압축은 압축기 파손으로 이어짐 - 즉시 운전 중단 후 원인 제거",
-      "notes_en": "Liquid slugging can destroy the compressor — stop operation immediately and eliminate the cause"
+      "notes_en": "Liquid slugging can destroy the compressor — stop operation immediately and eliminate the cause",
+      "category_zh": "噪音/振动",
+      "title_zh": "压缩机发出异常噪音",
+      "causes_zh": [
+        "液击（液回）",
+        "冷冻油不足",
+        "安装螺栓松动",
+        "内部阀门损坏",
+        "制冷剂过充"
+      ],
+      "procedures_zh": [
+        "1. 测量吸气管温度——检查是否过冷",
+        "2. 判断噪音发生在启动时还是运行中",
+        "3. 检查安装螺栓的紧固状况",
+        "4. 检查油位",
+        "5. 测量排气温度——低于正常值则怀疑液击"
+      ],
+      "notes_zh": "液击可能损坏压缩机——立即停机并消除原因",
+      "category_ja": "騒音・振動",
+      "title_ja": "圧縮機から異常な騒音がする",
+      "causes_ja": [
+        "液圧縮（リキッドバック）",
+        "冷凍機油不足",
+        "マウントボルト緩み",
+        "内部バルブ破損",
+        "冷媒過充填"
+      ],
+      "procedures_ja": [
+        "1. 吸入管温度測定 — 過度な過冷却の有無を確認",
+        "2. 起動時の騒音か運転中の騒音かを判別",
+        "3. マウントボルトの締め付け状態確認",
+        "4. 冷凍機油レベル確認",
+        "5. 吐出温度測定 — 正常より低ければ液圧縮を疑う"
+      ],
+      "notes_ja": "液圧縮は圧縮機の破損につながる — ただちに運転を停止し原因を除去すること",
+      "category_hi": "शोर / कंपन",
+      "title_hi": "कंप्रेसर से असामान्य शोर",
+      "causes_hi": [
+        "लिक्विड स्लगिंग (लिक्विड बैक)",
+        "रेफ्रिजरेशन ऑयल अपर्याप्त",
+        "माउंटिंग बोल्ट ढीले",
+        "आंतरिक वाल्व क्षति",
+        "रेफ्रिजरेंट अधिक चार्ज"
+      ],
+      "procedures_hi": [
+        "1. सक्शन लाइन तापमान मापें — अत्यधिक सबकूलिंग जाँचें",
+        "2. निर्धारित करें कि शोर स्टार्टअप पर होता है या संचालन के दौरान",
+        "3. माउंटिंग बोल्ट की कसावट जाँचें",
+        "4. ऑयल स्तर जाँचें",
+        "5. डिस्चार्ज तापमान मापें — सामान्य से कम होने पर लिक्विड स्लगिंग संदिग्ध"
+      ],
+      "notes_hi": "लिक्विड स्लगिंग कंप्रेसर को नष्ट कर सकती है — तुरंत संचालन बंद करें और कारण दूर करें",
+      "category_es": "Ruido / Vibración",
+      "title_es": "Ruido anormal del compresor",
+      "causes_es": [
+        "Golpe de líquido (liquid back)",
+        "Aceite de refrigeración insuficiente",
+        "Pernos de montaje flojos",
+        "Daño en válvula interna",
+        "Sobrecarga de refrigerante"
+      ],
+      "procedures_es": [
+        "1. Medir la temperatura de la línea de aspiración — verificar exceso de subenfriamiento",
+        "2. Determinar si el ruido ocurre al arrancar o durante la operación",
+        "3. Verificar el apriete de los pernos de montaje",
+        "4. Verificar el nivel de aceite",
+        "5. Medir la temperatura de descarga — más baja de lo normal sugiere golpe de líquido"
+      ],
+      "notes_es": "El golpe de líquido puede destruir el compresor — detener la operación inmediatamente y eliminar la causa"
     },
     {
       "category": "소음/진동",
@@ -218,7 +570,71 @@
         "5. Replace motor if bearing is defective"
       ],
       "notes": "운전 중 소음 위치 특정 후 전원 차단",
-      "notes_en": "Identify noise location during operation, then cut power before inspection"
+      "notes_en": "Identify noise location during operation, then cut power before inspection",
+      "category_zh": "噪音/振动",
+      "title_zh": "冷凝器（室外机）风扇发出噪音",
+      "causes_zh": [
+        "异物与风扇叶片接触",
+        "轴承磨损",
+        "风扇叶片裂纹或变形",
+        "电机固定螺栓松动"
+      ],
+      "procedures_zh": [
+        "1. 断电后清除风扇叶片上的异物",
+        "2. 目视检查叶片是否有裂纹或变形",
+        "3. 检查电机轴承间隙（用手摇动）",
+        "4. 拧紧电机固定螺栓",
+        "5. 若轴承有缺陷，更换电机"
+      ],
+      "notes_zh": "运行中确认噪音位置，然后断电再检查",
+      "category_ja": "騒音・振動",
+      "title_ja": "室外機（凝縮器）ファンから騒音がする",
+      "causes_ja": [
+        "ファンブレードへの異物接触",
+        "軸受摩耗",
+        "ファンブレードのひび割れ・変形",
+        "モーター固定ボルト緩み"
+      ],
+      "procedures_ja": [
+        "1. 電源遮断後にファンブレードの異物を除去",
+        "2. ブレードのひび割れおよび変形を目視確認",
+        "3. モーター軸受のがたつき確認（手で揺する）",
+        "4. モーター固定ボルトを締め付け",
+        "5. 軸受不良の場合はモーター交換"
+      ],
+      "notes_ja": "運転中に騒音位置を特定してから電源を遮断すること",
+      "category_hi": "शोर / कंपन",
+      "title_hi": "कंडेनसर (आउटडोर यूनिट) फैन से शोर",
+      "causes_hi": [
+        "फैन ब्लेड पर विदेशी वस्तु संपर्क",
+        "बेयरिंग घिसाव",
+        "फैन ब्लेड में दरार या विरूपण",
+        "मोटर माउंटिंग बोल्ट ढीले"
+      ],
+      "procedures_hi": [
+        "1. बिजली काटें और फैन ब्लेड से विदेशी वस्तुएं हटाएं",
+        "2. ब्लेड में दरार या विरूपण का दृश्य निरीक्षण करें",
+        "3. मोटर बेयरिंग प्ले जाँचें (हाथ से हिलाएं)",
+        "4. मोटर माउंटिंग बोल्ट कसें",
+        "5. बेयरिंग खराब होने पर मोटर बदलें"
+      ],
+      "notes_hi": "संचालन के दौरान शोर की स्थिति पहचानें, फिर निरीक्षण से पहले बिजली काटें",
+      "category_es": "Ruido / Vibración",
+      "title_es": "Ruido del ventilador del condensador (unidad exterior)",
+      "causes_es": [
+        "Objeto extraño en contacto con la paleta del ventilador",
+        "Desgaste del rodamiento",
+        "Grieta o deformación en la paleta del ventilador",
+        "Pernos de montaje del motor flojos"
+      ],
+      "procedures_es": [
+        "1. Cortar la alimentación y retirar objetos extraños de la paleta del ventilador",
+        "2. Inspeccionar visualmente las paletas en busca de grietas o deformaciones",
+        "3. Comprobar el juego del rodamiento del motor (mover a mano)",
+        "4. Apretar los pernos de montaje del motor",
+        "5. Sustituir el motor si el rodamiento está defectuoso"
+      ],
+      "notes_es": "Identificar la ubicación del ruido durante la operación, luego cortar la alimentación antes de inspeccionar"
     },
     {
       "category": "냉매",
@@ -250,7 +666,67 @@
         "5. After charging, confirm bubbles disappear from sight glass"
       ],
       "notes": "누설 수리 없이 냉매만 추가 충전하지 않는다",
-      "notes_en": "Never add refrigerant without first repairing the leak"
+      "notes_en": "Never add refrigerant without first repairing the leak",
+      "category_zh": "制冷剂",
+      "title_zh": "制冷剂不足（吸气压力低）",
+      "causes_zh": [
+        "泄漏（扩口接头、阀门填料、焊接处）",
+        "长期未检查造成自然减少",
+        "维修作业后充注不足"
+      ],
+      "procedures_zh": [
+        "1. 测量低压侧压力——确认该制冷剂类型的正常范围",
+        "2. 检查所有管路泄漏（电子检漏仪或肥皂水）",
+        "3. 修复泄漏（重新扩口或焊接）",
+        "4. 系统抽真空后按规定量充注",
+        "5. 充注后确认视液镜气泡消失"
+      ],
+      "notes_zh": "未修复泄漏不得添加制冷剂",
+      "category_ja": "冷媒",
+      "title_ja": "冷媒不足（吸入圧力低下）",
+      "causes_ja": [
+        "漏れ（フレア継手、バルブパッキン、溶接部）",
+        "長期未点検による自然減少",
+        "サービス作業後の充填不足"
+      ],
+      "procedures_ja": [
+        "1. 低圧側圧力測定 — 冷媒種別の正常圧力を確認",
+        "2. 全配管の漏れ点検（電子式検知器または石けん水）",
+        "3. 漏れ箇所修理（フレア再加工または溶接）",
+        "4. 真空引き後に規定量充填",
+        "5. 充填後にサイトグラスの気泡消滅を確認"
+      ],
+      "notes_ja": "漏れ修理をせずに冷媒だけを追加充填しないこと",
+      "category_hi": "रेफ्रिजरेंट",
+      "title_hi": "रेफ्रिजरेंट कम (सक्शन प्रेशर कम)",
+      "causes_hi": [
+        "लीक (फ्लेयर जोड़, वाल्व पैकिंग, वेल्ड पॉइंट)",
+        "लंबे समय तक निरीक्षण न होने से प्राकृतिक कमी",
+        "सर्विस कार्य के बाद अपर्याप्त चार्ज"
+      ],
+      "procedures_hi": [
+        "1. लो-साइड प्रेशर मापें — रेफ्रिजरेंट प्रकार के लिए सामान्य रेंज सुनिश्चित करें",
+        "2. सभी पाइपिंग में लीक जाँचें (इलेक्ट्रॉनिक डिटेक्टर या साबुन का पानी)",
+        "3. लीक ठीक करें (री-फ्लेयर या वेल्ड)",
+        "4. सिस्टम खाली करें और निर्दिष्ट मात्रा में रीचार्ज करें",
+        "5. चार्जिंग के बाद साइट ग्लास से बुलबुले गायब होने की पुष्टि करें"
+      ],
+      "notes_hi": "पहले लीक ठीक किए बिना रेफ्रिजरेंट न जोड़ें",
+      "category_es": "Refrigerante",
+      "title_es": "Falta de refrigerante (presión de aspiración baja)",
+      "causes_es": [
+        "Fuga (uniones de brida, empaquetaduras de válvula, puntos de soldadura)",
+        "Reducción natural por falta de inspección a largo plazo",
+        "Carga insuficiente tras trabajos de servicio"
+      ],
+      "procedures_es": [
+        "1. Medir la presión del lado bajo — confirmar rango normal para el tipo de refrigerante",
+        "2. Inspeccionar todas las tuberías en busca de fugas (detector electrónico o agua jabonosa)",
+        "3. Reparar la fuga (re-brida o soldadura)",
+        "4. Evacuar el sistema y recargar a la cantidad especificada",
+        "5. Tras la carga, confirmar que desaparecen las burbujas del visor de líquido"
+      ],
+      "notes_es": "Nunca añadir refrigerante sin reparar primero la fuga"
     },
     {
       "category": "전기",
@@ -284,7 +760,71 @@
         "5. Verify circuit breaker rated capacity is appropriate"
       ],
       "notes": "누전 차단기 동작 시 절연저항 측정 필수",
-      "notes_en": "Insulation resistance measurement is mandatory when an ELCB trips"
+      "notes_en": "Insulation resistance measurement is mandatory when an ELCB trips",
+      "category_zh": "电气",
+      "title_zh": "断路器反复跳闸",
+      "causes_zh": [
+        "压缩机启动电流过大（启动电容器故障）",
+        "接地故障（配线绝缘损坏、压缩机绕组接地）",
+        "断路器容量不足或老化",
+        "过载（制冷剂过充、冷凝压力过高）"
+      ],
+      "procedures_zh": [
+        "1. 确认断路器类型（过电流跳闸还是接地故障跳闸）",
+        "2. 逐一隔离各负载并测试以确定故障负载",
+        "3. 测量压缩机绕组对地绝缘电阻（≥1MΩ）",
+        "4. 测量启动电流并检查电容器容量",
+        "5. 确认断路器额定容量是否合适"
+      ],
+      "notes_zh": "漏电断路器（ELCB）动作时必须测量绝缘电阻",
+      "category_ja": "電気",
+      "title_ja": "ブレーカーが頻繁にトリップする",
+      "causes_ja": [
+        "圧縮機起動電流過大（起動コンデンサ不良）",
+        "漏電（配線被覆損傷、圧縮機巻線地絡）",
+        "ブレーカー容量不足または老朽化",
+        "過負荷（冷媒過充填、凝縮圧力過高）"
+      ],
+      "procedures_ja": [
+        "1. ブレーカー種類確認（過電流トリップ vs 漏電トリップ）",
+        "2. 各負荷を分離して単独起動テストにより原因負荷を特定",
+        "3. 圧縮機巻線の対地絶縁抵抗測定（1MΩ以上）",
+        "4. 起動電流測定およびコンデンサ容量確認",
+        "5. ブレーカー定格容量の適合性確認"
+      ],
+      "notes_ja": "漏電ブレーカー動作時は絶縁抵抗測定が必須",
+      "category_hi": "विद्युत",
+      "title_hi": "सर्किट ब्रेकर बार-बार ट्रिप होता है",
+      "causes_hi": [
+        "कंप्रेसर अत्यधिक इनरश करंट (खराब स्टार्ट कैपेसिटर)",
+        "ग्राउंड फॉल्ट (क्षतिग्रस्त वायरिंग इन्सुलेशन, कंप्रेसर वाइंडिंग ग्राउंड)",
+        "अपर्याप्त या पुराना सर्किट ब्रेकर",
+        "ओवरलोड (रेफ्रिजरेंट अधिक चार्ज, उच्च कंडेंसिंग प्रेशर)"
+      ],
+      "procedures_hi": [
+        "1. ब्रेकर प्रकार पहचानें (ओवरकरंट ट्रिप बनाम ग्राउंड फॉल्ट ट्रिप)",
+        "2. लोड अलग-अलग अलग करें और परीक्षण करके खराब लोड पहचानें",
+        "3. कंप्रेसर वाइंडिंग इन्सुलेशन प्रतिरोध ग्राउंड तक मापें (≥1MΩ)",
+        "4. इनरश करंट मापें और कैपेसिटर क्षमता जाँचें",
+        "5. सर्किट ब्रेकर रेटेड क्षमता उचित है या नहीं सत्यापित करें"
+      ],
+      "notes_hi": "ELCB ट्रिप होने पर इन्सुलेशन प्रतिरोध माप अनिवार्य है",
+      "category_es": "Eléctrico",
+      "title_es": "El disyuntor sigue disparando",
+      "causes_es": [
+        "Corriente de arranque del compresor excesiva (condensador de arranque defectuoso)",
+        "Fallo a tierra (aislamiento del cableado dañado, fallo a tierra en el bobinado del compresor)",
+        "Disyuntor de tamaño insuficiente o envejecido",
+        "Sobrecarga (sobrecarga de refrigerante, presión de condensación alta)"
+      ],
+      "procedures_es": [
+        "1. Identificar el tipo de disyuntor (disparo por sobrecorriente vs. disparo por fallo a tierra)",
+        "2. Aislar las cargas individualmente y probar para localizar la carga defectuosa",
+        "3. Medir la resistencia de aislamiento del bobinado del compresor a tierra (mayor o igual a 1MΩ)",
+        "4. Medir la corriente de arranque y verificar la capacidad del condensador",
+        "5. Verificar que la capacidad nominal del disyuntor es adecuada"
+      ],
+      "notes_es": "La medición de la resistencia de aislamiento es obligatoria cuando dispara un ELCB"
     },
     {
       "category": "전기",
@@ -318,7 +858,71 @@
         "5. Replace coil if defective (many models support coil-only replacement)"
       ],
       "notes": "EEV 완전 닫힘 고착 시 냉각 불량, 완전 열림 고착 시 액압축 발생",
-      "notes_en": "EEV stuck closed causes poor cooling; stuck open causes liquid slugging"
+      "notes_en": "EEV stuck closed causes poor cooling; stuck open causes liquid slugging",
+      "category_zh": "电气",
+      "title_zh": "电子膨胀阀（EEV）无响应",
+      "causes_zh": [
+        "EEV驱动器故障",
+        "EEV线圈断路",
+        "控制板信号故障",
+        "温度传感器故障（过热度检测错误）"
+      ],
+      "procedures_zh": [
+        "1. 测量EEV线圈电阻（与型号额定值对比）",
+        "2. 测量驱动器输出信号电压",
+        "3. 检查吸气温度传感器电阻",
+        "4. 在强制手动控制模式下测试EEV动作",
+        "5. 若线圈有缺陷则更换（许多型号支持只更换线圈）"
+      ],
+      "notes_zh": "EEV卡死关闭导致制冷不良；卡死开启导致液击",
+      "category_ja": "電気",
+      "title_ja": "電子式膨張弁（EEV）が制御されない",
+      "causes_ja": [
+        "EEVドライバー不良",
+        "EEVコイル断線",
+        "制御基板信号不良",
+        "温度センサー不良（過熱度検知エラー）"
+      ],
+      "procedures_ja": [
+        "1. EEVコイル抵抗測定（機種別定格値と比較）",
+        "2. ドライバー出力信号電圧測定",
+        "3. 吸入管温度センサーの抵抗値確認",
+        "4. 強制手動制御モードでEEV動作テスト",
+        "5. コイル不良時は交換（コイル単品交換が可能な機種が多い）"
+      ],
+      "notes_ja": "EEV完全閉固着時は冷却不良、完全開固着時は液圧縮が発生する",
+      "category_hi": "विद्युत",
+      "title_hi": "इलेक्ट्रॉनिक एक्सपेंशन वाल्व (EEV) प्रतिक्रिया नहीं दे रहा",
+      "causes_hi": [
+        "EEV ड्राइवर विफलता",
+        "EEV कॉइल ओपन सर्किट",
+        "कंट्रोल बोर्ड सिग्नल फॉल्ट",
+        "तापमान सेंसर विफलता (सुपरहीट सेंसिंग त्रुटि)"
+      ],
+      "procedures_hi": [
+        "1. EEV कॉइल प्रतिरोध मापें (मॉडल-विशिष्ट रेटेड मान से तुलना करें)",
+        "2. ड्राइवर आउटपुट सिग्नल वोल्टेज मापें",
+        "3. सक्शन तापमान सेंसर प्रतिरोध जाँचें",
+        "4. जबरन मैन्युअल कंट्रोल मोड में EEV संचालन परीक्षण करें",
+        "5. कॉइल खराब होने पर बदलें (कई मॉडल केवल कॉइल प्रतिस्थापन का समर्थन करते हैं)"
+      ],
+      "notes_hi": "EEV पूरी तरह बंद जाम होने पर खराब कूलिंग; पूरी तरह खुला जाम होने पर लिक्विड स्लगिंग",
+      "category_es": "Eléctrico",
+      "title_es": "La válvula de expansión electrónica (EEV) no responde",
+      "causes_es": [
+        "Fallo del driver de la EEV",
+        "Bobina de la EEV en circuito abierto",
+        "Fallo de señal de la placa de control",
+        "Fallo del sensor de temperatura (error de detección de sobrecalentamiento)"
+      ],
+      "procedures_es": [
+        "1. Medir la resistencia de la bobina de la EEV (comparar con el valor nominal del modelo)",
+        "2. Medir la tensión de la señal de salida del driver",
+        "3. Verificar la resistencia del sensor de temperatura de aspiración",
+        "4. Probar el funcionamiento de la EEV en modo de control manual forzado",
+        "5. Sustituir la bobina si está defectuosa (muchos modelos permiten sustituir solo la bobina)"
+      ],
+      "notes_es": "EEV bloqueada en cerrado provoca enfriamiento deficiente; bloqueada en abierto provoca golpe de líquido"
     },
     {
       "category": "제어",
@@ -352,7 +956,71 @@
         "5. Reset error code and monitor for recurrence"
       ],
       "notes": "오류 코드 사진 촬영 후 초기화 - 재발 패턴 파악에 활용",
-      "notes_en": "Photograph the error code before resetting — useful for identifying recurrence patterns"
+      "notes_en": "Photograph the error code before resetting — useful for identifying recurrence patterns",
+      "category_zh": "控制",
+      "title_zh": "控制器（控制板）显示故障代码",
+      "causes_zh": [
+        "传感器断路或短路",
+        "控制板电源不稳定",
+        "通信错误（多联机系统）",
+        "控制板自身故障"
+      ],
+      "procedures_zh": [
+        "1. 在机型专用手册中查询故障代码",
+        "2. 测量相关传感器电阻（检查断路/短路）",
+        "3. 检查控制板输入电源电压",
+        "4. 检查接插件接触情况并重新插接",
+        "5. 复位故障代码并监测是否再次出现"
+      ],
+      "notes_zh": "复位前拍下故障代码照片——有助于识别复发规律",
+      "category_ja": "制御",
+      "title_ja": "コントローラー（基板）にエラーコードが表示される",
+      "causes_ja": [
+        "センサー断線または短絡",
+        "基板電源不安定",
+        "通信エラー（マルチ型）",
+        "基板自体の不良"
+      ],
+      "procedures_ja": [
+        "1. エラーコードを機種別マニュアルで原因確認",
+        "2. 該当センサーの抵抗値測定（断線・短絡確認）",
+        "3. 基板入力電源電圧確認",
+        "4. コネクター接触不良確認および再挿入",
+        "5. エラーコードリセット後に再発の有無を監視"
+      ],
+      "notes_ja": "エラーコードを撮影してからリセット — 再発パターンの把握に活用",
+      "category_hi": "नियंत्रण",
+      "title_hi": "कंट्रोलर (बोर्ड) एरर कोड दिखाता है",
+      "causes_hi": [
+        "सेंसर ओपन या शॉर्ट सर्किट",
+        "बोर्ड बिजली आपूर्ति अस्थिर",
+        "संचार त्रुटि (मल्टी-यूनिट सिस्टम)",
+        "बोर्ड विफलता"
+      ],
+      "procedures_hi": [
+        "1. मॉडल-विशिष्ट मैनुअल में एरर कोड देखें",
+        "2. संबंधित सेंसर प्रतिरोध मापें (ओपन/शॉर्ट जाँचें)",
+        "3. बोर्ड इनपुट पावर वोल्टेज जाँचें",
+        "4. कनेक्टर संपर्क निरीक्षण करें और पुनः कनेक्ट करें",
+        "5. एरर कोड रीसेट करें और पुनरावृत्ति की निगरानी करें"
+      ],
+      "notes_hi": "रीसेट से पहले एरर कोड की फोटो लें — पुनरावृत्ति पैटर्न पहचानने में उपयोगी",
+      "category_es": "Control",
+      "title_es": "El controlador (placa) muestra código de error",
+      "causes_es": [
+        "Sensor en circuito abierto o en cortocircuito",
+        "Alimentación inestable de la placa",
+        "Error de comunicación (sistema multi-unidad)",
+        "Fallo de la placa"
+      ],
+      "procedures_es": [
+        "1. Buscar el código de error en el manual del modelo",
+        "2. Medir la resistencia del sensor asociado (verificar abierto/cortocircuito)",
+        "3. Verificar la tensión de alimentación de entrada de la placa",
+        "4. Inspeccionar los contactos del conector y volver a insertar",
+        "5. Resetear el código de error y monitorear la recurrencia"
+      ],
+      "notes_es": "Fotografiar el código de error antes de resetear — útil para identificar patrones de recurrencia"
     }
   ]
 }

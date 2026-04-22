@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { ChevronLeft, ChevronDown, Search, X, Check } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { loadSettings } from '../utils/settings'
 import {
   REFRIGERANTS as _REFRIGERANTS,
@@ -20,6 +21,9 @@ const REFRIGERANTS = [..._REFRIGERANTS].sort((a, b) => rfgSortKey(a.id) - rfgSor
 
 export default function RefrigerantSliderPage() {
   const navigate = useNavigate()
+  const { t, i18n } = useTranslation()
+  const isKo = i18n.language.startsWith('ko')
+  const rfgNote = (r) => (!isKo && r.note_en) ? r.note_en : r.note
   const [rfgId, setRfgId]             = useState('R-22')
   const [mode, setMode]               = useState('t2p')
   const [tempC, setTempC]             = useState(-10)
@@ -66,9 +70,9 @@ export default function RefrigerantSliderPage() {
       {/* 헤더 */}
       <button onClick={() => navigate(-1)} className="flex items-center justify-center gap-2 w-full py-3 mb-4 bg-gray-100 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 active:bg-gray-200">
         <ChevronLeft size={18} strokeWidth={2} />
-        뒤로
+        {t('refrigerant.back')}
       </button>
-      <h2 className="text-base font-semibold text-gray-900 mb-5">냉매 PT 변환</h2>
+      <h2 className="text-base font-semibold text-gray-900 mb-5">{t('refrigerant.ptTitle')}</h2>
 
       {/* 냉매 선택 버튼 */}
       {!showPicker ? (
@@ -79,7 +83,7 @@ export default function RefrigerantSliderPage() {
           <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: rfg.color }} />
           <span className="font-semibold text-gray-900 flex-1 text-left">{rfg.name}</span>
           <span className="text-xs text-gray-400 truncate max-w-[140px]">
-            {rfg.note.replace(' (NIST)', '').replace(' (*근사)', '')}
+            {rfgNote(rfg).replace(' (NIST)', '').replace(' (*근사)', '').replace(' (*approx)', '')}
           </span>
           <ChevronDown size={14} strokeWidth={1.5} className="text-gray-400 shrink-0" />
         </button>
@@ -92,7 +96,7 @@ export default function RefrigerantSliderPage() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="냉매 검색 (예: R-22, 프로판...)"
+              placeholder={t('refrigerant.searchPlaceholder')}
               className="flex-1 text-sm bg-transparent outline-none text-gray-800"
             />
             <button
@@ -112,7 +116,7 @@ export default function RefrigerantSliderPage() {
                 <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: r.color }} />
                 <span className="font-semibold text-sm w-16 text-left text-gray-800">{r.id}</span>
                 <span className="text-xs text-gray-400 truncate flex-1 text-left">
-                  {r.note.replace(' (NIST)', '').replace(' (*근사)', '')}
+                  {rfgNote(r).replace(' (NIST)', '').replace(' (*근사)', '').replace(' (*approx)', '')}
                 </span>
                 {rfgId === r.id && <Check size={13} strokeWidth={2} className="text-gray-500 shrink-0" />}
               </button>
@@ -124,7 +128,7 @@ export default function RefrigerantSliderPage() {
       {/* PT 없는 냉매 안내 */}
       {!hasPT && (
         <div className="mb-4 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-700">
-          이 냉매는 PT 데이터가 수록되지 않았습니다. 특성 정보만 제공됩니다.
+          {t('refrigerant.noPtNote')}
         </div>
       )}
 
@@ -145,8 +149,8 @@ export default function RefrigerantSliderPage() {
         </div>
         <div className="flex bg-gray-100 rounded-lg p-0.5 text-xs">
           {[
-            { val: true,  label: '게이지(g)' },
-            { val: false, label: '절대(a)' },
+            { val: true,  label: t('refrigerant.gauge') },
+            { val: false, label: t('refrigerant.absolute') },
           ].map(({ val, label }) => (
             <button
               key={String(val)}
@@ -169,7 +173,7 @@ export default function RefrigerantSliderPage() {
             mode === 't2p' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
           }`}
         >
-          온도 → 압력
+          {t('refrigerant.tempToPressure')}
         </button>
         <button
           onClick={() => setMode('p2t')}
@@ -177,18 +181,18 @@ export default function RefrigerantSliderPage() {
             mode === 'p2t' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
           }`}
         >
-          압력 → 온도
+          {t('refrigerant.pressureToTemp')}
         </button>
       </div>
 
       {/* PT 없는 냉매는 정보만 */}
-      {!hasPT && <RefInfo rfg={rfg} />}
+      {!hasPT && <RefInfo rfg={rfg} t={t} rfgNote={rfgNote} />}
 
       {/* 온도 → 압력 */}
       {hasPT && mode === 't2p' && (
         <div className="space-y-3">
           <div className="bg-white border border-gray-300 rounded-2xl p-4 shadow-sm">
-            <p className="text-xs font-medium text-gray-400 mb-3">온도 (°C)</p>
+            <p className="text-xs font-medium text-gray-400 mb-3">{t('refrigerant.tempLabel')}</p>
             <div className="flex items-center gap-3 mb-3">
               <button
                 onClick={() => setTempC((v) => Math.max(rfg.tMin, v - 1))}
@@ -223,14 +227,14 @@ export default function RefrigerantSliderPage() {
           </div>
 
           <div className="bg-white border border-gray-300 rounded-2xl p-5 text-center shadow-sm">
-            <p className="text-xs font-medium text-gray-400 mb-2">포화압력</p>
+            <p className="text-xs font-medium text-gray-400 mb-2">{t('refrigerant.satPressure')}</p>
             <div className="text-5xl font-bold mb-1" style={{ color: rfg.color }}>
               {calculatedPressure.toFixed(unit.decimals)}
             </div>
             <p className="text-sm text-gray-500">{unitLabel}</p>
           </div>
 
-          <RefInfo rfg={rfg} />
+          <RefInfo rfg={rfg} t={t} rfgNote={rfgNote} />
         </div>
       )}
 
@@ -238,30 +242,33 @@ export default function RefrigerantSliderPage() {
       {hasPT && mode === 'p2t' && (
         <div className="space-y-3">
           <div className="bg-white border border-gray-300 rounded-2xl p-4 shadow-sm">
-            <p className="text-xs font-medium text-gray-400 mb-2">압력 ({unitLabel})</p>
+            <p className="text-xs font-medium text-gray-400 mb-2">{t('refrigerant.pressureCol', { unit: unitLabel })}</p>
             <input
-              type="number"
-              step="0.01"
+              type="text"
+              inputMode="decimal"
               value={pressureInput}
-              onChange={(e) => setPressureInput(e.target.value)}
-              placeholder="압력 입력"
+              onChange={(e) => setPressureInput(e.target.value.replace(',', '.').replace(/[^\d.]/g, '').replace(/(\..*?)\..*/g, '$1'))}
+              placeholder={t('refrigerant.pressureInput')}
               className="w-full text-center text-4xl font-bold text-gray-900 bg-transparent border-none outline-none"
             />
             <p className="text-xs text-gray-400 text-center mt-1">
-              범위: {toDisplay(rfg.pt[0][1], unitKey, isGauge).toFixed(unit.decimals)} –{' '}
-              {toDisplay(rfg.pt[rfg.pt.length - 1][1], unitKey, isGauge).toFixed(unit.decimals)} {unitLabel}
+              {t('refrigerant.rangeLabel', {
+                min: toDisplay(rfg.pt[0][1], unitKey, isGauge).toFixed(unit.decimals),
+                max: toDisplay(rfg.pt[rfg.pt.length - 1][1], unitKey, isGauge).toFixed(unit.decimals),
+                unit: unitLabel,
+              })}
             </p>
           </div>
 
           <div className="bg-white border border-gray-300 rounded-2xl p-5 text-center shadow-sm">
-            <p className="text-xs font-medium text-gray-400 mb-2">포화온도</p>
+            <p className="text-xs font-medium text-gray-400 mb-2">{t('refrigerant.satTemp')}</p>
             <div className="text-5xl font-bold mb-1" style={{ color: rfg.color }}>
               {calculatedTemp !== null ? calculatedTemp.toFixed(1) : '—'}
             </div>
             <p className="text-sm text-gray-500">°C</p>
           </div>
 
-          <RefInfo rfg={rfg} />
+          <RefInfo rfg={rfg} t={t} rfgNote={rfgNote} />
         </div>
       )}
 
@@ -272,24 +279,24 @@ export default function RefrigerantSliderPage() {
           className="w-full py-2.5 bg-gray-100 text-gray-600 text-sm font-medium rounded-xl active:bg-gray-200 flex items-center justify-center gap-2"
         >
           <ChevronDown size={14} strokeWidth={1.5} className={`transition-transform ${showTable ? 'rotate-180' : ''}`} />
-          {rfg.name} 참조 표
+          {t('refrigerant.refTable', { name: rfg.name })}
         </button>
 
         {showTable && (
           <div className="mt-2 rounded-xl border border-gray-300 overflow-hidden shadow-sm">
             <div className="grid grid-cols-2 px-4 py-2 text-xs font-semibold text-white"
               style={{ backgroundColor: rfg.color }}>
-              <span>온도 (°C)</span>
-              <span className="text-right">압력 ({unitLabel})</span>
+              <span>{t('refrigerant.tempCol')}</span>
+              <span className="text-right">{t('refrigerant.pressureCol', { unit: unitLabel })}</span>
             </div>
-            <div className="overflow-y-auto max-h-52">
+            <div>
               {REF_TEMPS
-                .filter((t) => t >= rfg.tMin && t <= rfg.tMax)
-                .map((t) => {
-                  const pDisp = toDisplay(tempToPressureAbs(rfg, t), unitKey, isGauge)
+                .filter((t_val) => t_val >= rfg.tMin && t_val <= rfg.tMax)
+                .map((t_val) => {
+                  const pDisp = toDisplay(tempToPressureAbs(rfg, t_val), unitKey, isGauge)
                   return (
-                    <div key={t} className="grid grid-cols-2 px-4 py-2 text-sm border-t border-gray-50 odd:bg-gray-50">
-                      <span className="text-gray-600">{t}°C</span>
+                    <div key={t_val} className="grid grid-cols-2 px-4 py-2 text-sm border-t border-gray-100 bg-white odd:bg-gray-50">
+                      <span className="text-gray-600">{t_val}°C</span>
                       <span className="text-right font-semibold text-gray-800">
                         {pDisp.toFixed(unit.decimals)}
                       </span>
@@ -305,10 +312,10 @@ export default function RefrigerantSliderPage() {
 }
 
 function gwpColor(gwp) {
-  if (gwp > 3000)  return { bg: '#FEE2E2', text: '#DC2626' } // 빨강
-  if (gwp > 1000)  return { bg: '#FEF3C7', text: '#D97706' } // 주황
-  if (gwp > 100)   return { bg: '#DBEAFE', text: '#2563EB' } // 파랑
-  return { bg: '#DCFCE7', text: '#16A34A' }                   // 초록
+  if (gwp > 3000)  return { bg: '#FEE2E2', text: '#DC2626' }
+  if (gwp > 1000)  return { bg: '#FEF3C7', text: '#D97706' }
+  if (gwp > 100)   return { bg: '#DBEAFE', text: '#2563EB' }
+  return { bg: '#DCFCE7', text: '#16A34A' }
 }
 
 const TYPE_COLOR = {
@@ -319,8 +326,15 @@ const TYPE_COLOR = {
   '자연냉매': { bg: '#F0FDF4', text: '#15803D' },
   '혼합냉매': { bg: '#F3F4F6', text: '#374151' },
 }
+const TYPE_I18N_KEY = {
+  '자연냉매': 'refrigerant.typeNatural',
+  '혼합냉매': 'refrigerant.typeBlend',
+}
+function typeLabel(type, t) {
+  return TYPE_I18N_KEY[type] ? t(TYPE_I18N_KEY[type]) : type
+}
 
-function RefInfo({ rfg }) {
+function RefInfo({ rfg, t, rfgNote }) {
   const { info } = rfg
   if (!info) return null
 
@@ -337,72 +351,65 @@ function RefInfo({ rfg }) {
     <div className="bg-white border border-gray-300 rounded-xl overflow-hidden shadow-sm">
       {/* 헤더 */}
       <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-100">
-        <p className="text-xs font-semibold text-gray-500">냉매 정보</p>
+        <p className="text-xs font-semibold text-gray-500">{t('refrigerant.infoTitle')}</p>
         {rfg.type && (
           <span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ backgroundColor: typeC.bg, color: typeC.text }}>
-            {rfg.type}
+            {typeLabel(rfg.type, t)}
           </span>
         )}
       </div>
 
       <div className="divide-y divide-gray-50">
-        {/* 안전그룹 */}
         <div className="flex items-center justify-between px-4 py-2.5">
-          <span className="text-xs text-gray-400">안전그룹</span>
+          <span className="text-xs text-gray-400">{t('refrigerant.safeGroup')}</span>
           <span className="px-2 py-0.5 rounded-full text-xs font-semibold text-white" style={{ backgroundColor: groupColor }}>{info.group}</span>
         </div>
 
-        {/* GWP */}
         <div className="flex items-center justify-between px-4 py-2.5">
-          <span className="text-xs text-gray-400">GWP <span className="text-gray-300">(온난화지수)</span></span>
+          <span className="text-xs text-gray-400">{t('refrigerant.gwp')} <span className="text-gray-300">{t('refrigerant.gwpDesc')}</span></span>
           <span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ backgroundColor: gwpC.bg, color: gwpC.text }}>
             {gwp === 0 ? '~0' : gwp.toLocaleString()}
           </span>
         </div>
 
-        {/* ODP */}
         <div className="flex items-center justify-between px-4 py-2.5">
-          <span className="text-xs text-gray-400">ODP <span className="text-gray-300">(오존영향)</span></span>
+          <span className="text-xs text-gray-400">{t('refrigerant.odp')} <span className="text-gray-300">{t('refrigerant.odpDesc')}</span></span>
           {info.odp > 0
             ? <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-600">{info.odp}</span>
             : <span className="text-xs font-semibold text-gray-800">0</span>
           }
         </div>
 
-        {/* 끓는점 */}
         <div className="flex items-center justify-between px-4 py-2.5">
-          <span className="text-xs text-gray-400">끓는점</span>
+          <span className="text-xs text-gray-400">{t('refrigerant.boilingPoint')}</span>
           <span className="text-xs font-semibold text-gray-800">
-            {info.tBoil != null ? `${info.tBoil}°C` : '대기압 액상 없음'}
+            {info.tBoil != null ? `${info.tBoil}°C` : t('refrigerant.boilingNA')}
           </span>
         </div>
 
-        {/* 임계온도 */}
         <div className="flex items-center justify-between px-4 py-2.5">
-          <span className="text-xs text-gray-400">임계온도</span>
+          <span className="text-xs text-gray-400">{t('refrigerant.critTemp')}</span>
           <span className="text-xs font-semibold text-gray-800">{info.tCrit}°C</span>
         </div>
 
-        {/* 임계압력 */}
         {info.tCritP && (
           <div className="flex items-center justify-between px-4 py-2.5">
-            <span className="text-xs text-gray-400">임계압력</span>
+            <span className="text-xs text-gray-400">{t('refrigerant.critPressure')}</span>
             <span className="text-xs font-semibold text-gray-800">{info.tCritP} MPa</span>
           </div>
         )}
 
-        {/* 구성성분 */}
         {rfg.note && (
           <div className="flex items-start justify-between px-4 py-2.5 gap-4">
-            <span className="text-xs text-gray-400 shrink-0">구성</span>
-            <span className="text-xs text-gray-600 text-right">{rfg.note.replace(' (NIST)', '').replace(' (*근사)', '')}</span>
+            <span className="text-xs text-gray-400 shrink-0">{t('refrigerant.composition')}</span>
+            <span className="text-xs text-gray-600 text-right">{rfgNote(rfg).replace(' (NIST)', '').replace(' (*근사)', '').replace(' (*approx)', '')}</span>
           </div>
         )}
       </div>
 
       {/* GWP 범례 */}
       <div className="px-4 py-3 border-t border-gray-100 bg-gray-50">
-        <p className="text-xs text-gray-400 mb-1.5 font-medium">GWP 색상 기준</p>
+        <p className="text-xs text-gray-400 mb-1.5 font-medium">{t('refrigerant.gwpLegend')}</p>
         <div className="flex gap-2 flex-wrap">
           {[
             { label: '3,000↑', bg: '#FEE2E2', text: '#DC2626' },
@@ -419,7 +426,7 @@ function RefInfo({ rfg }) {
 
       {/* 출처 */}
       <div className="px-4 py-2 border-t border-gray-100">
-        <p className="text-xs text-gray-300">출처: ASHRAE · IPCC AR4/AR6 · 몬트리올의정서 · UNEP</p>
+        <p className="text-xs text-gray-300">{t('refrigerant.source')}</p>
       </div>
     </div>
   )

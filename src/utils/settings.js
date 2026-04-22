@@ -3,9 +3,14 @@ const KEY = 'rfg_settings'
 const DEFAULTS = {
   unitKey: 'bar',
   isGauge: true,
-  claudeApiKey: '',
   theme: 'dark',
   fontSize: 'medium',
+  bizName: '',
+  bizOwner: '',
+  bizPhone: '',
+  bizAddress: '',
+  bizRegNo: '',
+  userTier: 'free', // free | paid | group
 }
 
 export function loadSettings() {

@@ -199,50 +199,123 @@ db.version(14).stores({
   checklist_results: '++id, templateTitle, createdAt, level',
 })
 
+db.version(15).stores({
+  symptoms: '++id, category, title',
+  checklist_templates: '++id, category, title',
+  repair_logs: '++id, date, symptomId, equipmentName',
+  flow_categories: '&id',
+  flow_nodes: '&nodeId, categoryId, type',
+  customers: '++id, name, phone',
+  service_jobs: '++id, customerId, status, receiptDate, visitDate',
+  job_photos: '++id, jobId',
+  backups: '++id, createdAt',
+  knowhow: '++id, category, location, createdAt, updatedAt',
+  business_cards: '++id, customerId, createdAt',
+  expenses: '++id, jobId, date, createdAt',
+  checklist_results: '++id, templateTitle, createdAt, level',
+  equipment_maintenance: '++id, customerId, nextDueDate',
+})
+
+db.version(16).stores({
+  symptoms: '++id, category, title',
+  checklist_templates: '++id, category, title',
+  repair_logs: '++id, date, symptomId, equipmentName',
+  flow_categories: '&id',
+  flow_nodes: '&nodeId, categoryId, type',
+  customers: '++id, name, phone',
+  service_jobs: '++id, customerId, status, receiptDate, visitDate',
+  job_photos: '++id, jobId',
+  backups: '++id, createdAt',
+  knowhow: '++id, category, location, createdAt, updatedAt',
+  business_cards: '++id, customerId, createdAt',
+  expenses: '++id, jobId, date, createdAt',
+  checklist_results: '++id, templateTitle, createdAt, level',
+  equipment_maintenance: '++id, customerId, nextDueDate',
+  user_alarms: '++id, date, fired',
+})
+
+db.version(17).stores({
+  symptoms: '++id, category, title',
+  checklist_templates: '++id, category, title',
+  repair_logs: '++id, date, symptomId, equipmentName',
+  flow_categories: '&id',
+  flow_nodes: '&nodeId, categoryId, type',
+  customers: '++id, name, phone',
+  service_jobs: '++id, customerId, status, receiptDate, visitDate',
+  job_photos: '++id, jobId',
+  backups: '++id, createdAt',
+  knowhow: '++id, category, location, createdAt, updatedAt',
+  business_cards: '++id, customerId, createdAt',
+  expenses: '++id, jobId, date, createdAt',
+  checklist_results: '++id, templateTitle, createdAt, level',
+  equipment_maintenance: '++id, customerId, nextDueDate',
+  user_alarms: '++id, date, fired',
+  voice_recordings: '++id, createdAt, status',
+})
+
+db.version(18).stores({
+  symptoms: '++id, category, title',
+  checklist_templates: '++id, category, title',
+  repair_logs: '++id, date, symptomId, equipmentName',
+  flow_categories: '&id',
+  flow_nodes: '&nodeId, categoryId, type',
+  customers: '++id, name, phone',
+  service_jobs: '++id, customerId, status, receiptDate, visitDate',
+  job_photos: '++id, jobId',
+  backups: '++id, createdAt',
+  knowhow: '++id, category, location, createdAt, updatedAt',
+  business_cards: '++id, customerId, createdAt',
+  expenses: '++id, jobId, date, createdAt',
+  checklist_results: '++id, templateTitle, createdAt, level',
+  equipment_maintenance: '++id, customerId, nextDueDate',
+  user_alarms: '++id, date, fired',
+  voice_recordings: '++id, createdAt, status',
+  suppliers: '++id, name, createdAt',
+  supplier_transactions: '++id, supplierId, date, createdAt',
+})
+
+/* global __DATA_HASH__ */
+const DATA_HASH = typeof __DATA_HASH__ !== 'undefined' ? __DATA_HASH__ : ''
+
 export async function seedIfEmpty() {
-  const [symptomsCount, checklistCount, flowCatCount] = await Promise.all([
-    db.symptoms.count(),
-    db.checklist_templates.count(),
-    db.flow_categories.count(),
-  ])
+  const storedHash = localStorage.getItem('rfg_data_hash') || ''
 
-  if (symptomsCount === 0) {
-    const { symptoms } = await import('./data/symptoms.json')
-    await db.symptoms.bulkAdd(symptoms)
-  }
+  if (storedHash === DATA_HASH && DATA_HASH) return
 
-  if (checklistCount === 0) {
-    const { templates } = await import('./data/checklist.json')
-    await db.checklist_templates.bulkAdd(templates)
-  }
+  // 시스템 데이터 갱신 (bulkPut = 있으면 덮어쓰기, 없으면 추가)
+  const { symptoms } = await import('./data/symptoms.json')
+  await db.symptoms.bulkPut(symptoms)
 
-  if (flowCatCount === 0) {
-    const { categories, nodes } = await import('./data/flowchart.json')
-    await db.flow_categories.bulkAdd(categories)
+  const { templates } = await import('./data/checklist.json')
+  await db.checklist_templates.bulkPut(templates)
 
-    // BFS from each category startNode to assign categoryId
-    const nodeRecords = []
-    const processed = new Set()
+  const { categories, nodes } = await import('./data/flowchart.json')
+  await db.flow_categories.bulkPut(categories)
 
-    for (const cat of categories) {
-      const queue = [cat.startNode]
-      while (queue.length > 0) {
-        const nodeId = queue.shift()
-        if (!nodeId || processed.has(nodeId) || !nodes[nodeId]) continue
-        processed.add(nodeId)
-        const node = nodes[nodeId]
-        nodeRecords.push({
-          ...node,
-          nodeId,
-          categoryId: cat.id,
-          type: node.type ?? 'question',
-        })
-        if (node.yes) queue.push(node.yes)
-        if (node.no) queue.push(node.no)
-        if (node.choices) node.choices.forEach((c) => { if (c.next) queue.push(c.next) })
-      }
+  // BFS from each category startNode to assign categoryId
+  const nodeRecords = []
+  const processed = new Set()
+
+  for (const cat of categories) {
+    const queue = [cat.startNode]
+    while (queue.length > 0) {
+      const nodeId = queue.shift()
+      if (!nodeId || processed.has(nodeId) || !nodes[nodeId]) continue
+      processed.add(nodeId)
+      const node = nodes[nodeId]
+      nodeRecords.push({
+        ...node,
+        nodeId,
+        categoryId: cat.id,
+        type: node.type ?? 'question',
+      })
+      if (node.yes) queue.push(node.yes)
+      if (node.no) queue.push(node.no)
+      if (node.choices) node.choices.forEach((c) => { if (c.next) queue.push(c.next) })
     }
-
-    await db.flow_nodes.bulkAdd(nodeRecords)
   }
+
+  await db.flow_nodes.bulkPut(nodeRecords)
+
+  localStorage.setItem('rfg_data_hash', DATA_HASH)
 }

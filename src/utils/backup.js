@@ -1,6 +1,50 @@
 import { db } from '../db'
+import i18n from '../i18n'
+import { showToast } from './toast'
+
+const t = (key, opts) => i18n.t(key, opts)
 
 const MAX_BACKUPS = 3
+
+// 시스템 테이블 — JSON에서 자동 시드되므로 백업 불필요
+const SYSTEM_TABLES = new Set([
+  'symptoms', 'checklist_templates', 'flow_categories', 'flow_nodes', 'backups',
+])
+
+// QR 용량 제약으로 제외할 테이블 (사진은 용량 큼)
+const QR_EXCLUDED_TABLES = new Set(['job_photos'])
+
+// 구버전 백업 키 호환 (이전 포맷 복원용)
+const LEGACY_KEY_ALIAS = {
+  service_jobs: 'jobs',
+  job_photos: 'photos',
+}
+
+function getUserTables() {
+  return db.tables.filter((tb) => !SYSTEM_TABLES.has(tb.name))
+}
+
+function getQRTables() {
+  return db.tables.filter((tb) => !SYSTEM_TABLES.has(tb.name) && !QR_EXCLUDED_TABLES.has(tb.name))
+}
+
+async function collectData(tables) {
+  const data = {}
+  await Promise.all(tables.map(async (tb) => {
+    data[tb.name] = await tb.toArray()
+  }))
+  return data
+}
+
+async function restoreTables(tables, data) {
+  await db.transaction('rw', tables, async () => {
+    for (const tb of tables) {
+      await tb.clear()
+      const rows = data[tb.name] ?? data[LEGACY_KEY_ALIAS[tb.name]] ?? []
+      if (rows.length) await tb.bulkAdd(rows)
+    }
+  })
+}
 
 // 데이터 압축
 async function compress(text) {
@@ -16,21 +60,15 @@ async function decompress(blob) {
   return new Response(decompressed).text()
 }
 
-// 백업 생성 (롤링 3개 유지)
+// 백업 생성 (롤링 3개 유지) — 모든 사용자 테이블 자동 포함
 export async function createBackup() {
-  const [jobs, customers, photos] = await Promise.all([
-    db.service_jobs.toArray(),
-    db.customers.toArray(),
-    db.job_photos.toArray(),
-  ])
-
-  const payload = JSON.stringify({ jobs, customers, photos, exportedAt: new Date().toISOString() })
+  const data = await collectData(getUserTables())
+  const payload = JSON.stringify({ ...data, exportedAt: new Date().toISOString() })
   const blob = await compress(payload)
-  const size = blob.size
 
   await db.backups.add({
     createdAt: new Date().toISOString(),
-    size,
+    size: blob.size,
     blob,
   })
 
@@ -47,12 +85,24 @@ export async function listBackups() {
   return db.backups.orderBy('createdAt').reverse().toArray()
 }
 
+// 자동 백업 — 마지막 백업이 24시간 지났으면 새로 생성
+const AUTO_BACKUP_INTERVAL_MS = 24 * 60 * 60 * 1000
+export async function autoBackupIfDue() {
+  try {
+    const last = await db.backups.orderBy('createdAt').reverse().first()
+    if (last && Date.now() - new Date(last.createdAt).getTime() < AUTO_BACKUP_INTERVAL_MS) return
+    await createBackup()
+  } catch (e) {
+    console.warn('autoBackup failed:', e)
+  }
+}
+
 // 백업 파일로 내려받기
 export async function downloadBackup(backup) {
   const url = URL.createObjectURL(backup.blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `냉동기수리_백업_${backup.createdAt.slice(0, 10)}.rfg`
+  a.download = `rpro_backup_${backup.createdAt.slice(0, 10)}.rfg`
   a.click()
   URL.revokeObjectURL(url)
 }
@@ -60,34 +110,19 @@ export async function downloadBackup(backup) {
 // 백업 복원
 export async function restoreBackup(backup) {
   const text = await decompress(backup.blob)
-  const { jobs, customers, photos } = JSON.parse(text)
-
-  await db.transaction('rw', db.customers, db.service_jobs, db.job_photos, async () => {
-    await db.customers.clear()
-    await db.service_jobs.clear()
-    await db.job_photos.clear()
-    if (customers.length) await db.customers.bulkAdd(customers)
-    if (jobs.length)      await db.service_jobs.bulkAdd(jobs)
-    if (photos.length)    await db.job_photos.bulkAdd(photos)
-  })
+  const data = JSON.parse(text)
+  await restoreTables(getUserTables(), data)
 }
 
-const CHUNK_SIZE = 3500 // chars per QR code
+const CHUNK_SIZE = 2500 // chars per QR code (QR byte mode limit ~2953)
 
 // QR 내보내기용 청크 생성 (사진 제외)
 export async function exportQRChunks() {
-  const [customers, service_jobs, expenses, knowhow, business_cards] = await Promise.all([
-    db.customers.toArray(),
-    db.service_jobs.toArray(),
-    db.expenses.toArray(),
-    db.knowhow.toArray(),
-    db.business_cards.toArray(),
-  ])
-
+  const data = await collectData(getQRTables())
   const payload = JSON.stringify({
-    version: 1,
+    version: 2,
     exportedAt: new Date().toISOString(),
-    customers, service_jobs, expenses, knowhow, business_cards,
+    ...data,
   })
 
   const blob = await compress(payload)
@@ -113,28 +148,7 @@ export async function importQRChunks(chunkMap, total) {
   for (let i = 0; i < binary.length; i++) uint8[i] = binary.charCodeAt(i)
   const text = await decompress(new Blob([uint8]))
   const data = JSON.parse(text)
-
-  const customers      = data.customers      ?? []
-  const service_jobs   = data.service_jobs   ?? []
-  const expenses       = data.expenses       ?? []
-  const knowhow        = data.knowhow        ?? []
-  const business_cards = data.business_cards ?? []
-
-  await db.transaction('rw',
-    db.customers, db.service_jobs, db.expenses, db.knowhow, db.business_cards,
-    async () => {
-      await db.customers.clear()
-      await db.service_jobs.clear()
-      await db.expenses.clear()
-      await db.knowhow.clear()
-      await db.business_cards.clear()
-      if (customers.length)      await db.customers.bulkAdd(customers)
-      if (service_jobs.length)   await db.service_jobs.bulkAdd(service_jobs)
-      if (expenses.length)       await db.expenses.bulkAdd(expenses)
-      if (knowhow.length)        await db.knowhow.bulkAdd(knowhow)
-      if (business_cards.length) await db.business_cards.bulkAdd(business_cards)
-    }
-  )
+  await restoreTables(getQRTables(), data)
 }
 
 export function formatSize(bytes) {
@@ -145,27 +159,14 @@ export function formatSize(bytes) {
 
 // 전체 데이터 JSON 파일로 내보내기 (공유 or 다운로드)
 export async function exportAllData() {
-  const [customers, service_jobs, job_photos, expenses, knowhow, business_cards] = await Promise.all([
-    db.customers.toArray(),
-    db.service_jobs.toArray(),
-    db.job_photos.toArray(),
-    db.expenses.toArray(),
-    db.knowhow.toArray(),
-    db.business_cards.toArray(),
-  ])
-
+  const data = await collectData(getUserTables())
   const payload = JSON.stringify({
-    version: 1,
+    version: 2,
     exportedAt: new Date().toISOString(),
-    customers,
-    service_jobs,
-    job_photos,
-    expenses,
-    knowhow,
-    business_cards,
+    ...data,
   }, null, 2)
 
-  const fileName = `naengdong_backup_${new Date().toISOString().slice(0, 10)}.json`
+  const fileName = `rpro_backup_${new Date().toISOString().slice(0, 10)}.json`
   const blob = new Blob([payload], { type: 'text/plain' })
   const file = new File([blob], fileName, { type: 'text/plain' })
 
@@ -173,8 +174,8 @@ export async function exportAllData() {
   if (navigator.share) {
     try {
       await navigator.share({
-        title: '냉동기수리 데이터 백업',
-        text: `백업 날짜: ${new Date().toISOString().slice(0, 10)}`,
+        title: t('backup.shareTitle'),
+        text: t('backup.shareText', { date: new Date().toISOString().slice(0, 10) }),
         files: [file],
       })
       return
@@ -191,7 +192,7 @@ export async function exportAllData() {
   a.click()
   URL.revokeObjectURL(url)
   setTimeout(() => {
-    alert('파일이 저장됐습니다.\n\n화면 위 알림창을 내려서 파일을 길게 누르면\n이메일·카카오톡 등으로 공유할 수 있습니다.')
+    showToast(t('backup.fileSaved'))
   }, 500)
 }
 
@@ -199,30 +200,5 @@ export async function exportAllData() {
 export async function importAllData(file) {
   const text = await file.text()
   const data = JSON.parse(text)
-
-  const customers      = data.customers      ?? []
-  const service_jobs   = data.service_jobs   ?? []
-  const job_photos     = data.job_photos     ?? []
-  const expenses       = data.expenses       ?? []
-  const knowhow        = data.knowhow        ?? []
-  const business_cards = data.business_cards ?? []
-
-  await db.transaction('rw',
-    db.customers, db.service_jobs, db.job_photos, db.expenses, db.knowhow, db.business_cards,
-    async () => {
-      await db.customers.clear()
-      await db.service_jobs.clear()
-      await db.job_photos.clear()
-      await db.expenses.clear()
-      await db.knowhow.clear()
-      await db.business_cards.clear()
-
-      if (customers.length)      await db.customers.bulkAdd(customers)
-      if (service_jobs.length)   await db.service_jobs.bulkAdd(service_jobs)
-      if (job_photos.length)     await db.job_photos.bulkAdd(job_photos)
-      if (expenses.length)       await db.expenses.bulkAdd(expenses)
-      if (knowhow.length)        await db.knowhow.bulkAdd(knowhow)
-      if (business_cards.length) await db.business_cards.bulkAdd(business_cards)
-    }
-  )
+  await restoreTables(getUserTables(), data)
 }

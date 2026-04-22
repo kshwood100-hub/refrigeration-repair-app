@@ -73,6 +73,7 @@ export const REFRIGERATION_BASICS = [
   {
     id: 'what_is',
     title: '냉동기란?',
+    title_en: 'What is a Refrigeration System?',
     icon: '❄️',
     content: `냉동기는 열을 빼앗아서 차갑게 만드는 장치입니다.
 
@@ -89,10 +90,26 @@ export const REFRIGERATION_BASICS = [
 • 칠러 (냉수 생산)
 • 에어컨 (냉방도 냉동 원리)
 • 급속냉동기`,
+    content_en: `A refrigeration system is a device that removes heat to create a cold environment.
+
+To be precise, "refrigeration" does not eliminate heat — it transfers heat from one place to another.
+
+For example, the inside of a refrigerator stays cold because heat from inside is moved to the condenser coils at the back.
+
+Types of refrigeration systems found in the field:
+• Refrigerated/frozen display cases
+• Commercial refrigerators/freezers
+• Cold storage warehouses / frozen storage warehouses
+• Walk-in coolers/freezers
+• Ice makers
+• Chillers (chilled water production)
+• Air conditioners (also use refrigeration principles)
+• Blast freezers`,
   },
   {
     id: 'basic_cycle',
     title: '기본 냉동 사이클',
+    title_en: 'Basic Refrigeration Cycle',
     icon: '🔄',
     content: `증기압축식 냉동기의 기본 4단계:
 
@@ -117,10 +134,34 @@ export const REFRIGERATION_BASICS = [
 핵심 포인트:
 • 증발기 쪽 = 저압 (흡입 압력)
 • 응축기 쪽 = 고압 (토출 압력)`,
+    content_en: `Four basic stages of a vapor compression refrigeration system:
+
+① Compressor
+  Compresses refrigerant gas to high temperature and high pressure
+  → Refrigerant leaving the compressor is hot and high-pressure
+
+② Condenser
+  High-temperature, high-pressure refrigerant releases heat to the outside and condenses into liquid
+  → Air-cooled type uses a fan to dissipate heat
+
+③ Expansion Device
+  Rapidly reduces the pressure of high-pressure liquid refrigerant
+  → As pressure drops, refrigerant temperature drops sharply
+
+④ Evaporator
+  Low-temperature, low-pressure refrigerant absorbs surrounding heat and vaporizes
+  → This is where products or air are cooled
+
+Cycle: Evaporator → Compressor → Condenser → Expansion Device → Evaporator (repeat)
+
+Key points:
+• Evaporator side = Low pressure (suction pressure)
+• Condenser side = High pressure (discharge pressure)`,
   },
   {
     id: 'pressure_temp',
     title: '압력과 온도의 관계 (P-T)',
+    title_en: 'Pressure-Temperature Relationship (P-T)',
     icon: '📊',
     content: `냉동기에서 압력과 온도는 항상 함께 움직입니다.
 
@@ -146,10 +187,35 @@ R-134a:
 게이지 압력을 보고 냉매 온도를 알 수 있음
 → 냉매 부족이면 저압이 낮아짐
 → 응축기 막히면 고압이 올라감`,
+    content_en: `In refrigeration systems, pressure and temperature always move together.
+
+Approximate saturation pressures by refrigerant:
+
+R-22:
+• -15°C → approx. 2.1 bar (low side)
+• +45°C → approx. 17.3 bar (high side)
+
+R-404A:
+• -15°C → approx. 3.7 bar (low side)
+• +45°C → approx. 24.0 bar (high side)
+
+R-410A:
+• -15°C → approx. 5.8 bar (low side)
+• +45°C → approx. 36.0 bar (high side)
+
+R-134a:
+• -15°C → approx. 1.6 bar (low side)
+• +45°C → approx. 11.6 bar (high side)
+
+Field application:
+Read gauge pressure to determine refrigerant temperature
+→ Low refrigerant charge = low suction pressure
+→ Blocked condenser = high discharge pressure`,
   },
   {
     id: 'superheat_subcool',
     title: '과열도와 과냉도',
+    title_en: 'Superheat and Subcooling',
     icon: '🎯',
     content: `냉동기 상태를 진단하는 핵심 수치입니다.
 
@@ -174,10 +240,34 @@ R-134a:
 현장 팁:
 과열도/과냉도가 정상이면 냉매량은 OK
 이 수치 이상하면 냉매 먼저 의심`,
+    content_en: `These are the key diagnostic values for assessing refrigeration system condition.
+
+▶ Superheat
+How much warmer the refrigerant leaving the evaporator is compared to its saturation temperature
+
+Calculation: Suction line temperature - Suction saturation temperature
+Normal range: 5~10°C (for TXV systems)
+
+• High superheat → Low refrigerant charge or TXV underfeeding
+• Low superheat → Refrigerant overcharge or TXV overfeeding
+
+▶ Subcooling
+How much cooler the liquid refrigerant leaving the condenser is compared to its saturation temperature
+
+Calculation: Condensing saturation temperature - Liquid line temperature
+Normal range: 5~8°C
+
+• Low subcooling → Low refrigerant charge or condenser malfunction
+• High subcooling → Refrigerant overcharge
+
+Field tip:
+If superheat/subcooling are in normal range, refrigerant charge is OK
+If these values are off, suspect refrigerant first`,
   },
   {
     id: 'compressor_types',
     title: '압축기 종류와 특징',
+    title_en: 'Compressor Types and Characteristics',
     icon: '⚙️',
     content: `▶ 왕복동식 (Reciprocating)
   피스톤이 왕복하며 압축
@@ -207,10 +297,39 @@ R-134a:
 • 밀폐형 — 모터+압축기 일체, 통째 교체
 • 반밀폐형 — 볼트 분해 가능, 정비 가능
 • 개방형 — 모터 분리, 주로 암모니아용`,
+    content_en: `▶ Reciprocating
+  Piston moves back and forth to compress refrigerant
+  • Pros: Good serviceability, handles low temperatures (-40°C and below)
+  • Cons: High vibration/noise, oil management critical
+  • Common use: Frozen storage, low-temperature equipment
+
+▶ Scroll
+  Two interlocking spiral scrolls compress refrigerant
+  • Pros: Quiet, efficient, most widely used
+  • Cons: No reverse rotation allowed, not field-serviceable
+  • Common use: Display cases, packaged air conditioners
+
+▶ Rotary
+  Rotating rotor compresses refrigerant
+  • Pros: Compact, lightweight, inexpensive
+  • Cons: Weak at high pressures
+  • Common use: Small refrigerators, air conditioners
+
+▶ Screw
+  Two meshing screw rotors compress refrigerant
+  • Pros: Excellent for large-capacity continuous operation
+  • Cons: Expensive, oil management critical
+  • Common use: Medium to large industrial refrigeration systems
+
+▶ Classification by structure:
+• Hermetic — Motor and compressor integrated, replace as a unit
+• Semi-hermetic — Bolted apart, field-serviceable
+• Open — Motor separate, mainly used with ammonia`,
   },
   {
     id: 'temp_range',
     title: '사용 온도 범위',
+    title_en: 'Operating Temperature Ranges',
     icon: '🌡️',
     content: `냉장과 냉동은 완전히 다른 시스템입니다.
 
@@ -233,10 +352,32 @@ R-134a:
 ▶ 현장 팁:
 온도대가 다르면 냉매, 오일, 압축기가 달라집니다.
 같은 R-404A라도 냉장용/냉동용 설정값이 다릅니다.`,
+    content_en: `Refrigeration and freezing are completely different systems.
+
+▶ Temperature classification:
+• High-temperature: +5 ~ +15°C (beverage cooling, floral storage)
+• Medium-temperature: 0 ~ +5°C (fresh food refrigeration)
+• Low-temperature: -5 ~ -25°C (frozen food)
+• Ultra-low temperature: -25 ~ -60°C (tuna, medical/research use)
+
+▶ Cold storage temperature standards:
+• Refrigerated warehouse: 0 ~ +10°C
+• Frozen warehouse: -18°C or below (food safety regulation)
+• Blast freezing: -35°C or below
+
+▶ Display case temperatures:
+• Refrigerated display case: +2 ~ +8°C
+• Frozen display case: -18 ~ -22°C
+• Ice cream: -20 ~ -25°C
+
+▶ Field tip:
+Different temperature ranges require different refrigerants, oils, and compressors.
+Even with the same R-404A, setpoints differ between refrigeration and freezer applications.`,
   },
   {
     id: 'refrigerants',
     title: '냉매 종류와 특성',
+    title_en: 'Refrigerant Types and Properties',
     icon: '💧',
     content: `▶ 현장에서 가장 많이 만나는 냉매:
 
@@ -268,10 +409,41 @@ R-32 (HFC)
 • 피부/눈에 닿으면 동상 위험
 • 밀폐 공간 누설 시 산소 결핍 위험
 • 반드시 회수기로 회수 후 작업`,
+    content_en: `▶ Most commonly encountered refrigerants in the field:
+
+R-22 (HCFC)
+• General-purpose refrigeration/freezing, being phased out
+• Replacements: R-407C, R-422D
+
+R-404A (HFC)
+• Standard low-temperature refrigerant, used in display cases and frozen warehouses
+• Replacements: R-448A, R-449A (environmental regulations)
+
+R-134a (HFC)
+• Automotive air conditioning, medium-temperature refrigeration
+• Lower global warming potential
+
+R-410A (HFC)
+• Standard air conditioning refrigerant, high pressure
+• Must replace entire charge if leaked (blended refrigerant)
+
+R-32 (HFC)
+• New-generation air conditioners, flammable — use caution
+
+▶ Natural refrigerants:
+• R-717 (Ammonia) — Highest efficiency, toxic, requires certification
+• R-744 (CO₂) — Ultra-high pressure, eco-friendly, expanding in supermarkets/logistics
+• R-290 (Propane) — Small-scale eco-friendly, flammable — use caution
+
+▶ Refrigerant handling precautions:
+• Contact with skin/eyes causes frostbite risk
+• Leaks in enclosed spaces cause oxygen deficiency risk
+• Always recover refrigerant with a recovery machine before servicing`,
   },
   {
     id: 'oil',
     title: '냉동기유 (오일)',
+    title_en: 'Refrigeration Oil',
     icon: '🛢️',
     content: `냉동기에서 오일은 압축기 보호에 매우 중요합니다.
 
@@ -295,10 +467,33 @@ R-32 (HFC)
 ▶ 현장 체크:
 • 사이트 글라스에서 오일 거품 많으면 냉매 혼입 의심
 • 오일 색이 검으면 오염/탄화 → 교체 필요`,
+    content_en: `Oil is critically important for compressor protection in refrigeration systems.
+
+▶ Functions of oil:
+• Lubrication of compressor internals
+• Cooling of friction heat
+• Sealing (preventing gas leakage)
+
+▶ Oil types by refrigerant:
+• R-22, R-404A — Mineral Oil or Alkylbenzene Oil
+• R-410A, R-134a — POE Oil (polyolester)
+• R-32 — POE Oil
+• Ammonia — Mineral Oil (does not mix with refrigerant)
+
+▶ Precautions:
+• Refrigerant and oil must always be matched correctly
+• POE oil is highly hygroscopic → use quickly after opening
+• Oil contamination → causes compressor damage
+• Oil shortage → causes compressor seizure
+
+▶ Field checks:
+• Excessive foaming in sight glass → suspect refrigerant mixing into oil
+• Dark/black oil color → contamination or carbonization → replace`,
   },
   {
     id: 'cooling_method',
     title: '응축 방식',
+    title_en: 'Condensing Methods',
     icon: '🌬️',
     content: `응축기에서 열을 버리는 방식에 따라 구분합니다.
 
@@ -322,10 +517,33 @@ R-32 (HFC)
 
 ▶ 현장 핵심:
 응축기 청소만 제때 해도 냉동기 수명 2배`,
+    content_en: `Classified by how the condenser rejects heat.
+
+▶ Air Cooled
+Removes condenser coil heat using airflow
+• Pros: Simple installation, easy maintenance
+• Cons: Performance drops in summer heat, vulnerable to dust buildup
+• Maintenance: Fin coil cleaning is essential
+  (Dirty fins → high discharge pressure → increased compressor load)
+
+▶ Water Cooled
+Removes heat using cooling water (cooling tower)
+• Pros: High efficiency, less affected by seasons
+• Cons: Requires cooling tower and pump, water quality management needed
+• Maintenance: Poor water quality causes scale on coils → high discharge pressure
+
+▶ Evaporative
+Uses latent heat of water evaporation
+• Pros: Maintains performance even in high-temperature environments
+• Cons: Sanitation management required, freeze risk in winter
+
+▶ Field key point:
+Timely condenser cleaning alone can double the lifespan of a refrigeration system`,
   },
   {
     id: 'expansion',
     title: '팽창장치 종류',
+    title_en: 'Expansion Device Types',
     icon: '🔧',
     content: `냉매 압력을 낮춰 증발을 돕는 장치입니다.
 
@@ -356,10 +574,40 @@ R-32 (HFC)
 ▶ 현장 팁:
 TXV 문제는 헌팅(압력 출렁임)으로 나타남
 EEV는 컨트롤러 에러코드 먼저 확인`,
+    content_en: `Devices that reduce refrigerant pressure to promote evaporation.
+
+▶ Capillary Tube
+Uses resistance through a thin copper tube
+• Small refrigerators, compact air conditioners
+• Non-adjustable — fixed flow rate
+• Refrigerant charge must be precisely matched
+
+▶ TXV (Thermostatic Expansion Valve)
+Senses evaporator outlet temperature and adjusts opening
+• Most widely used
+• Maintains superheat of 5~8°C
+• Sensing bulb position is critical
+  (Poor contact or insulation → hunting)
+
+▶ EEV (Electronic Expansion Valve)
+Controller electronically adjusts valve opening
+• Inverter equipment, precision temperature control
+• Replace entire unit if faulty
+• Mostly step motor type
+
+▶ Float Valve
+Automatically adjusts based on liquid level
+• Used with flooded evaporators
+• Mainly large refrigeration systems
+
+▶ Field tips:
+TXV problems show up as hunting (pressure fluctuation)
+For EEV, check controller error codes first`,
   },
   {
     id: 'defrost',
     title: '착상과 제상',
+    title_en: 'Frost Buildup and Defrost',
     icon: '🧊',
     content: `냉동기 고장 원인 1위 중 하나입니다.
 
@@ -393,10 +641,43 @@ EEV는 컨트롤러 에러코드 먼저 확인`,
 ▶ 현장 체크:
 냉각 불량의 60%는 착상 문제
 제상 히터 단선, 제상 타이머 오작동 자주 발생`,
+    content_en: `Frost buildup is one of the top causes of refrigeration system failure.
+
+▶ What is frost buildup?
+Frost (ice) accumulating on the evaporator coil
+• Moisture in the air freezes onto the sub-zero coil
+• Severe frost blocks airflow → inadequate cooling
+
+▶ Defrost methods:
+
+① Natural defrost
+  Compressor stops and thaws at room temperature
+  Small refrigerators, takes a long time
+
+② Electric heater defrost
+  Heater installed on evaporator coil
+  Most common, cycle controlled by timer
+
+③ Hot gas defrost
+  Compressor discharge gas heats the coil
+  Fast and efficient, used in large systems
+
+④ Reverse cycle defrost (heat pump heating)
+  Reverses the refrigeration cycle
+
+▶ Defrost setting guidelines:
+• Defrost frequency: 2~4 times per day (depending on environment)
+• Defrost duration: 20~40 minutes
+• Defrost termination temperature: +10~+15°C (coil temperature)
+
+▶ Field checks:
+60% of inadequate cooling cases are frost buildup issues
+Defrost heater burnout and defrost timer malfunction are frequent causes`,
   },
   {
     id: 'electric_control',
     title: '전기/제어 기초',
+    title_en: 'Electrical and Control Basics',
     icon: '⚡',
     content: `냉동기 전기 제어의 핵심 부품들입니다.
 
@@ -430,10 +711,43 @@ EEV는 컨트롤러 에러코드 먼저 확인`,
 ▶ 현장 팁:
 제어 계통은 멀티미터 필수
 → 전압, 전류, 도통 체크 순서로`,
+    content_en: `Key electrical control components in refrigeration systems.
+
+▶ Temperature Controller
+  Turns compressor ON/OFF when setpoint is reached
+  • Mechanical type: Sensing bulb method, simple and durable
+  • Digital type: Precise control, alarm functions
+  • Field check: Verify sensor location and setpoint values
+
+▶ Pressure Switch
+  Protects compressor by cutting out on abnormal high/low pressure
+
+  High Pressure Switch (HPS)
+  • Cuts out when pressure exceeds setpoint
+  • Many are manual reset type — must reset after resolving root cause
+  • Common causes: Blocked condenser, refrigerant overcharge
+
+  Low Pressure Switch (LPS)
+  • Cuts out when pressure drops below setpoint
+  • Many are automatic reset type
+  • Common causes: Low refrigerant charge, evaporator frost buildup
+
+▶ Overload Relay
+  Protects compressor motor from overcurrent
+  • Manual reset after removing the cause of trip
+
+▶ 4-Way Valve (air conditioners)
+  Switches between cooling and heating modes
+  If coil is stuck, cooling/heating will not work
+
+▶ Field tip:
+A multimeter is essential for electrical troubleshooting
+→ Check voltage, current, and continuity in that order`,
   },
   {
     id: 'common_failures',
     title: '주요 고장 패턴',
+    title_en: 'Common Failure Patterns',
     icon: '🔍',
     content: `현장에서 자주 만나는 고장 유형입니다.
 
@@ -466,10 +780,42 @@ EEV는 컨트롤러 에러코드 먼저 확인`,
 원인 ②: 압축기 마운트 파손
 원인 ③: 배관 진동 (클램프 이완)
 원인 ④: 액압축 (냉매 과충전, 오일 복귀 불량)`,
+    content_en: `Common failure types encountered in the field.
+
+▶ Inadequate Cooling
+Cause ①: Low refrigerant charge → low suction pressure, high superheat
+Cause ②: Dirty condenser → high discharge pressure, check fan
+Cause ③: Evaporator frost buildup → icing, reduced airflow
+Cause ④: Blocked expansion valve → low suction pressure, frost at valve
+
+▶ Compressor Won't Start
+Cause ①: Power supply issue → check voltage
+Cause ②: High/low pressure switch trip → check pressures
+Cause ③: Overload relay trip → check current
+Cause ④: Compressor seizure → fails to start, replacement required
+
+▶ High Discharge Pressure
+Cause ①: Dirty condenser fin coil
+Cause ②: Condenser fan failure
+Cause ③: Refrigerant overcharge
+Cause ④: Non-condensable gas contamination
+
+▶ Low Suction Pressure
+Cause ①: Refrigerant leak / low charge
+Cause ②: Severe evaporator frost buildup
+Cause ③: Blocked or closed expansion valve
+Cause ④: Blocked suction line
+
+▶ Noise / Vibration
+Cause ①: Foreign object in fan blade
+Cause ②: Broken compressor mounting (anti-vibration mount)
+Cause ③: Pipe vibration (loose clamps)
+Cause ④: Liquid slugging (refrigerant overcharge, poor oil return)`,
   },
   {
     id: 'site_checklist',
     title: '현장 도착 후 점검 순서',
+    title_en: 'On-Site Inspection Sequence',
     icon: '📋',
     content: `현장에서 체계적으로 점검하는 순서입니다.
 
@@ -507,10 +853,47 @@ EEV는 컨트롤러 에러코드 먼저 확인`,
   • 설정 온도까지 도달 확인
   • 운전 전류 재확인
   • 고객에게 설명`,
+    content_en: `A systematic inspection sequence for field service calls.
+
+① Listen to customer's complaint
+  • When did it start? Sudden or gradual?
+  • Any unusual sounds or odors?
+  • Any recent changes to the system?
+
+② Visual external inspection
+  • Confirm power is on
+  • Condenser/evaporator contamination status
+  • Oil/refrigerant leak traces (oil stains)
+  • Wiring abnormalities
+
+③ Check operating conditions
+  • Compressor starting/running
+  • High/low pressure gauge readings
+  • Running current measurement
+  • Fan operation check
+
+④ Temperature measurements
+  • Suction line temperature
+  • Discharge line temperature
+  • Condenser inlet/outlet
+  • Room/cabinet temperature
+
+⑤ Calculate superheat/subcooling
+  • Confirm values are within normal range
+
+⑥ Diagnose and take action
+  • Start with the most likely cause
+  • Attempt repair with minimum intervention
+
+⑦ Post-repair verification
+  • Confirm temperature reaches setpoint
+  • Recheck running current
+  • Explain results to customer`,
   },
   {
     id: 'special_systems',
     title: '특수 냉동 시스템',
+    title_en: 'Special Refrigeration Systems',
     icon: '🏭',
     content: `현장에서 만날 수 있는 특수 설비:
 
@@ -545,10 +928,44 @@ EEV는 컨트롤러 에러코드 먼저 확인`,
   친환경, 마트/편의점 확대 중
   • 초고압 (150bar 이상) — 전용 장비 필요
   • 임계점 주의 (31°C 이상 시 초임계)`,
+    content_en: `Specialized systems you may encounter in the field:
+
+▶ Cascade System
+  Two refrigeration circuits connected in series, for ultra-low temperatures below -60°C
+  • High-temperature circuit (R-404A) cools condenser of low-temperature circuit (R-23)
+  • Used for tuna freezing, medical/research applications
+
+▶ Two-Stage Compressor
+  Compression split into two stages, for very low temperatures
+  • Has an intercooler between stages
+  • High efficiency and lower compression ratio
+
+▶ Chiller
+  Produces chilled water (5~10°C) for distribution to buildings/factories
+  • Available in air-cooled and water-cooled types
+  • Includes expansion tank, circulation pump, and buffer tank
+
+▶ Brine / Glycol Refrigeration System
+  Circulates brine (salt water) or glycol instead of direct refrigerant
+  • Indirect cooling → better for food hygiene
+  • Can handle long piping runs
+  • Concentration management critical (check freeze point)
+
+▶ Ammonia Refrigeration System
+  Highest efficiency, used in large food plants and logistics centers
+  • Highly toxic — certification and protective equipment required
+  • Leak detector mandatory
+  • Cannot use copper or copper-alloy piping (corrosion)
+
+▶ CO₂ Refrigeration System
+  Eco-friendly, expanding in supermarkets and convenience stores
+  • Ultra-high pressure (150 bar+) — specialized equipment required
+  • Watch for transcritical point (above 31°C enters transcritical region)`,
   },
   {
     id: 'safety',
     title: '안전 수칙',
+    title_en: 'Safety Guidelines',
     icon: '🦺',
     content: `현장에서 반드시 지켜야 할 안전 수칙입니다.
 
@@ -576,5 +993,31 @@ EEV는 컨트롤러 에러코드 먼저 확인`,
 • 전기 패널 커버 닫기
 • 냉매 누설 여부 비눗물/감지기로 확인
 • 운전 상태 최소 15분 이상 확인 후 철수`,
+    content_en: `Safety rules that must be followed in the field.
+
+▶ Refrigerant handling:
+• Refrigerant contact with skin/eyes causes frostbite risk
+  → Wear protective gloves and safety goggles
+• Leaks in enclosed spaces cause oxygen deficiency
+  → Ensure ventilation, carry a gas detector
+• R-32 and R-290 are flammable
+  → No open flames, beware of sparks
+
+▶ Electrical work:
+• Always disconnect power before working
+• Check for residual voltage (discharge capacitors)
+• Wear insulating gloves when working on high-voltage components
+• Never perform electrical work in rain or wet conditions
+
+▶ High-pressure systems:
+• Check pressure before connecting high-pressure hoses
+• Do not rapidly depressurize (risk of freeze injury or damage)
+• Confirm safety valve discharge direction
+
+▶ Post-work checks:
+• Confirm no tools or parts left inside equipment
+• Close all electrical panel covers
+• Check for refrigerant leaks using soap solution or detector
+• Observe system operation for at least 15 minutes before leaving`,
   },
 ]

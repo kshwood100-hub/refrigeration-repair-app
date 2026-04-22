@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { ChevronLeft, Mic, MicOff, Camera, X, Users, Sparkles } from 'lucide-react'
+import { ChevronLeft, Camera, X, Users, Bell } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { db } from '../db'
-import { loadSettings } from '../utils/settings'
-import { classifyRepairNote } from '../utils/aiClassify'
+import { showToast } from '../utils/toast'
+import { requestNotificationPermission } from '../utils/alarmManager'
+import KnowhowFormBody, { EMPTY_KNOWHOW } from '../components/KnowhowFormBody'
 
 const today = () => new Date().toISOString().slice(0, 10)
 
@@ -13,21 +15,21 @@ const EMPTY_JOB = {
   receiptDate: today(),
   visitDate: '',
   visitTime: '',
-  symptom: '',
-  diagnosis: '',
-  materials: '',
-  workDone: '',
+  symptoms: '',  // (옛 symptom)
   partsCost: '',
   laborCost: '',
-  notes: '',
 }
 
 const EMPTY_CUSTOMER = { name: '', phone: '', address: '' }
+
+const HOURS = Array.from({ length: 17 }, (_, i) => String(i + 6).padStart(2, '0'))
+const MINS  = ['00', '10', '20', '30', '40', '50']
 
 export default function JobFormPage() {
   const navigate = useNavigate()
   const { id } = useParams()
   const location = useLocation()
+  const { t, i18n } = useTranslation()
   const isNew = !id
 
   const existingJob = useLiveQuery(
@@ -40,27 +42,21 @@ export default function JobFormPage() {
   const allCustomers = useLiveQuery(() => db.customers.orderBy('name').toArray(), [])
 
   const [job, setJob] = useState(EMPTY_JOB)
+  const [knowhow, setKnowhow] = useState(EMPTY_KNOWHOW)
   const [customer, setCustomer] = useState(EMPTY_CUSTOMER)
   const [photos, setPhotos] = useState([])
   const [customerSearch, setCustomerSearch] = useState('')
   const [showCustomerList, setShowCustomerList] = useState(false)
   const [initialized, setInitialized] = useState(false)
-  const [isRecording, setIsRecording] = useState(false)
-  const [transcript, setTranscript] = useState('')
-  const [aiLoading, setAiLoading] = useState(false)
+  const [alarmDate, setAlarmDate] = useState('')
+  const [alarmTime, setAlarmTime] = useState('')
   const fileRef = useRef()
-  const recognitionRef = useRef(null)
 
-  // 명함/고객 상세에서 넘어온 경우 고객 자동 로드
   const preloadCustomerId = location.state?.customerId
   const preloadCustomer = useLiveQuery(
     () => preloadCustomerId ? db.customers.get(preloadCustomerId) : undefined,
     [preloadCustomerId]
   )
-  useEffect(() => {
-    return () => { recognitionRef.current?.stop() }
-  }, [])
-
   useEffect(() => {
     if (isNew && preloadCustomer && !initialized) {
       setCustomer({
@@ -72,20 +68,32 @@ export default function JobFormPage() {
     }
   }, [isNew, preloadCustomer, initialized])
 
-  // 기존 데이터 로드 (편집 모드)
   if (!isNew && existingJob && existingCustomer && !initialized) {
     setJob({
       status:      existingJob.status      ?? 'received',
       receiptDate: existingJob.receiptDate ?? today(),
       visitDate:   existingJob.visitDate   ?? '',
       visitTime:   existingJob.visitTime   ?? '',
-      symptom:     existingJob.symptom     ?? '',
-      diagnosis:   existingJob.diagnosis   ?? '',
-      materials:   existingJob.materials   ?? '',
-      workDone:    existingJob.workDone    ?? '',
+      symptoms:    existingJob.symptoms    ?? existingJob.symptom ?? '',
       partsCost:   existingJob.partsCost   ?? '',
       laborCost:   existingJob.laborCost   ?? '',
-      notes:       existingJob.notes       ?? '',
+    })
+    setKnowhow({
+      title:          existingJob.title          ?? '',
+      category:       existingJob.category       ?? '기타',
+      location:       existingJob.location       ?? '기타',
+      compressorType: existingJob.compressorType ?? '',
+      compressorStr:  existingJob.compressorStr  ?? '',
+      coolingMethod:  existingJob.coolingMethod  ?? '',
+      tempRange:      existingJob.tempRange      ?? '',
+      refrigerant:    existingJob.refrigerant    ?? '',
+      systemType:     existingJob.systemType     ?? '',
+      symptoms:       existingJob.symptoms       ?? existingJob.symptom   ?? '',
+      cause:          existingJob.cause          ?? existingJob.diagnosis ?? '',
+      checkSteps:     existingJob.checkSteps     ?? '',
+      solution:       existingJob.solution       ?? existingJob.workDone  ?? '',
+      parts:          existingJob.parts          ?? existingJob.materials ?? '',
+      notes:          existingJob.notes          ?? '',
     })
     setCustomer({
       name:    existingCustomer.name    ?? '',
@@ -97,55 +105,6 @@ export default function JobFormPage() {
 
   function setJ(field, val) { setJob((p) => ({ ...p, [field]: val })) }
   function setC(field, val) { setCustomer((p) => ({ ...p, [field]: val })) }
-
-  // 음성 녹음 (편집 모드 전용)
-  function startRecording() {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition
-    if (!SR) { alert('이 브라우저는 음성 인식을 지원하지 않습니다.\n(Chrome 권장)'); return }
-    const r = new SR()
-    r.lang = 'ko-KR'
-    r.continuous = true
-    r.interimResults = true
-    r.onresult = (e) => {
-      let text = ''
-      for (let i = 0; i < e.results.length; i++) text += e.results[i][0].transcript
-      setTranscript(text)
-    }
-    r.onerror = (e) => { alert('음성 인식 오류: ' + e.error); setIsRecording(false) }
-    r.onend = () => setIsRecording(false)
-    r.start()
-    recognitionRef.current = r
-    setIsRecording(true)
-  }
-
-  function stopRecording() {
-    recognitionRef.current?.stop()
-    setIsRecording(false)
-  }
-
-  async function handleAiClassify() {
-    if (!transcript.trim()) { alert('음성 내용이 없습니다.'); return }
-    stopRecording()
-    if (!navigator.onLine) {
-      setJ('notes', job.notes ? job.notes + '\n\n[오프라인 음성기록]\n' + transcript : '[오프라인 음성기록]\n' + transcript)
-      setTranscript('')
-      return
-    }
-    setAiLoading(true)
-    try {
-      const result = await classifyRepairNote(transcript)
-      if (result.symptom)   setJ('symptom',   result.symptom)
-      if (result.diagnosis) setJ('diagnosis', result.diagnosis)
-      if (result.materials) setJ('materials', result.materials)
-      if (result.workDone)  setJ('workDone',  result.workDone)
-      if (result.notes)     setJ('notes', job.notes ? job.notes + '\n' + result.notes : result.notes)
-      setTranscript('')
-    } catch (e) {
-      alert('AI 오류: ' + e.message)
-    } finally {
-      setAiLoading(false)
-    }
-  }
 
   const totalCost = (Number(job.partsCost) || 0) + (Number(job.laborCost) || 0)
 
@@ -183,10 +142,13 @@ export default function JobFormPage() {
   }
 
   async function handleSave() {
-    if (!customer.name.trim()) { alert('업체명/고객명을 입력해 주세요.'); return }
+    if (!customer.name.trim()) { showToast(t('job.labelCustomerName').replace(' *', '') + ' required'); return }
+    if ((alarmDate && !alarmTime) || (!alarmDate && alarmTime)) {
+      showToast(t('userAlarm.dateTimeRequired')); return
+    }
 
-    let customerId = isNew ? null : existingJob?.customerId
-    if (isNew || !customerId) {
+    let customerId = isNew ? (preloadCustomerId ?? null) : existingJob?.customerId
+    if (!customerId) {
       customerId = await db.customers.add({
         name: customer.name.trim(), phone: customer.phone.trim(), address: customer.address.trim(),
       })
@@ -202,14 +164,10 @@ export default function JobFormPage() {
       receiptDate: job.receiptDate,
       visitDate:   job.visitDate,
       visitTime:   job.visitTime,
-      symptom:     job.symptom,
-      diagnosis:   job.diagnosis,
-      materials:   job.materials,
-      workDone:    job.workDone,
       partsCost:   Number(job.partsCost) || 0,
       laborCost:   Number(job.laborCost) || 0,
       cost:        totalCost,
-      notes:       job.notes,
+      ...knowhow,
       updatedAt:   new Date().toISOString(),
     }
 
@@ -226,7 +184,24 @@ export default function JobFormPage() {
       await db.job_photos.add({ jobId, dataUrl: photo.dataUrl, caption: photo.caption, takenAt: new Date().toISOString() })
     }
 
-    navigate('/service')
+    if (alarmDate && alarmTime) {
+      const granted = await requestNotificationPermission()
+      if (!granted) {
+        showToast(t('userAlarm.permissionDenied'))
+      } else {
+        await db.user_alarms.add({
+          title: `${customer.name.trim()} - ${knowhow.symptoms || t('job.sectionReceipt')}`,
+          date: alarmDate,
+          time: alarmTime,
+          note: job.visitDate ? `${t('job.visitPrefix')} ${job.visitDate}` : '',
+          jobId,
+          fired: 0,
+          createdAt: new Date().toISOString(),
+        })
+      }
+    }
+
+    navigate('/service', { replace: true })
   }
 
   const filteredCustomers = (allCustomers ?? []).filter((c) =>
@@ -239,27 +214,27 @@ export default function JobFormPage() {
       <div className="flex items-center justify-between mb-5">
         <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-gray-500">
           <ChevronLeft size={18} strokeWidth={1.5} />
-          <span className="text-sm">뒤로</span>
+          <span className="text-sm">{t('job.back')}</span>
         </button>
-        <h2 className="text-base font-semibold text-gray-900">{isNew ? '새 수리 의뢰' : '의뢰 수정'}</h2>
+        <h2 className="text-base font-semibold text-gray-900">{isNew ? t('job.newTitle') : t('job.editTitle')}</h2>
         {!isNew && (
           <button onClick={handleSave} className="px-4 py-1.5 bg-gray-900 text-white text-sm font-medium rounded-lg">
-            저장
+            {t('job.save')}
           </button>
         )}
       </div>
 
       <div className="space-y-4">
 
-        {/* ── 고객 정보 ── */}
-        <Section title="고객 정보">
+        {/* 고객 정보 */}
+        <Section title={t('job.sectionCustomer')}>
           <div className="mb-2">
             <button
               onClick={() => setShowCustomerList((v) => !v)}
               className="flex items-center gap-1.5 text-xs font-medium text-blue-600 border border-blue-100 rounded-lg px-3 py-1.5"
             >
               <Users size={12} strokeWidth={1.5} />
-              {showCustomerList ? '닫기' : '기존 고객 불러오기'}
+              {showCustomerList ? t('settings.close') : t('job.loadCustomer')}
             </button>
             {showCustomerList && (
               <div className="mt-2 border border-gray-300 rounded-xl overflow-hidden">
@@ -267,12 +242,12 @@ export default function JobFormPage() {
                   type="text"
                   value={customerSearch}
                   onChange={(e) => setCustomerSearch(e.target.value)}
-                  placeholder="업체명 또는 전화번호"
+                  placeholder={t('job.customerSearch')}
                   className="w-full px-3 py-2 text-sm border-b border-gray-300 outline-none"
                 />
                 <div className="max-h-40 overflow-y-auto">
                   {filteredCustomers.length === 0
-                    ? <p className="text-xs text-gray-400 px-3 py-2">검색 결과 없음</p>
+                    ? <p className="text-xs text-gray-400 px-3 py-2">{t('job.noSearchResult')}</p>
                     : filteredCustomers.map((c) => (
                       <button key={c.id} onClick={() => selectCustomer(c)}
                         className="w-full text-left px-3 py-2 text-sm border-t border-gray-50 active:bg-gray-50">
@@ -285,16 +260,16 @@ export default function JobFormPage() {
               </div>
             )}
           </div>
-          <Field label="업체명 / 고객명 *" value={customer.name}    onChange={(v) => setC('name', v)}    placeholder="예) 홍길동 마트" />
-          <Field label="전화번호"           value={customer.phone}   onChange={(v) => setC('phone', v)}   type="tel" placeholder="010-0000-0000" />
-          <Field label="주소"               value={customer.address} onChange={(v) => setC('address', v)} placeholder="방문지 주소" />
+          <Field label={t('job.labelCustomerName')} value={customer.name}    onChange={(v) => setC('name', v)}    placeholder={t('job.phCustomer')} />
+          <Field label={t('job.labelPhone')}        value={customer.phone}   onChange={(v) => setC('phone', v)}   type="tel" placeholder="010-0000-0000" />
+          <Field label={t('job.labelAddress')}      value={customer.address} onChange={(v) => setC('address', v)} placeholder={t('job.phAddress')} />
         </Section>
 
-        {/* ── 의뢰 정보 ── */}
-        <Section title="의뢰 정보">
-          <Field label="고장 접수일" value={job.receiptDate} onChange={(v) => setJ('receiptDate', v)} type="date" />
+        {/* 의뢰 정보 */}
+        <Section title={t('job.sectionRequest')}>
+          <Field label={t('job.labelReceiptDate')} value={job.receiptDate} onChange={(v) => setJ('receiptDate', v)} type="date" />
           <div>
-            <label className="text-xs font-semibold text-gray-500 block mb-1">방문 예약일</label>
+            <label className="text-xs font-semibold text-gray-500 block mb-1">{t('job.labelVisitSchedule')}</label>
             <input
               type="date"
               value={job.visitDate}
@@ -303,85 +278,78 @@ export default function JobFormPage() {
             />
           </div>
           <TimeSelect
-            label="방문 시간"
+            label={t('job.labelVisitTime')}
+            optionalLabel={t('job.labelOptional')}
+            hourLabel={t('job.hourLabel')}
+            minLabel={t('job.minLabel')}
+            hourUnit={t('job.hourUnit')}
+            minUnit={t('job.minUnit')}
             value={job.visitTime}
             onChange={(v) => setJ('visitTime', v)}
           />
+          <div className="pt-1">
+            <label className="text-xs font-semibold text-gray-500 flex items-center gap-1.5 mb-1">
+              <Bell size={12} strokeWidth={1.5} />
+              {t('userAlarm.setForJob')} <span className="text-gray-400 font-normal">{t('job.labelOptional')}</span>
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                type="date"
+                value={alarmDate}
+                onChange={(e) => {
+                  setAlarmDate(e.target.value)
+                  if (e.target.value && !alarmTime && job.visitTime) setAlarmTime(job.visitTime)
+                }}
+                className="text-sm border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-400"
+              />
+              <input
+                type="time"
+                value={alarmTime}
+                onChange={(e) => setAlarmTime(e.target.value)}
+                className="text-sm border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-400"
+              />
+            </div>
+            {alarmDate && job.visitDate && alarmDate !== job.visitDate && (
+              <p className="text-xs text-amber-600 mt-1">{t('job.visitPrefix')}: {job.visitDate}</p>
+            )}
+          </div>
         </Section>
 
-        {/* ── 증상 (새 의뢰 + 편집 공통) ── */}
-        <Section title="고장 내역">
-          <Textarea label="증상 (고객 설명)" value={job.symptom} onChange={(v) => setJ('symptom', v)} placeholder="고객이 말한 증상을 입력하세요" />
-        </Section>
+        {/* 신규: 간단 증상만 */}
+        {isNew && (
+          <Section title={t('job.sectionFaultHistory')}>
+            <Textarea label={t('job.labelSymptom')} value={knowhow.symptoms} onChange={(v) => setKnowhow((p) => ({ ...p, symptoms: v }))} placeholder={t('job.phSymptom')} />
+          </Section>
+        )}
 
-        {/* ── 새 의뢰 저장 버튼 ── */}
+        {/* 새 의뢰 저장 버튼 */}
         {isNew && (
           <button
             onClick={handleSave}
-            className="w-full py-4 bg-gray-900 text-white text-base font-semibold rounded-xl"
+            className="w-full py-4 bg-slate-700 text-white text-base font-semibold rounded-xl border-2 border-slate-400 shadow-md active:bg-slate-600"
           >
-            저장
+            {t('job.save')}
           </button>
         )}
 
-        {/* ── 편집 모드 전용 필드 ── */}
+        {/* 편집 모드 전용 필드 */}
         {!isNew && (
           <>
-            {/* 음성 빠른 입력 */}
-            <Section title="음성 빠른 입력">
-              <p className="text-xs text-gray-400">현장에서 말한 내용을 AI가 각 항목에 자동 분류합니다.</p>
-              <button
-                onClick={isRecording ? stopRecording : startRecording}
-                className={`w-full py-3 rounded-xl text-sm font-medium flex items-center justify-center gap-2 ${
-                  isRecording ? 'bg-red-500 text-white' : 'bg-gray-900 text-white'
-                }`}
-              >
-                {isRecording
-                  ? <><MicOff size={15} strokeWidth={1.5} /><span className="animate-pulse">녹음 정지</span></>
-                  : <><Mic size={15} strokeWidth={1.5} />녹음 시작</>}
-              </button>
-              {transcript && (
-                <div>
-                  <p className="text-xs text-gray-400 mb-1">인식된 내용</p>
-                  <div className="bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700 whitespace-pre-wrap">{transcript}</div>
-                  <div className="flex gap-2 mt-2">
-                    <button onClick={() => setTranscript('')} className="flex-1 py-2 text-sm font-medium border border-gray-300 rounded-xl text-gray-500">지우기</button>
-                    <button onClick={handleAiClassify} disabled={aiLoading}
-                      className="flex-1 py-2 text-sm font-medium bg-gray-900 text-white rounded-xl disabled:opacity-50 flex items-center justify-center gap-1.5">
-                      <Sparkles size={13} strokeWidth={1.5} />
-                      {aiLoading ? 'AI 분류 중...' : 'AI로 자동 정리'}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </Section>
+            {/* 설비/고장 정보 (공통 폼) */}
+            <KnowhowFormBody form={knowhow} setForm={setKnowhow} />
 
-            <Section title="고장 내역">
-              <Textarea label="증상 (고객 설명)" value={job.symptom}    onChange={(v) => setJ('symptom', v)}    placeholder="고객이 말한 증상" />
-              <Textarea label="진단 결과"        value={job.diagnosis} onChange={(v) => setJ('diagnosis', v)} placeholder="현장 점검 후 진단 내용" />
-            </Section>
-
-            <Section title="준비 자재">
-              <Textarea label="자재 목록" value={job.materials} onChange={(v) => setJ('materials', v)}
-                placeholder={'예) 압축기 캐패시터 50μF\n냉매 R-22 1kg'} rows={4} />
-            </Section>
-
-            <Section title="수리 완료 내용">
-              <Textarea label="수리 내용" value={job.workDone} onChange={(v) => setJ('workDone', v)} placeholder="완료된 수리 작업 내용" />
-            </Section>
-
-            <Section title="금액 청구">
-              <Field label="부품비 (원)" value={job.partsCost} onChange={(v) => setJ('partsCost', v)} type="number" placeholder="0" />
-              <Field label="공임비 (원)" value={job.laborCost} onChange={(v) => setJ('laborCost', v)} type="number" placeholder="0" />
+            <Section title={t('job.sectionCost')}>
+              <Field label={t('job.labelPartsCost')} value={job.partsCost} onChange={(v) => setJ('partsCost', v)} decimal placeholder="0" />
+              <Field label={t('job.labelLaborCost')} value={job.laborCost} onChange={(v) => setJ('laborCost', v)} decimal placeholder="0" />
               {(job.partsCost || job.laborCost) && (
                 <div className="mt-1 px-3 py-2 bg-gray-50 rounded-lg flex justify-between text-sm font-semibold">
-                  <span className="text-gray-500">합계</span>
-                  <span className="text-gray-900">{totalCost.toLocaleString()} 원</span>
+                  <span className="text-gray-500">{t('job.labelTotal')}</span>
+                  <span className="text-gray-900">{totalCost.toLocaleString()}</span>
                 </div>
               )}
             </Section>
 
-            <Section title="현장 사진">
+            <Section title={t('job.sectionPhotos')}>
               <input ref={fileRef} type="file" accept="image/*" capture="environment" multiple className="hidden" onChange={handlePhoto} />
               <div className="flex gap-2 flex-wrap">
                 {photos.map((p, i) => (
@@ -396,14 +364,17 @@ export default function JobFormPage() {
                 <button onClick={() => fileRef.current?.click()}
                   className="w-24 h-24 border border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-400 active:bg-gray-50">
                   <Camera size={20} strokeWidth={1.5} />
-                  <span className="text-xs">촬영/추가</span>
+                  <span className="text-xs">{t('job.photoCapture')}</span>
                 </button>
               </div>
             </Section>
 
-            <Section title="기타 사항">
-              <Textarea label="메모" value={job.notes} onChange={(v) => setJ('notes', v)} placeholder="특이사항, 다음 방문 주의사항 등" />
-            </Section>
+            <button
+              onClick={handleSave}
+              className="w-full py-4 bg-slate-700 text-white text-base font-semibold rounded-xl border-2 border-slate-400 shadow-md active:bg-slate-600"
+            >
+              {t('job.save')}
+            </button>
           </>
         )}
 
@@ -423,7 +394,30 @@ function Section({ title, children }) {
   )
 }
 
-function Field({ label, value, onChange, type = 'text', placeholder }) {
+function Field({ label, value, onChange, type = 'text', placeholder, decimal = false }) {
+  if (decimal) {
+    const display = value === '' || value == null ? '' : (() => {
+      const [int, dec] = String(value).split('.')
+      const intF = int.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+      return dec !== undefined ? `${intF}.${dec}` : intF
+    })()
+    return (
+      <div>
+        <label className="text-xs font-semibold text-gray-500 block mb-1">{label}</label>
+        <input
+          type="text"
+          inputMode="decimal"
+          value={display}
+          onChange={(e) => {
+            const raw = e.target.value.replace(/,/g, '').replace(/[^\d.]/g, '').replace(/(\..*?)\..*/g, '$1')
+            onChange(raw)
+          }}
+          placeholder={placeholder}
+          className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-400"
+        />
+      </div>
+    )
+  }
   return (
     <div>
       <label className="text-xs font-semibold text-gray-500 block mb-1">{label}</label>
@@ -443,10 +437,7 @@ function Textarea({ label, value, onChange, placeholder, rows = 3 }) {
   )
 }
 
-const HOURS = Array.from({ length: 17 }, (_, i) => String(i + 6).padStart(2, '0'))  // 06~22
-const MINS  = ['00', '10', '20', '30', '40', '50']
-
-function TimeSelect({ label, value, onChange }) {
+function TimeSelect({ label, optionalLabel, hourLabel, minLabel, hourUnit, minUnit, value, onChange }) {
   const [h, m] = value ? value.split(':') : ['', '']
 
   function update(newH, newM) {
@@ -457,7 +448,7 @@ function TimeSelect({ label, value, onChange }) {
   return (
     <div>
       <label className="text-xs font-semibold text-gray-500 block mb-1">
-        {label} <span className="text-gray-400 font-normal">(선택)</span>
+        {label} <span className="text-gray-400 font-normal">{optionalLabel}</span>
       </label>
       <div className="flex gap-2">
         <select
@@ -465,16 +456,16 @@ function TimeSelect({ label, value, onChange }) {
           onChange={(e) => update(e.target.value, m)}
           className="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-400 bg-white"
         >
-          <option value="">시</option>
-          {HOURS.map((hh) => <option key={hh} value={hh}>{hh}시</option>)}
+          <option value="">{hourLabel}</option>
+          {HOURS.map((hh) => <option key={hh} value={hh}>{hh}{hourUnit}</option>)}
         </select>
         <select
           value={m ?? ''}
           onChange={(e) => update(h, e.target.value)}
           className="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-400 bg-white"
         >
-          <option value="">분</option>
-          {MINS.map((mm) => <option key={mm} value={mm}>{mm}분</option>)}
+          <option value="">{minLabel}</option>
+          {MINS.map((mm) => <option key={mm} value={mm}>{mm}{minUnit}</option>)}
         </select>
       </div>
     </div>

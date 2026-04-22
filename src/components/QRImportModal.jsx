@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import jsQR from 'jsqr'
 import { X, CheckCircle } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { importQRChunks } from '../utils/backup'
 
 export default function QRImportModal({ onClose, onDone }) {
+  const { t } = useTranslation()
   const videoRef = useRef()
   const canvasRef = useRef()
   const animRef = useRef()
@@ -12,6 +14,13 @@ export default function QRImportModal({ onClose, onDone }) {
   const [total, setTotal] = useState(null)
   const [status, setStatus] = useState('scanning') // scanning | done | error
   const [errorMsg, setErrorMsg] = useState('')
+
+  useEffect(() => {
+    window.history.pushState({ qrImport: true }, '')
+    const handlePop = () => onClose()
+    window.addEventListener('popstate', handlePop)
+    return () => window.removeEventListener('popstate', handlePop)
+  }, [])
 
   useEffect(() => {
     let stream
@@ -25,7 +34,7 @@ export default function QRImportModal({ onClose, onDone }) {
         await videoRef.current.play()
         scan()
       } catch (e) {
-        setErrorMsg('카메라를 열 수 없습니다: ' + e.message)
+        setErrorMsg(t('qr.cameraError', { message: e.message }))
         setStatus('error')
       }
     }
@@ -53,11 +62,11 @@ export default function QRImportModal({ onClose, onDone }) {
               setTotal(n)
 
               if (Object.keys(next).length === n) {
-                stream?.getTracks().forEach((t) => t.stop())
+                stream?.getTracks().forEach((tr) => tr.stop())
                 importQRChunks(next, n)
                   .then(() => setStatus('done'))
                   .catch((e) => {
-                    setErrorMsg('복원 오류: ' + e.message)
+                    setErrorMsg(t('qr.restoreError', { message: e.message }))
                     setStatus('error')
                   })
                 return
@@ -74,7 +83,7 @@ export default function QRImportModal({ onClose, onDone }) {
 
     return () => {
       cancelAnimationFrame(animRef.current)
-      stream?.getTracks().forEach((t) => t.stop())
+      stream?.getTracks().forEach((tr) => tr.stop())
     }
   }, [])
 
@@ -85,20 +94,20 @@ export default function QRImportModal({ onClose, onDone }) {
       {status === 'done' ? (
         <div className="flex-1 flex flex-col items-center justify-center px-6 gap-4">
           <CheckCircle size={64} className="text-green-400" />
-          <p className="text-white text-xl font-bold">복원 완료!</p>
-          <p className="text-gray-400 text-sm text-center">데이터가 성공적으로 가져와졌습니다</p>
+          <p className="text-white text-xl font-bold">{t('qr.restoreDone')}</p>
+          <p className="text-gray-400 text-sm text-center">{t('qr.restoreSuccess')}</p>
           <button
             onClick={onDone}
             className="mt-4 px-8 py-3 bg-white text-gray-900 font-semibold rounded-xl"
           >
-            확인
+            {t('qr.confirm')}
           </button>
         </div>
       ) : status === 'error' ? (
         <div className="flex-1 flex flex-col items-center justify-center px-6 gap-4">
           <p className="text-red-400 text-base font-semibold text-center">{errorMsg}</p>
           <button onClick={onClose} className="px-6 py-3 bg-gray-800 text-white rounded-xl text-sm">
-            닫기
+            {t('qr.close')}
           </button>
         </div>
       ) : (
@@ -114,7 +123,7 @@ export default function QRImportModal({ onClose, onDone }) {
 
             {/* 상단 바 */}
             <div className="absolute top-0 left-0 right-0 bg-black/60 px-4 py-4 flex items-center justify-between">
-              <p className="text-white font-semibold text-sm">QR 가져오기</p>
+              <p className="text-white font-semibold text-sm">{t('qr.importTitle')}</p>
               <button onClick={onClose}><X size={20} className="text-gray-300" /></button>
             </div>
           </div>
@@ -122,11 +131,11 @@ export default function QRImportModal({ onClose, onDone }) {
           {/* 하단 상태 */}
           <div className="bg-gray-950 px-5 py-5">
             {total === null ? (
-              <p className="text-gray-400 text-sm text-center">QR 코드를 화면에 비춰주세요</p>
+              <p className="text-gray-400 text-sm text-center">{t('qr.scanGuide')}</p>
             ) : (
               <>
                 <p className="text-white text-sm font-semibold text-center mb-3">
-                  {scannedCount} / {total} 스캔 완료
+                  {t('qr.scanProgress', { count: scannedCount, total })}
                 </p>
                 <div className="flex gap-2 justify-center flex-wrap">
                   {Array.from({ length: total }, (_, i) => (
@@ -142,7 +151,7 @@ export default function QRImportModal({ onClose, onDone }) {
                 </div>
                 {scannedCount < total && (
                   <p className="text-gray-500 text-xs text-center mt-3">
-                    다음 QR 코드를 보여주세요
+                    {t('qr.scanNext')}
                   </p>
                 )}
               </>

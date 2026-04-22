@@ -30,6 +30,7 @@ export const REFRIGERANTS = [
     color: '#EF4444',
     type: '혼합냉매',
     note: 'HFC 혼합 R-32/125 (*근사)',
+    note_en: 'HFC Blend R-32/125 (*approx)',
     info: { group: 'A1', gwp: 2088, odp: 0, tBoil: -51.4, tCrit: 72.1, tCritP: 4.95 },
     tMin: -50, tMax: 50,
     pt: [
@@ -47,6 +48,7 @@ export const REFRIGERANTS = [
     color: '#10B981',
     type: '혼합냉매',
     note: 'HFC 혼합 R-125/143a/134a (*근사)',
+    note_en: 'HFC Blend R-125/143a/134a (*approx)',
     info: { group: 'A1', gwp: 3922, odp: 0, tBoil: -46.5, tCrit: 72.1, tCritP: 3.74 },
     tMin: -50, tMax: 50,
     pt: [
@@ -98,6 +100,7 @@ export const REFRIGERANTS = [
     color: '#06B6D4',
     type: '혼합냉매',
     note: 'HFC 공비혼합 R-125/143a (*근사)',
+    note_en: 'HFC Azeotrope R-125/143a (*approx)',
     info: { group: 'A1', gwp: 3985, odp: 0, tBoil: -46.7, tCrit: 70.6, tCritP: 3.79 },
     tMin: -50, tMax: 50,
     pt: [
@@ -115,6 +118,7 @@ export const REFRIGERANTS = [
     color: '#84CC16',
     type: '혼합냉매',
     note: 'HFC 혼합 R-32/125/134a (*근사)',
+    note_en: 'HFC Blend R-32/125/134a (*approx)',
     info: { group: 'A1', gwp: 1774, odp: 0, tBoil: -43.6, tCrit: 86.1, tCritP: 4.63 },
     tMin: -50, tMax: 50,
     pt: [
@@ -132,6 +136,7 @@ export const REFRIGERANTS = [
     color: '#EC4899',
     type: '자연냉매',
     note: '이소부탄 소형냉장고 (NIST)',
+    note_en: 'Isobutane — Small refrigerator (NIST)',
     info: { group: 'A3', gwp: 3, odp: 0, tBoil: -11.6, tCrit: 134.7, tCritP: 3.64 },
     tMin: -40, tMax: 50,
     pt: [
@@ -148,6 +153,7 @@ export const REFRIGERANTS = [
     color: '#F97316',
     type: '자연냉매',
     note: '프로판 자연냉매 (NIST)',
+    note_en: 'Propane — Natural refrigerant (NIST)',
     info: { group: 'A3', gwp: 3, odp: 0, tBoil: -42.1, tCrit: 96.7, tCritP: 4.25 },
     tMin: -50, tMax: 50,
     pt: [
@@ -165,6 +171,7 @@ export const REFRIGERANTS = [
     color: '#64748B',
     type: '자연냉매',
     note: '암모니아 산업용 (NIST)',
+    note_en: 'Ammonia — Industrial (NIST)',
     info: { group: 'B2L', gwp: 0, odp: 0, tBoil: -33.3, tCrit: 132.4, tCritP: 11.33 },
     tMin: -50, tMax: 50,
     pt: [
@@ -181,6 +188,7 @@ export const REFRIGERANTS = [
     name: 'R-744',
     color: '#0EA5E9',
     note: 'CO₂ 자연냉매 (NIST)',
+    note_en: 'CO₂ — Natural refrigerant (NIST)',
     type: '자연냉매',
     info: { group: 'A1', gwp: 1, odp: 0, tBoil: null, tCrit: 31.1, tCritP: 7.38 },
     tMin: -55, tMax: 30,
@@ -334,6 +342,7 @@ export const REFRIGERANTS = [
   {
     id:'R-23', name:'R-23', color:'#60A5FA', type:'HFC',
     note:'CHF₃ (Trifluoromethane) — 초저온 캐스케이드용. -82°C 이하 진공 구간.',
+    note_en:'CHF₃ (Trifluoromethane) — Ultra-low temp cascade. Vacuum range below -82°C.',
     info:{ group:'A1', gwp:14800, odp:0, tBoil:-82.1, tCrit:26.1, tCritP:4.82 },
     tMin:-130, tMax:25,
     pt:[

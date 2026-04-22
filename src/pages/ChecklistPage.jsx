@@ -3,15 +3,9 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useTranslation } from 'react-i18next'
 import { ChevronLeft, ChevronRight, XCircle, AlertCircle } from 'lucide-react'
 import { db } from '../db'
+import { showToast } from '../utils/toast'
 
 const PASS_THRESHOLD = 0.8 // 80%
-
-// 답변 옵션
-const OPTIONS = [
-  { value: 'ok',  label: '정상', score: 1.0, color: 'bg-emerald-500 text-white', border: 'border-emerald-500' },
-  { value: 'mid', label: '보통', score: 0.5, color: 'bg-amber-400 text-white',   border: 'border-amber-400' },
-  { value: 'bad', label: '비정상', score: 0,  color: 'bg-red-500 text-white',    border: 'border-red-500' },
-]
 
 function itemBg(ans) {
   if (ans === 'ok')  return 'bg-emerald-50 border-emerald-200'
@@ -24,11 +18,17 @@ export default function ChecklistPage() {
   const { t } = useTranslation()
   const templates = useLiveQuery(() => db.checklist_templates.toArray(), [])
   const [selected, setSelected]   = useState(null)
-  const [answers,  setAnswers]    = useState({})   // { [i]: 'ok' | 'mid' | 'bad' }
+  const [answers,  setAnswers]    = useState({})
   const [view,     setView]       = useState('list') // 'list' | 'check' | 'result'
   const [saved,    setSaved]      = useState(false)
 
-  if (!templates) return <div className="p-4 text-gray-400 text-sm">불러오는 중...</div>
+  const OPTIONS = [
+    { value: 'ok',  label: t('checklist.optionOk'),  score: 1.0, color: 'bg-emerald-500 text-white', border: 'border-emerald-500' },
+    { value: 'mid', label: t('checklist.optionMid'), score: 0.5, color: 'bg-amber-400 text-white',   border: 'border-amber-400' },
+    { value: 'bad', label: t('checklist.optionBad'), score: 0,   color: 'bg-red-500 text-white',     border: 'border-red-500' },
+  ]
+
+  if (!templates) return <div className="p-4 text-gray-400 text-sm">{t('logs.loading')}</div>
 
   const setAnswer = (i, val) => setAnswers(prev => ({ ...prev, [i]: val }))
 
@@ -62,16 +62,16 @@ export default function ChecklistPage() {
     } catch (e) { console.error(e) }
   }
 
-  const dateStr   = new Date().toLocaleDateString('ko-KR')
+  const dateStr   = new Date().toLocaleDateString()
   const shareText = selected ? [
-    `[냉동기 점검 결과]`,
-    `점검항목: ${selected.title}`,
-    `점검일: ${dateStr}`,
-    `점수: ${Math.round(scorePct * 100)}점`,
-    `판정: ${passed ? '✅ 선택조치 가능' : '⚠️ 즉각조치 필요'}`,
-    badItems.length  ? `\n[즉각조치 항목 ${badItems.length}건]`  : '',
+    t('checklist.shareTitle'),
+    `${t('checklist.shareItemLabel')}: ${selected.title}`,
+    `${t('checklist.shareDateLabel')}: ${dateStr}`,
+    `${t('checklist.shareScoreLabel')}: ${Math.round(scorePct * 100)}`,
+    `${t('checklist.shareJudgmentLabel')}: ${passed ? `✅ ${t('checklist.passResult')}` : `⚠️ ${t('checklist.failResult')}`}`,
+    badItems.length ? `\n${t('checklist.shareImmediateHeader', { count: badItems.length })}` : '',
     ...badItems.map(item => `  • ${item}`),
-    midItems.length  ? `\n[주의 항목 ${midItems.length}건]`       : '',
+    midItems.length ? `\n${t('checklist.shareCautionHeader', { count: midItems.length })}` : '',
     ...midItems.map(item => `  • ${item}`),
   ].filter(Boolean).join('\n') : ''
 
@@ -91,7 +91,7 @@ export default function ChecklistPage() {
                 <span className="text-xs font-medium text-gray-400 block mb-0.5">{tmpl.category}</span>
                 <span className="text-sm font-medium text-gray-800">{tmpl.title}</span>
               </div>
-              <span className="text-xs text-gray-400 shrink-0">{tmpl.items.length}개</span>
+              <span className="text-xs text-gray-400 shrink-0">{tmpl.items.length}{t('checklist.itemUnit')}</span>
               <ChevronRight size={15} strokeWidth={1.5} className="text-gray-300 shrink-0" />
             </button>
           ))}
@@ -109,17 +109,17 @@ export default function ChecklistPage() {
           className="flex items-center justify-center gap-2 w-full py-3 mb-4 bg-gray-100 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 active:bg-gray-200"
         >
           <ChevronLeft size={18} strokeWidth={2} />
-          점검 내용 보기
+          {t('checklist.viewChecklist')}
         </button>
 
         {/* 판정 배너 */}
         <div className={`rounded-2xl p-5 mb-4 text-center ${passed ? 'bg-emerald-600' : 'bg-red-600'}`}>
           <div className="text-3xl mb-2">{passed ? '✅' : '⚠️'}</div>
           <div className="text-white font-black text-2xl mb-1">
-            {passed ? '선택조치 가능' : '즉각조치 필요'}
+            {passed ? t('checklist.passResult') : t('checklist.failResult')}
           </div>
           <div className="text-white/80 text-sm">
-            종합 점수 {Math.round(scorePct * 100)}점 / 100점
+            {t('checklist.totalScore', { score: Math.round(scorePct * 100) })}
           </div>
         </div>
 
@@ -128,7 +128,7 @@ export default function ChecklistPage() {
           <div className="flex justify-between text-sm mb-2">
             <span className="text-gray-600">{selected.title}</span>
             <span className={`font-bold ${passed ? 'text-emerald-600' : 'text-red-600'}`}>
-              {Math.round(scorePct * 100)}점
+              {Math.round(scorePct * 100)}
             </span>
           </div>
           <div className="h-3 bg-gray-100 rounded-full overflow-hidden mb-2">
@@ -138,8 +138,12 @@ export default function ChecklistPage() {
             />
           </div>
           <div className="flex justify-between text-xs text-gray-400">
-            <span>합격선 {Math.round(PASS_THRESHOLD * 100)}점</span>
-            <span>정상 {selected.items.filter((_, i) => answers[i] === 'ok').length}개 · 보통 {midItems.length}개 · 비정상 {badItems.length}개</span>
+            <span>{t('checklist.passLine', { threshold: Math.round(PASS_THRESHOLD * 100) })}</span>
+            <span>{t('checklist.scoreSummary', {
+              ok:  selected.items.filter((_, i) => answers[i] === 'ok').length,
+              mid: midItems.length,
+              bad: badItems.length,
+            })}</span>
           </div>
         </div>
 
@@ -148,7 +152,7 @@ export default function ChecklistPage() {
           <div className="mb-4">
             <h3 className="text-sm font-semibold text-red-600 mb-2 flex items-center gap-1.5">
               <XCircle size={14} />
-              즉각조치 항목 ({badItems.length}건)
+              {t('checklist.immediateItems', { count: badItems.length })}
             </h3>
             <div className="space-y-1.5">
               {badItems.map((item, i) => (
@@ -166,7 +170,7 @@ export default function ChecklistPage() {
           <div className="mb-4">
             <h3 className="text-sm font-semibold text-amber-600 mb-2 flex items-center gap-1.5">
               <AlertCircle size={14} />
-              주의 항목 ({midItems.length}건)
+              {t('checklist.cautionItems', { count: midItems.length })}
             </h3>
             <div className="space-y-1.5">
               {midItems.map((item, i) => (
@@ -181,7 +185,7 @@ export default function ChecklistPage() {
 
         {/* 공유 미리보기 */}
         <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4">
-          <p className="text-xs font-semibold text-gray-500 mb-2">고객 공유용 문자 미리보기</p>
+          <p className="text-xs font-semibold text-gray-500 mb-2">{t('checklist.sharePreview')}</p>
           <p className="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed font-mono">{shareText}</p>
         </div>
 
@@ -193,18 +197,18 @@ export default function ChecklistPage() {
                 navigator.share({ text: shareText }).catch(() => {})
               } else {
                 navigator.clipboard?.writeText(shareText)
-                alert('클립보드에 복사되었습니다.')
+                showToast(t('checklist.copied'))
               }
             }}
             className="w-full py-3.5 bg-blue-600 text-white font-semibold rounded-2xl text-sm active:bg-blue-700"
           >
-            📤 저장 &amp; 고객에게 공유
+            📤 {t('checklist.saveAndShare')}
           </button>
           <button
             onClick={() => { setView('list'); setSelected(null); setAnswers({}); setSaved(false) }}
             className="w-full py-3 bg-gray-100 text-gray-600 font-medium rounded-2xl text-sm active:bg-gray-200"
           >
-            🔄 새 점검 시작
+            🔄 {t('checklist.newCheck')}
           </button>
         </div>
       </div>
@@ -222,7 +226,7 @@ export default function ChecklistPage() {
         className="flex items-center justify-center gap-2 w-full py-3 mb-4 bg-gray-100 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 active:bg-gray-200"
       >
         <ChevronLeft size={18} strokeWidth={2} />
-        목록으로
+        {t('checklist.backToList')}
       </button>
 
       <h2 className="text-base font-semibold text-gray-900 mb-4 truncate">{selected.title}</h2>
@@ -230,7 +234,7 @@ export default function ChecklistPage() {
       {/* 진행률 */}
       <div className="bg-white border border-gray-300 rounded-xl px-4 py-3 shadow-sm mb-4">
         <div className="flex justify-between text-xs text-gray-500 mb-2">
-          <span>진행률</span>
+          <span>{t('checklist.progressLabel')}</span>
           <span className="font-semibold text-gray-800">{answeredCount} / {total}</span>
         </div>
         <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
@@ -279,7 +283,7 @@ export default function ChecklistPage() {
           onClick={() => setView('result')}
           className="w-full py-4 bg-gray-900 text-white font-bold rounded-2xl text-sm active:bg-gray-800 shadow-lg"
         >
-          📋 점검 결과 보기
+          📋 {t('checklist.viewResult')}
         </button>
       )}
     </div>

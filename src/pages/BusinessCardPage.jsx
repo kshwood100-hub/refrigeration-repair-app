@@ -1,13 +1,15 @@
-import { useState, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useRef, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
+import { useTranslation } from 'react-i18next'
 import {
   ChevronLeft, Camera, User, Building2, Phone, Mail,
   MapPin, Loader, Check, Trash2, CreditCard, Plus,
 } from 'lucide-react'
 import { db } from '../db'
 import { loadSettings } from '../utils/settings'
-import { scanBusinessCardGemini } from '../utils/scanBusinessCardGemini'
+import { showToast } from '../utils/toast'
+import { scanBusinessCard } from '../utils/scanBusinessCard'
 
 const EMPTY = {
   name: '', company: '', title: '', phone: '', mobile: '', email: '', address: '', memo: '',
@@ -15,15 +17,22 @@ const EMPTY = {
 
 export default function BusinessCardPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const fileRef = useRef()
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  useEffect(() => {
+    if (searchParams.get('scan') === '1') {
+      fileRef.current?.click()
+      setSearchParams({}, { replace: true })
+    }
+  }, [searchParams, setSearchParams])
 
   const [mode, setMode] = useState('list')   // 'list' | 'confirm'
   const [photoUrl, setPhotoUrl] = useState('')
   const [form, setForm] = useState(EMPTY)
   const [scanning, setScanning] = useState(false)
-  const [scanProgress, setScanProgress] = useState(0)
   const [saving, setSaving] = useState(false)
-  const [rawText, setRawText] = useState('')
   const [deleting, setDeleting] = useState(null)
 
   const cards = useLiveQuery(
@@ -49,9 +58,8 @@ export default function BusinessCardPage() {
       setMode('confirm')
 
       setScanning(true)
-      setScanProgress(0)
       try {
-        const result = await scanBusinessCardGemini(dataUrl)
+        const result = await scanBusinessCard(dataUrl)
         setForm({
           name:    result.name    ?? '',
           company: result.company ?? '',
@@ -63,7 +71,7 @@ export default function BusinessCardPage() {
           memo:    result.memo    ?? '',
         })
       } catch (err) {
-        alert('AI 스캔 오류: ' + err.message)
+        showToast(t('bc.errScan') + err.message)
       } finally {
         setScanning(false)
       }
@@ -72,13 +80,12 @@ export default function BusinessCardPage() {
   }
 
   async function handleSave() {
-    if (!form.name.trim()) { alert('이름을 입력해주세요.'); return }
+    if (!form.name.trim()) { showToast(t('bc.errName')); return }
     setSaving(true)
     try {
       const now = new Date().toISOString()
       const primaryPhone = form.mobile.trim() || form.phone.trim()
 
-      // 동일 이름+전화 고객 찾기
       let customerId = null
       const existing = (customers ?? []).find(
         (c) => c.name === form.name.trim() && (c.phone === primaryPhone || !primaryPhone)
@@ -123,14 +130,14 @@ export default function BusinessCardPage() {
   /* ── CONFIRM VIEW ───────────────────────────────────────── */
   if (mode === 'confirm') {
     const fields = [
-      { key: 'name',    label: '이름',      Icon: User,      required: true },
-      { key: 'company', label: '회사명',     Icon: Building2 },
-      { key: 'title',   label: '직함',      Icon: null },
-      { key: 'mobile',  label: '휴대폰',    Icon: Phone },
-      { key: 'phone',   label: '전화(직통)', Icon: Phone },
-      { key: 'email',   label: '이메일',    Icon: Mail },
-      { key: 'address', label: '주소',      Icon: MapPin },
-      { key: 'memo',    label: '메모',      Icon: null },
+      { key: 'name',    label: t('bc.fieldName'),    Icon: User,      required: true },
+      { key: 'company', label: t('bc.fieldCompany'), Icon: Building2 },
+      { key: 'title',   label: t('bc.fieldTitle'),   Icon: null },
+      { key: 'mobile',  label: t('bc.fieldMobile'),  Icon: Phone },
+      { key: 'phone',   label: t('bc.fieldPhone'),   Icon: Phone },
+      { key: 'email',   label: t('bc.fieldEmail'),   Icon: Mail },
+      { key: 'address', label: t('bc.fieldAddress'), Icon: MapPin },
+      { key: 'memo',    label: t('bc.fieldMemo'),    Icon: null },
     ]
     return (
       <div className="p-4 pb-12">
@@ -138,19 +145,19 @@ export default function BusinessCardPage() {
           <button onClick={() => { setMode('list'); setPhotoUrl('') }} className="text-gray-500">
             <ChevronLeft size={22} strokeWidth={1.5} />
           </button>
-          <h2 className="text-base font-semibold text-gray-900">명함 정보 확인</h2>
+          <h2 className="text-base font-semibold text-gray-900">{t('bc.confirmInfo')}</h2>
         </div>
 
         {/* 명함 사진 */}
         <div className="mb-4 rounded-xl overflow-hidden border border-gray-300 bg-gray-50 flex items-center justify-center">
-          <img src={photoUrl} alt="명함" className="w-full max-h-44 object-contain" />
+          <img src={photoUrl} alt={t('bc.title')} className="w-full max-h-44 object-contain" />
         </div>
 
         {/* 스캔 중 */}
         {scanning && (
           <div className="flex items-center justify-center gap-2 py-3 mb-3 text-blue-600 text-sm bg-blue-50 rounded-xl">
             <Loader size={15} className="animate-spin" strokeWidth={2} />
-            {scanProgress > 0 ? `Tesseract 분석 중… ${scanProgress}%` : 'AI가 명함 내용을 분석 중입니다…'}
+            {t('bc.scanning')}
           </div>
         )}
 
@@ -159,7 +166,7 @@ export default function BusinessCardPage() {
             onClick={async () => {
               setScanning(true)
               try {
-                const result = await scanBusinessCardGemini(photoUrl)
+                const result = await scanBusinessCard(photoUrl)
                 setForm({
                   name:    result.name    ?? '',
                   company: result.company ?? '',
@@ -171,17 +178,16 @@ export default function BusinessCardPage() {
                   memo:    result.memo    ?? '',
                 })
               } catch (err) {
-                alert('AI 스캔 오류: ' + err.message)
+                showToast(t('bc.errScan') + err.message)
               } finally {
                 setScanning(false)
               }
             }}
             className="w-full py-2 mb-3 text-xs font-medium bg-blue-50 border border-blue-300 text-blue-700 rounded-xl"
           >
-            AI 재스캔
+            {t('bc.rescan')}
           </button>
         )}
-
 
         {/* 폼 */}
         <div className="space-y-2.5">
@@ -214,7 +220,7 @@ export default function BusinessCardPage() {
             onClick={() => { setMode('list'); setPhotoUrl('') }}
             className="flex-1 py-3 text-sm font-medium border border-gray-300 rounded-xl text-gray-600"
           >
-            취소
+            {t('bc.cancel')}
           </button>
           <button
             onClick={handleSave}
@@ -224,7 +230,7 @@ export default function BusinessCardPage() {
             {saving
               ? <Loader size={14} className="animate-spin" />
               : <Check size={14} strokeWidth={2} />}
-            저장 &amp; 고객 등록
+            {saving ? t('bc.saving') : t('bc.saveAndRegister')}
           </button>
         </div>
       </div>
@@ -236,21 +242,14 @@ export default function BusinessCardPage() {
     <div className="p-4 pb-10">
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
-          <button onClick={() => navigate('/service')} className="text-gray-500">
+          <button onClick={() => navigate(-1)} className="text-gray-500">
             <ChevronLeft size={22} strokeWidth={1.5} />
           </button>
-          <h2 className="text-base font-semibold text-gray-900">명함 관리</h2>
+          <h2 className="text-base font-semibold text-gray-900">{t('bc.title')}</h2>
           {cards && cards.length > 0 && (
-            <span className="text-xs text-gray-400">{cards.length}장</span>
+            <span className="text-xs text-gray-400">{t('bc.cardCount', { count: cards.length })}</span>
           )}
         </div>
-        <button
-          onClick={() => fileRef.current?.click()}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-gray-900 text-white rounded-lg"
-        >
-          <Camera size={13} strokeWidth={2} />
-          명함 스캔
-        </button>
       </div>
 
       <input
@@ -263,18 +262,18 @@ export default function BusinessCardPage() {
       />
 
       {(!cards || cards.length === 0) ? (
-        <div className="flex flex-col items-center justify-center py-24 text-gray-400">
-          <CreditCard size={44} strokeWidth={1} className="mb-3 opacity-25" />
-          <p className="text-sm mb-1 font-medium text-gray-500">저장된 명함이 없습니다</p>
-          <p className="text-xs text-center leading-relaxed">
-            명함 스캔 버튼을 눌러 촬영하면<br />자동으로 고객 정보를 추출합니다
+        <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+          <CreditCard size={52} strokeWidth={1} className="mb-4 opacity-25" />
+          <p className="text-lg mb-2 font-bold text-gray-600">{t('bc.empty')}</p>
+          <p className="text-sm text-center leading-relaxed whitespace-pre-line text-gray-400">
+            {t('bc.emptyDesc')}
           </p>
           <button
             onClick={() => fileRef.current?.click()}
-            className="mt-5 flex items-center gap-1.5 px-5 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-xl"
+            className="mt-6 flex items-center gap-2 px-6 py-3 bg-gray-800 text-white text-base font-semibold rounded-xl active:bg-gray-700"
           >
-            <Camera size={14} strokeWidth={2} />
-            첫 명함 스캔
+            <Camera size={16} strokeWidth={2} />
+            {t('bc.firstScan')}
           </button>
         </div>
       ) : (
@@ -284,13 +283,14 @@ export default function BusinessCardPage() {
             return (
               <div
                 key={card.id}
-                className="bg-white border border-gray-300 rounded-xl p-3 shadow-sm"
+                onClick={() => card.customerId && navigate(`/customers/${card.customerId}`)}
+                className="bg-white border border-gray-300 rounded-xl p-3 shadow-sm active:bg-gray-50 cursor-pointer"
               >
                 <div className="flex items-start gap-3">
                   {card.dataUrl ? (
                     <img
                       src={card.dataUrl}
-                      alt="명함"
+                      alt={t('bc.title')}
                       className="w-16 h-10 object-cover rounded-lg border border-gray-300 shrink-0 bg-gray-50"
                     />
                   ) : (
@@ -303,7 +303,7 @@ export default function BusinessCardPage() {
                     <div className="flex items-start justify-between gap-1">
                       <div className="min-w-0">
                         <p className="font-semibold text-sm text-gray-900 truncate">
-                          {card.name || '이름 없음'}
+                          {card.name || t('bc.noName')}
                         </p>
                         {(card.company || card.title) && (
                           <p className="text-xs text-gray-500 truncate">
@@ -317,7 +317,7 @@ export default function BusinessCardPage() {
                         )}
                       </div>
                       <button
-                        onClick={() => setDeleting(card.id)}
+                        onClick={(e) => { e.stopPropagation(); setDeleting(card.id) }}
                         className="p-1 text-gray-300 shrink-0"
                       >
                         <Trash2 size={14} strokeWidth={1.5} />
@@ -327,18 +327,18 @@ export default function BusinessCardPage() {
                     <div className="flex items-center gap-2 mt-2">
                       {customer && (
                         <button
-                          onClick={() => navigate(`/customers/${card.customerId}`)}
+                          onClick={(e) => { e.stopPropagation(); navigate(`/customers/${card.customerId}`) }}
                           className="text-xs text-emerald-600 font-medium"
                         >
-                          ✓ 고객 이력 보기
+                          ✓ {t('bc.viewHistory')}
                         </button>
                       )}
                       <button
-                        onClick={() => navigate('/service/new', { state: { customerId: card.customerId } })}
+                        onClick={(e) => { e.stopPropagation(); navigate('/service/new', { state: { customerId: card.customerId } }) }}
                         className="ml-auto flex items-center gap-1 text-xs text-blue-600 font-medium"
                       >
                         <Plus size={11} strokeWidth={2} />
-                        새 의뢰
+                        {t('bc.newRequest')}
                       </button>
                     </div>
                   </div>
@@ -353,20 +353,20 @@ export default function BusinessCardPage() {
       {deleting && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-6">
           <div className="bg-white rounded-2xl p-5 w-full max-w-sm">
-            <p className="font-semibold text-gray-900 mb-1">명함을 삭제하시겠습니까?</p>
-            <p className="text-sm text-gray-400 mb-5">고객 정보는 유지됩니다.</p>
+            <p className="font-semibold text-gray-900 mb-1">{t('bc.deleteConfirm')}</p>
+            <p className="text-sm text-gray-400 mb-5">{t('bc.deleteDesc')}</p>
             <div className="flex gap-2">
               <button
                 onClick={() => setDeleting(null)}
                 className="flex-1 py-2.5 text-sm font-medium border border-gray-300 rounded-xl text-gray-600"
               >
-                취소
+                {t('bc.cancel')}
               </button>
               <button
                 onClick={() => handleDelete(deleting)}
                 className="flex-1 py-2.5 text-sm font-medium bg-red-500 text-white rounded-xl"
               >
-                삭제
+                {t('bc.delete')}
               </button>
             </div>
           </div>
