@@ -8,3 +8,17 @@ dist/
 # 내부 문서 (깃 제외)
 APP_MANUAL.md
 APP_MANUAL.html
+
+# 작업용 스크립트·임시 파일 (깃 제외)
+_*
+translate_*.cjs
+translate_*.js
+generate_*.cjs
+*.bak
+
+# 도구 캐시·생성 파일
+.firebase/
+.agents/
+skills-lock.json
+src/dataconnect-generated/
+src/data/searchDatabase_original.json

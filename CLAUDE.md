@@ -36,7 +36,7 @@
 - 베타 없이 바로 상용 판매 예정
 - 판매 대상: 현장 냉동기 수리 기사
 - 마케팅 채널: 해외 블로거/커뮤니티 검토 중
-- 결제: Paddle 검토 중 (기존 Lemon Squeezy에서 변경)
+- 결제: Lemon Squeezy + Paddle 둘 다 준비 중 (Lemon Squeezy 스토어 활성화 완료, Paddle 심사 대기)
 
 ## 로그인/접근 제어 현황
 - Firebase Auth (Google 로그인) 구현 완료
@@ -53,9 +53,9 @@
 - 모든 locale 파일 완성: src/locales/{ko,en,zh,ja,es,hi}.json
 
 ## 출시 전 체크리스트
-- [ ] Paddle 결제 연동 (심사 대기 중)
+- [ ] 결제 연동 (Lemon Squeezy 스토어 활성, Paddle 심사 대기 — 둘 다 준비)
 - [ ] 구매 링크 앱에 연결
-- [ ] ALLOWED_EMAILS → Firestore 이전 + Paddle webhook 자동화
+- [ ] ALLOWED_EMAILS → Firestore 이전 + 결제 webhook 자동화 (Lemon Squeezy/Paddle 둘 다)
 - [ ] Sentry 에러 트래킹 도입 (@sentry/react)
 - [ ] 자동 백업 기능 (IndexedDB 데이터 보호)
 - [ ] 현장 기사 실기기 테스트
@@ -71,8 +71,8 @@
 - flowchart.json result 노드 필드: title, conclusion, causes, steps, warning (5종 × 6개 언어)
 
 ## 다음 할 일 (우선순위 순)
-1. ALLOWED_EMAILS 자동화 (Firestore + Paddle webhook)
-2. Paddle 결제 연동
+1. ALLOWED_EMAILS 자동화 (Firestore + 결제 webhook)
+2. 결제 연동 (Lemon Squeezy 선행, Paddle 승인 후 추가)
 3. Sentry 에러 트래킹
 4. 자동 백업 기능
 5. 현장 기사 실기기 테스트
