@@ -2,13 +2,13 @@ import { useState, useRef } from 'react'
 import { UNITS } from '../data/refrigerantsData'
 import { loadSettings, saveSettings } from '../utils/settings'
 import { createBackup, listBackups, downloadBackup, restoreBackup, formatSize, importAllData } from '../utils/backup'
-import { insertTestData, deleteAllTestData } from '../utils/testData'
 import { Download, RotateCcw, Upload, QrCode, ScanLine } from 'lucide-react'
 import QRExportModal from '../components/QRExportModal'
 import QRImportModal from '../components/QRImportModal'
 import { useTranslation } from 'react-i18next'
 import { showToast } from '../utils/toast'
 import ConfirmModal from '../components/ConfirmModal'
+import { insertTestData, deleteAllTestData } from '../utils/testData'
 
 const LANGUAGES = [
   { code: 'en', short: 'EN', label: 'ENGLISH' },
@@ -17,6 +17,10 @@ const LANGUAGES = [
   { code: 'hi', short: 'IN', label: 'हिन्दी' },
   { code: 'ja', short: 'JP', label: '日本語'  },
   { code: 'ko', short: 'KR', label: '한국어'  },
+  { code: 'vi', short: 'VN', label: 'Tiếng Việt' },
+  { code: 'th', short: 'TH', label: 'ไทย'      },
+  { code: 'id', short: 'ID', label: 'Indonesia' },
+  { code: 'ar', short: 'AR', label: 'العربية'  },
 ]
 
 export default function SettingsPage() {

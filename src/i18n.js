@@ -8,6 +8,10 @@ import zh from './locales/zh.json'
 import hi from './locales/hi.json'
 import es from './locales/es.json'
 import ja from './locales/ja.json'
+import vi from './locales/vi.json'
+import th from './locales/th.json'
+import id from './locales/id.json'
+import ar from './locales/ar.json'
 
 // localStorage에서 저장된 언어 직접 읽기
 const savedLng = localStorage.getItem('i18nextLng') || localStorage.getItem('rfg_lang')
@@ -16,10 +20,10 @@ i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
-    resources: { ko, en, zh, hi, es, ja },
+    resources: { ko, en, zh, hi, es, ja, vi, th, id, ar },
     lng: savedLng || undefined,
     fallbackLng: 'ko',
-    supportedLngs: ['ko', 'en', 'zh', 'hi', 'es', 'ja'],
+    supportedLngs: ['ko', 'en', 'zh', 'hi', 'es', 'ja', 'vi', 'th', 'id', 'ar'],
     detection: {
       order: ['localStorage', 'navigator'],
       lookupLocalStorage: 'i18nextLng',

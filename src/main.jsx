@@ -4,9 +4,16 @@ import { BrowserRouter } from 'react-router-dom'
 import * as Sentry from '@sentry/react'
 import App from './App.jsx'
 import { AuthProvider } from './hooks/useAuth.jsx'
-import './i18n'
+import i18n from './i18n'
 import './index.css'
 import { initAlarms } from './utils/alarmManager'
+
+const applyLang = (lng) => {
+  document.documentElement.dir = lng === 'ar' ? 'rtl' : 'ltr'
+  document.documentElement.lang = lng || 'ko'
+}
+applyLang(i18n.language)
+i18n.on('languageChanged', applyLang)
 
 // Sentry 에러 추적 (프로덕션에서만 활성화)
 if (import.meta.env.PROD) {
