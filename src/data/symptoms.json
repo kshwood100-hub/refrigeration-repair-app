@@ -108,7 +108,79 @@
         "5. Medir la resistencia entre los bornes del compresor — verificar circuito abierto/fallo a tierra",
         "6. Resolver la causa del disparo por alta presión (sobrecarga de refrigerante, suciedad en condensador) y resetear"
       ],
-      "notes_es": "Fallos de arranque repetidos pueden sobrecalentar los bobinados — dejar enfriar antes de reintentar"
+      "notes_es": "Fallos de arranque repetidos pueden sobrecalentar los bobinados — dejar enfriar antes de reintentar",
+      "category_vi": "Máy nén",
+      "title_vi": "Máy nén không khởi động",
+      "causes_vi": [
+        "Lỗi nguồn điện (trip CB, cháy cầu chì)",
+        "Rơle quá tải tác động (quá dòng)",
+        "Tụ khởi động hỏng",
+        "Máy nén bị kẹt bên trong",
+        "Công tắc áp suất cao tác động"
+      ],
+      "procedures_vi": [
+        "1. Đo điện áp cấp — xác nhận trong ±10% điện áp định mức",
+        "2. Kiểm tra và reset CB / cầu chì",
+        "3. Reset thủ công rơle quá tải và thử khởi động lại",
+        "4. Đo dung lượng tụ khởi động (trong ±5% giá trị định mức)",
+        "5. Đo điện trở giữa các cực máy nén — kiểm tra hở mạch/chạm đất",
+        "6. Xử lý nguyên nhân trip áp cao (nạp quá, bẩn dàn ngưng) rồi reset"
+      ],
+      "notes_vi": "Khởi động lỗi lặp lại có nguy cơ quá nhiệt cuộn dây — để nguội trước khi thử lại",
+      "category_th": "คอมเพรสเซอร์",
+      "title_th": "คอมเพรสเซอร์ไม่สตาร์ท",
+      "causes_th": [
+        "ไฟฟ้าขัดข้อง (เบรกเกอร์ทริป, ฟิวส์ขาด)",
+        "รีเลย์โอเวอร์โหลดทำงาน (กระแสเกิน)",
+        "คาปาซิเตอร์สตาร์ทเสีย",
+        "คอมเพรสเซอร์ติดภายใน",
+        "สวิตช์ความดันสูงทำงาน"
+      ],
+      "procedures_th": [
+        "1. วัดแรงดันไฟ — ยืนยันอยู่ในช่วง ±10% ของแรงดันกำหนด",
+        "2. ตรวจและรีเซ็ตเบรกเกอร์/ฟิวส์",
+        "3. รีเซ็ตรีเลย์โอเวอร์โหลดด้วยมือและลองสตาร์ทใหม่",
+        "4. วัดค่าความจุคาปาซิเตอร์สตาร์ท (ในช่วง ±5% ของค่าระบุ)",
+        "5. วัดความต้านทานระหว่างขั้วคอมเพรสเซอร์ — ตรวจวงจรเปิด/ลงกราวด์",
+        "6. แก้ไขสาเหตุทริปความดันสูง (เติมเกิน, คอนเดนเซอร์สกปรก) แล้วรีเซ็ต"
+      ],
+      "notes_th": "การสตาร์ทล้มเหลวซ้ำๆ เสี่ยงทำให้ขดลวดร้อนเกิน — รอให้เย็นก่อนลองใหม่",
+      "category_id": "Kompresor",
+      "title_id": "Kompresor tidak menyala",
+      "causes_id": [
+        "Gangguan catu daya (MCB trip, sekring putus)",
+        "Relay overload aktif (arus berlebih)",
+        "Kapasitor start rusak",
+        "Kompresor macet di dalam",
+        "Saklar tekanan tinggi aktif"
+      ],
+      "procedures_id": [
+        "1. Ukur tegangan catu daya — pastikan dalam ±10% tegangan nominal",
+        "2. Periksa dan reset MCB / sekring",
+        "3. Reset manual relay overload dan coba hidupkan kembali",
+        "4. Ukur kapasitansi kapasitor start (dalam ±5% nilai nominal)",
+        "5. Ukur resistansi antar terminal kompresor — periksa putus/grounding",
+        "6. Atasi penyebab trip tekanan tinggi (overcharge, kondensor kotor) lalu reset"
+      ],
+      "notes_id": "Kegagalan start berulang berisiko overheat gulungan — beri jeda pendinginan sebelum mencoba lagi",
+      "category_ar": "الكومبروسر",
+      "title_ar": "الكومبروسر لا يعمل",
+      "causes_ar": [
+        "عطل إمداد الطاقة (قاطع يفصل، انصهار الفيوز)",
+        "تفعيل ريليه الحمل الزائد (تيار زائد)",
+        "كوندنسر البدء معطوب",
+        "انحباس داخلي للكومبروسر",
+        "تفعيل مفتاح الضغط العالي"
+      ],
+      "procedures_ar": [
+        "1. قس جهد الإمداد — تأكد من ±10% من الجهد المقنن",
+        "2. افحص وأعد ضبط القاطع / الفيوز",
+        "3. أعد ضبط ريليه الحمل الزائد يدوياً وحاول التشغيل",
+        "4. قس سعة كوندنسر البدء (ضمن ±5% من القيمة المقننة)",
+        "5. قس المقاومة بين أطراف الكومبروسر — افحص القطع/التأريض",
+        "6. عالج سبب فصل الضغط العالي (زيادة شحن، اتساخ المكثف) ثم أعد الضبط"
+      ],
+      "notes_ar": "فشل البدء المتكرر يخاطر بارتفاع حرارة الملفات — اترك فترة تبريد قبل المحاولة مجدداً"
     },
     {
       "category": "압축기",
@@ -218,7 +290,79 @@
         "5. Verificar nivel y color del aceite",
         "6. Revisar la ventilación de la sala de máquinas"
       ],
-      "notes_es": "Esperar al menos 10 minutos de enfriamiento antes de rearrancar tras el disparo"
+      "notes_es": "Esperar al menos 10 minutos de enfriamiento antes de rearrancar tras el disparo",
+      "category_vi": "Máy nén",
+      "title_vi": "Trip nhiệt máy nén lặp lại",
+      "causes_vi": [
+        "Áp suất hút quá thấp (thiếu môi chất lạnh)",
+        "Áp suất ngưng tụ quá cao (dàn ngưng bẩn)",
+        "Dầu lạnh không đủ hoặc bị nhiễm bẩn",
+        "Lọc hút tắc",
+        "Nhiệt độ môi trường quá cao"
+      ],
+      "procedures_vi": [
+        "1. Đo áp suất hút và đẩy",
+        "2. Kiểm tra nạp môi chất — quan sát bọt trong kính xem",
+        "3. Kiểm tra và làm sạch cánh dàn ngưng",
+        "4. Làm sạch hoặc thay lọc hút",
+        "5. Kiểm tra mức và màu dầu lạnh",
+        "6. Kiểm tra thông gió phòng máy"
+      ],
+      "notes_vi": "Chờ ít nhất 10 phút cho nguội trước khi khởi động lại sau khi trip",
+      "category_th": "คอมเพรสเซอร์",
+      "title_th": "คอมเพรสเซอร์ทริปความร้อนซ้ำๆ",
+      "causes_th": [
+        "ความดันดูดต่ำเกินไป (สารทำความเย็นขาด)",
+        "ความดันควบแน่นสูงเกินไป (คอนเดนเซอร์สกปรก)",
+        "น้ำมันคอมเพรสเซอร์ไม่พอหรือปนเปื้อน",
+        "ตัวกรองดูดอุดตัน",
+        "อุณหภูมิแวดล้อมสูงเกินไป"
+      ],
+      "procedures_th": [
+        "1. วัดความดันดูดและความดันส่ง",
+        "2. ตรวจปริมาณสารทำความเย็น — ดูฟองในไซท์กลาส",
+        "3. ตรวจและทำความสะอาดครีบคอนเดนเซอร์",
+        "4. ทำความสะอาดหรือเปลี่ยนตัวกรองดูด",
+        "5. ตรวจระดับและสีน้ำมัน",
+        "6. ตรวจการระบายอากาศของห้องเครื่อง"
+      ],
+      "notes_th": "รออย่างน้อย 10 นาทีให้เย็นลงก่อนสตาร์ทใหม่หลังทริป",
+      "category_id": "Kompresor",
+      "title_id": "Trip termal kompresor berulang",
+      "causes_id": [
+        "Tekanan hisap terlalu rendah (refrigeran kurang)",
+        "Tekanan kondensasi terlalu tinggi (kondensor kotor)",
+        "Oli refrigerasi kurang atau terkontaminasi",
+        "Filter hisap tersumbat",
+        "Suhu ambien terlalu tinggi"
+      ],
+      "procedures_id": [
+        "1. Ukur tekanan hisap dan tekan",
+        "2. Periksa muatan refrigeran — amati gelembung di sight glass",
+        "3. Periksa dan bersihkan sirip kondensor",
+        "4. Bersihkan atau ganti strainer hisap",
+        "5. Periksa level dan warna oli",
+        "6. Periksa ventilasi ruang mesin"
+      ],
+      "notes_id": "Tunggu setidaknya 10 menit untuk pendinginan sebelum menyalakan kembali setelah trip",
+      "category_ar": "الكومبروسر",
+      "title_ar": "تكرار فصل الحمل الحراري للكومبروسر",
+      "causes_ar": [
+        "ضغط الشفط منخفض جداً (نقص مادة التبريد)",
+        "ضغط التكثيف عالٍ جداً (اتساخ المكثف)",
+        "زيت التبريد غير كافٍ أو ملوث",
+        "فلتر الشفط مسدود",
+        "درجة الحرارة المحيطة مرتفعة جداً"
+      ],
+      "procedures_ar": [
+        "1. قس ضغط الشفط والتفريغ",
+        "2. افحص شحنة مادة التبريد — راقب الفقاعات في زجاج الرؤية",
+        "3. افحص ونظف زعانف المكثف",
+        "4. نظف أو استبدل فلتر الشفط",
+        "5. افحص مستوى ولون الزيت",
+        "6. افحص تهوية غرفة الآلات"
+      ],
+      "notes_ar": "انتظر 10 دقائق على الأقل للتبريد قبل إعادة التشغيل بعد الفصل"
     },
     {
       "category": "냉각 불량",
@@ -328,7 +472,79 @@
         "5. Comprobar fugas de refrigerante con detector o agua jabonosa",
         "6. Evaluar la eficiencia de las válvulas de aspiración/descarga del compresor"
       ],
-      "notes_es": "Si hay mucho hielo, forzar un ciclo de desescarche antes de volver a medir"
+      "notes_es": "Si hay mucho hielo, forzar un ciclo de desescarche antes de volver a medir",
+      "category_vi": "Làm lạnh kém",
+      "title_vi": "Nhiệt độ làm lạnh không đạt giá trị cài đặt",
+      "causes_vi": [
+        "Thiếu môi chất lạnh (rò rỉ)",
+        "Van tiết lưu mở không đúng",
+        "Đóng băng quá mức trên dàn bay hơi",
+        "Hiệu suất máy nén suy giảm",
+        "Tải lạnh quá mức"
+      ],
+      "procedures_vi": [
+        "1. Đo áp suất hút/đẩy để đánh giá mức môi chất",
+        "2. Kiểm tra trực quan tình trạng đóng băng dàn bay hơi",
+        "3. Kiểm tra hoạt động của sưởi xả đá và timer",
+        "4. Xác nhận tiếp xúc của bầu cảm ứng van tiết lưu",
+        "5. Kiểm tra rò rỉ môi chất bằng máy dò hoặc nước xà phòng",
+        "6. Đánh giá hiệu suất van hút/đẩy máy nén"
+      ],
+      "notes_vi": "Nếu đóng băng nhiều, ép chu trình xả đá trước khi đo lại",
+      "category_th": "ทำความเย็นไม่ดี",
+      "title_th": "อุณหภูมิทำความเย็นไม่ถึงค่าที่ตั้ง",
+      "causes_th": [
+        "สารทำความเย็นขาด (รั่ว)",
+        "การเปิดวาล์วขยายตัวผิดปกติ",
+        "น้ำแข็งจับที่อีแวปอเรเตอร์มากเกิน",
+        "ประสิทธิภาพคอมเพรสเซอร์ลดลง",
+        "โหลดความเย็นมากเกิน"
+      ],
+      "procedures_th": [
+        "1. วัดความดันดูด/ส่งเพื่อประเมินปริมาณสารทำความเย็น",
+        "2. ตรวจสายตาการจับน้ำแข็งที่อีแวปอเรเตอร์",
+        "3. ตรวจการทำงานของฮีตเตอร์ละลายน้ำแข็งและตัวตั้งเวลา",
+        "4. ตรวจการสัมผัสของกระเปาะวัดอุณหภูมิวาล์วขยายตัว",
+        "5. ตรวจการรั่วของสารทำความเย็นด้วยเครื่องตรวจหรือน้ำสบู่",
+        "6. ประเมินประสิทธิภาพวาล์วดูด/ส่งของคอมเพรสเซอร์"
+      ],
+      "notes_th": "หากน้ำแข็งจับมาก ให้บังคับรอบละลายน้ำแข็งก่อนวัดใหม่",
+      "category_id": "Pendinginan Kurang",
+      "title_id": "Suhu pendinginan tidak mencapai setpoint",
+      "causes_id": [
+        "Refrigeran kurang (bocor)",
+        "Pembukaan katup ekspansi tidak berfungsi",
+        "Pembentukan es berlebihan di evaporator",
+        "Kinerja kompresor menurun",
+        "Beban pendinginan berlebih"
+      ],
+      "procedures_id": [
+        "1. Ukur tekanan hisap/tekan untuk menilai level refrigeran",
+        "2. Inspeksi visual pembekuan evaporator",
+        "3. Periksa operasi heater dan timer defrost",
+        "4. Verifikasi kontak bulb sensor katup ekspansi",
+        "5. Periksa kebocoran refrigeran dengan detektor atau air sabun",
+        "6. Nilai efisiensi katup hisap/tekan kompresor"
+      ],
+      "notes_id": "Jika pembekuan parah, paksa siklus defrost sebelum mengukur ulang",
+      "category_ar": "تبريد ضعيف",
+      "title_ar": "درجة حرارة التبريد لا تصل إلى نقطة الضبط",
+      "causes_ar": [
+        "نقص مادة التبريد (تسريب)",
+        "عطل في فتح صمام التمدد",
+        "تكون جليد مفرط على المبخر",
+        "تدهور أداء الكومبروسر",
+        "حمل تبريد زائد"
+      ],
+      "procedures_ar": [
+        "1. قس ضغط الشفط/التفريغ لتقييم مستوى مادة التبريد",
+        "2. فحص بصري لتجلد المبخر",
+        "3. افحص تشغيل سخان ومؤقت إزالة الجليد",
+        "4. تحقق من تلامس بصيلة استشعار صمام التمدد",
+        "5. افحص تسرب مادة التبريد بجهاز كاشف أو ماء الصابون",
+        "6. قيّم كفاءة صمامات شفط/تفريغ الكومبروسر"
+      ],
+      "notes_ar": "إذا كان التجلد شديداً، فرض دورة إزالة جليد قبل إعادة القياس"
     },
     {
       "category": "냉각 불량",
@@ -432,7 +648,75 @@
         "4. Verificar la corriente y dirección de giro del motor del ventilador del evaporador",
         "5. Inspeccionar visualmente el sellado de la junta de la puerta"
       ],
-      "notes_es": "Recomendado: entrar en modo de desescarche forzado y medir directamente la corriente del calefactor"
+      "notes_es": "Recomendado: entrar en modo de desescarche forzado y medir directamente la corriente del calefactor",
+      "category_vi": "Làm lạnh kém",
+      "title_vi": "Đóng băng quá mức trên dàn bay hơi",
+      "causes_vi": [
+        "Hở mạch sưởi xả đá",
+        "Timer hoặc cảm biến xả đá lỗi",
+        "Hỏng mô-tơ quạt dàn bay hơi",
+        "Hỏng gioăng cửa (hơi ẩm lọt vào)",
+        "Nạp môi chất quá mức (áp suất hút quá thấp)"
+      ],
+      "procedures_vi": [
+        "1. Xác nhận thời gian chu trình timer xả đá",
+        "2. Đo điện trở sưởi xả đá (kiểm tra hở mạch)",
+        "3. Kiểm tra thông mạch cảm biến kết thúc xả đá (cầu chì nhiệt)",
+        "4. Kiểm tra dòng điện và chiều quay mô-tơ quạt dàn bay hơi",
+        "5. Kiểm tra trực quan độ kín gioăng cửa"
+      ],
+      "notes_vi": "Khuyến nghị: vào chế độ xả đá cưỡng bức và đo trực tiếp dòng điện sưởi",
+      "category_th": "ทำความเย็นไม่ดี",
+      "title_th": "น้ำแข็งจับที่อีแวปอเรเตอร์มากเกินไป",
+      "causes_th": [
+        "ฮีตเตอร์ละลายน้ำแข็งวงจรเปิด",
+        "ตัวตั้งเวลาหรือเซ็นเซอร์ละลายน้ำแข็งเสีย",
+        "มอเตอร์พัดลมอีแวปอเรเตอร์เสีย",
+        "ซีลประตูเสีย (ความชื้นเข้า)",
+        "สารทำความเย็นเติมเกิน (ความดันดูดต่ำเกินไป)"
+      ],
+      "procedures_th": [
+        "1. ยืนยันระยะเวลารอบตัวตั้งเวลาละลายน้ำแข็ง",
+        "2. วัดความต้านทานฮีตเตอร์ละลายน้ำแข็ง (ตรวจวงจรเปิด)",
+        "3. ทดสอบความต่อเนื่องเซ็นเซอร์สิ้นสุดละลายน้ำแข็ง (ฟิวส์อุณหภูมิ)",
+        "4. ตรวจกระแสและทิศการหมุนมอเตอร์พัดลมอีแวปอเรเตอร์",
+        "5. ตรวจสายตาการปิดผนึกซีลประตู"
+      ],
+      "notes_th": "แนะนำ: เข้าโหมดละลายน้ำแข็งบังคับและวัดกระแสฮีตเตอร์โดยตรง",
+      "category_id": "Pendinginan Kurang",
+      "title_id": "Pembentukan es berlebihan di evaporator",
+      "causes_id": [
+        "Heater defrost rangkaian terbuka",
+        "Timer atau sensor defrost rusak",
+        "Motor kipas evaporator gagal",
+        "Gasket pintu rusak (masuk kelembaban)",
+        "Overcharge refrigeran (tekanan hisap terlalu rendah)"
+      ],
+      "procedures_id": [
+        "1. Verifikasi durasi siklus timer defrost",
+        "2. Ukur resistansi heater defrost (periksa rangkaian terbuka)",
+        "3. Uji kontinuitas sensor akhir defrost (sekring termal)",
+        "4. Periksa arus dan arah putaran motor kipas evaporator",
+        "5. Inspeksi visual segel gasket pintu"
+      ],
+      "notes_id": "Disarankan: masuk mode defrost paksa dan ukur langsung arus operasi heater",
+      "category_ar": "تبريد ضعيف",
+      "title_ar": "تراكم جليد مفرط على المبخر",
+      "causes_ar": [
+        "سخان إزالة الجليد دائرة مفتوحة",
+        "عطل مؤقت أو مستشعر إزالة الجليد",
+        "عطل محرك مروحة المبخر",
+        "عطل حشية الباب (تسرب رطوبة)",
+        "زيادة شحن مادة التبريد (ضغط الشفط منخفض جداً)"
+      ],
+      "procedures_ar": [
+        "1. تحقق من مدة دورة مؤقت إزالة الجليد",
+        "2. قس مقاومة سخان إزالة الجليد (افحص الدائرة المفتوحة)",
+        "3. اختبر استمرارية مستشعر نهاية إزالة الجليد (فيوز حراري)",
+        "4. افحص تيار واتجاه دوران محرك مروحة المبخر",
+        "5. فحص بصري لإحكام حشية الباب"
+      ],
+      "notes_ar": "موصى به: ادخل وضع إزالة الجليد القسري وقس مباشرة تيار تشغيل السخان"
     },
     {
       "category": "소음/진동",
@@ -536,7 +820,75 @@
         "4. Verificar el nivel de aceite",
         "5. Medir la temperatura de descarga — más baja de lo normal sugiere golpe de líquido"
       ],
-      "notes_es": "El golpe de líquido puede destruir el compresor — detener la operación inmediatamente y eliminar la causa"
+      "notes_es": "El golpe de líquido puede destruir el compresor — detener la operación inmediatamente y eliminar la causa",
+      "category_vi": "Tiếng ồn/Rung",
+      "title_vi": "Tiếng ồn bất thường từ máy nén",
+      "causes_vi": [
+        "Tràn lỏng (liquid slugging)",
+        "Dầu lạnh không đủ",
+        "Bulông lắp lỏng",
+        "Hỏng van bên trong",
+        "Nạp môi chất quá mức"
+      ],
+      "procedures_vi": [
+        "1. Đo nhiệt độ đường hút — kiểm tra quá lạnh quá mức",
+        "2. Xác định tiếng ồn xảy ra khi khởi động hay khi vận hành",
+        "3. Kiểm tra độ siết chặt của bulông lắp",
+        "4. Kiểm tra mức dầu",
+        "5. Đo nhiệt độ đẩy — thấp hơn bình thường gợi ý tràn lỏng"
+      ],
+      "notes_vi": "Tràn lỏng có thể phá hủy máy nén — dừng vận hành ngay và loại bỏ nguyên nhân",
+      "category_th": "เสียง/สั่น",
+      "title_th": "เสียงผิดปกติจากคอมเพรสเซอร์",
+      "causes_th": [
+        "ของเหลวไหลย้อนกลับ (liquid slugging)",
+        "น้ำมันคอมเพรสเซอร์ไม่พอ",
+        "สลักยึดหลวม",
+        "ความเสียหายของวาล์วภายใน",
+        "สารทำความเย็นเติมเกิน"
+      ],
+      "procedures_th": [
+        "1. วัดอุณหภูมิท่อดูด — ตรวจการแช่เย็นยิ่ง",
+        "2. แยกแยะว่าเสียงเกิดขึ้นตอนสตาร์ทหรือขณะทำงาน",
+        "3. ตรวจการขันแน่นของสลักยึด",
+        "4. ตรวจระดับน้ำมัน",
+        "5. วัดอุณหภูมิส่ง — ต่ำกว่าปกติบ่งชี้ถึง liquid slugging"
+      ],
+      "notes_th": "Liquid slugging ทำลายคอมเพรสเซอร์ได้ — หยุดทำงานทันทีและแก้ไขสาเหตุ",
+      "category_id": "Bising/Getaran",
+      "title_id": "Suara tidak normal dari kompresor",
+      "causes_id": [
+        "Liquid slugging (cairan balik)",
+        "Oli refrigerasi kurang",
+        "Baut mounting longgar",
+        "Kerusakan katup internal",
+        "Overcharge refrigeran"
+      ],
+      "procedures_id": [
+        "1. Ukur suhu saluran hisap — periksa subcooling berlebihan",
+        "2. Tentukan apakah suara terjadi saat start atau saat operasi",
+        "3. Periksa kekencangan baut mounting",
+        "4. Periksa level oli",
+        "5. Ukur suhu tekan — lebih rendah dari normal menunjukkan liquid slugging"
+      ],
+      "notes_id": "Liquid slugging dapat menghancurkan kompresor — hentikan operasi segera dan hilangkan penyebabnya",
+      "category_ar": "ضوضاء/اهتزاز",
+      "title_ar": "ضوضاء غير طبيعية من الكومبروسر",
+      "causes_ar": [
+        "عودة سائل (liquid slugging)",
+        "زيت تبريد غير كافٍ",
+        "براغي التثبيت مرتخية",
+        "تلف صمام داخلي",
+        "زيادة شحن مادة التبريد"
+      ],
+      "procedures_ar": [
+        "1. قس درجة حرارة خط الشفط — افحص التبريد الفائق المفرط",
+        "2. حدد إذا كانت الضوضاء تحدث عند البدء أو أثناء التشغيل",
+        "3. افحص إحكام براغي التثبيت",
+        "4. افحص مستوى الزيت",
+        "5. قس درجة حرارة التفريغ — أقل من الطبيعي يشير إلى عودة سائل"
+      ],
+      "notes_ar": "عودة السائل يمكن أن تدمر الكومبروسر — أوقف التشغيل فوراً وأزل السبب"
     },
     {
       "category": "소음/진동",
@@ -634,7 +986,71 @@
         "4. Apretar los pernos de montaje del motor",
         "5. Sustituir el motor si el rodamiento está defectuoso"
       ],
-      "notes_es": "Identificar la ubicación del ruido durante la operación, luego cortar la alimentación antes de inspeccionar"
+      "notes_es": "Identificar la ubicación del ruido durante la operación, luego cortar la alimentación antes de inspeccionar",
+      "category_vi": "Tiếng ồn/Rung",
+      "title_vi": "Tiếng ồn từ quạt dàn ngưng (dàn ngoài)",
+      "causes_vi": [
+        "Vật lạ tiếp xúc với cánh quạt",
+        "Mòn vòng bi",
+        "Cánh quạt nứt hoặc biến dạng",
+        "Bulông lắp mô-tơ lỏng"
+      ],
+      "procedures_vi": [
+        "1. Ngắt điện và loại bỏ vật lạ khỏi cánh quạt",
+        "2. Kiểm tra trực quan cánh quạt có nứt hoặc biến dạng",
+        "3. Kiểm tra rơ vòng bi mô-tơ (lắc tay)",
+        "4. Siết chặt bulông lắp mô-tơ",
+        "5. Thay mô-tơ nếu vòng bi hỏng"
+      ],
+      "notes_vi": "Xác định vị trí tiếng ồn khi vận hành, sau đó ngắt điện trước khi kiểm tra",
+      "category_th": "เสียง/สั่น",
+      "title_th": "เสียงจากพัดลมคอนเดนเซอร์ (ชุดนอก)",
+      "causes_th": [
+        "สิ่งแปลกปลอมสัมผัสกับใบพัด",
+        "แบริ่งสึก",
+        "ใบพัดร้าวหรือบิดเบี้ยว",
+        "สลักยึดมอเตอร์หลวม"
+      ],
+      "procedures_th": [
+        "1. ตัดไฟและนำสิ่งแปลกปลอมออกจากใบพัด",
+        "2. ตรวจสายตาใบพัดมีรอยร้าวหรือบิดเบี้ยว",
+        "3. ตรวจการคลอนของแบริ่งมอเตอร์ (ใช้มือโยก)",
+        "4. ขันสลักยึดมอเตอร์",
+        "5. เปลี่ยนมอเตอร์หากแบริ่งเสีย"
+      ],
+      "notes_th": "ระบุตำแหน่งเสียงขณะทำงาน จากนั้นตัดไฟก่อนตรวจ",
+      "category_id": "Bising/Getaran",
+      "title_id": "Suara dari kipas kondensor (unit luar)",
+      "causes_id": [
+        "Benda asing kontak dengan blade kipas",
+        "Keausan bearing",
+        "Blade kipas retak atau berubah bentuk",
+        "Baut mounting motor longgar"
+      ],
+      "procedures_id": [
+        "1. Putus daya dan singkirkan benda asing dari blade kipas",
+        "2. Inspeksi visual blade untuk retak atau deformasi",
+        "3. Periksa kelonggaran bearing motor (goyang dengan tangan)",
+        "4. Kencangkan baut mounting motor",
+        "5. Ganti motor jika bearing rusak"
+      ],
+      "notes_id": "Identifikasi lokasi suara selama operasi, lalu putus daya sebelum inspeksi",
+      "category_ar": "ضوضاء/اهتزاز",
+      "title_ar": "ضوضاء من مروحة المكثف (الوحدة الخارجية)",
+      "causes_ar": [
+        "تلامس جسم غريب مع شفرة المروحة",
+        "تآكل الكراسي",
+        "تشقق أو تشوه شفرة المروحة",
+        "براغي تثبيت المحرك مرتخية"
+      ],
+      "procedures_ar": [
+        "1. اقطع التيار وأزل أي أجسام غريبة من شفرة المروحة",
+        "2. افحص بصرياً الشفرة للتشقق أو التشوه",
+        "3. افحص لعب كرسي المحرك (حرك باليد)",
+        "4. شد براغي تثبيت المحرك",
+        "5. استبدل المحرك إذا كان الكرسي معيباً"
+      ],
+      "notes_ar": "حدد موقع الضوضاء أثناء التشغيل، ثم اقطع التيار قبل الفحص"
     },
     {
       "category": "냉매",
@@ -726,7 +1142,67 @@
         "4. Evacuar el sistema y recargar a la cantidad especificada",
         "5. Tras la carga, confirmar que desaparecen las burbujas del visor de líquido"
       ],
-      "notes_es": "Nunca añadir refrigerante sin reparar primero la fuga"
+      "notes_es": "Nunca añadir refrigerante sin reparar primero la fuga",
+      "category_vi": "Môi chất lạnh",
+      "title_vi": "Thiếu môi chất lạnh (áp suất hút thấp)",
+      "causes_vi": [
+        "Rò rỉ (khớp loe, gioăng van, điểm hàn)",
+        "Giảm tự nhiên do lâu không kiểm tra",
+        "Nạp không đủ sau công việc bảo dưỡng"
+      ],
+      "procedures_vi": [
+        "1. Đo áp suất phía thấp — xác nhận dải bình thường cho loại môi chất",
+        "2. Kiểm tra tất cả đường ống tìm rò rỉ (máy dò điện tử hoặc nước xà phòng)",
+        "3. Sửa rò rỉ (loe lại hoặc hàn)",
+        "4. Hút chân không hệ thống và nạp lại theo lượng quy định",
+        "5. Sau nạp, xác nhận bọt trong kính xem biến mất"
+      ],
+      "notes_vi": "Không bao giờ nạp thêm môi chất mà chưa sửa rò rỉ trước",
+      "category_th": "สารทำความเย็น",
+      "title_th": "สารทำความเย็นขาด (ความดันดูดต่ำ)",
+      "causes_th": [
+        "รั่ว (ข้อต่อเฟลร์, ซีลวาล์ว, จุดเชื่อม)",
+        "ลดลงตามธรรมชาติจากการไม่ตรวจเป็นเวลานาน",
+        "เติมไม่พอหลังงานบริการ"
+      ],
+      "procedures_th": [
+        "1. วัดความดันด้านต่ำ — ยืนยันช่วงปกติสำหรับชนิดสารทำความเย็น",
+        "2. ตรวจท่อทั้งหมดหาการรั่ว (เครื่องตรวจอิเล็กทรอนิกส์หรือน้ำสบู่)",
+        "3. ซ่อมรั่ว (ทำเฟลร์ใหม่หรือเชื่อม)",
+        "4. ดูดสุญญากาศระบบและเติมใหม่ตามปริมาณที่กำหนด",
+        "5. หลังเติม ยืนยันว่าฟองในไซท์กลาสหายไป"
+      ],
+      "notes_th": "ห้ามเติมสารทำความเย็นโดยไม่ซ่อมรั่วก่อน",
+      "category_id": "Refrigeran",
+      "title_id": "Refrigeran kurang (tekanan hisap rendah)",
+      "causes_id": [
+        "Kebocoran (sambungan flare, packing katup, titik las)",
+        "Pengurangan alami karena tidak diperiksa lama",
+        "Pengisian tidak cukup setelah pekerjaan servis"
+      ],
+      "procedures_id": [
+        "1. Ukur tekanan sisi rendah — konfirmasi kisaran normal untuk jenis refrigeran",
+        "2. Periksa semua pipa untuk kebocoran (detektor elektronik atau air sabun)",
+        "3. Perbaiki kebocoran (re-flare atau las)",
+        "4. Evakuasi sistem dan isi ulang sesuai jumlah yang ditentukan",
+        "5. Setelah pengisian, konfirmasi gelembung hilang dari sight glass"
+      ],
+      "notes_id": "Jangan pernah menambahkan refrigeran tanpa memperbaiki kebocoran terlebih dahulu",
+      "category_ar": "مادة التبريد",
+      "title_ar": "نقص مادة التبريد (ضغط شفط منخفض)",
+      "causes_ar": [
+        "تسريب (وصلات فلير، حشوات الصمامات، نقاط اللحام)",
+        "انخفاض طبيعي من عدم الفحص لفترة طويلة",
+        "شحن غير كافٍ بعد أعمال الصيانة"
+      ],
+      "procedures_ar": [
+        "1. قس ضغط الجانب المنخفض — تأكد من النطاق الطبيعي لنوع مادة التبريد",
+        "2. افحص جميع الأنابيب للتسريب (كاشف إلكتروني أو ماء صابون)",
+        "3. أصلح التسريب (إعادة فلير أو لحام)",
+        "4. أفرغ النظام وأعد الشحن بالكمية المحددة",
+        "5. بعد الشحن، تأكد من اختفاء الفقاعات من زجاج الرؤية"
+      ],
+      "notes_ar": "لا تضف مادة تبريد أبداً دون إصلاح التسريب أولاً"
     },
     {
       "category": "전기",
@@ -824,7 +1300,71 @@
         "4. Medir la corriente de arranque y verificar la capacidad del condensador",
         "5. Verificar que la capacidad nominal del disyuntor es adecuada"
       ],
-      "notes_es": "La medición de la resistencia de aislamiento es obligatoria cuando dispara un ELCB"
+      "notes_es": "La medición de la resistencia de aislamiento es obligatoria cuando dispara un ELCB",
+      "category_vi": "Điện",
+      "title_vi": "CB cứ trip liên tục",
+      "causes_vi": [
+        "Dòng khởi động máy nén quá lớn (tụ khởi động hỏng)",
+        "Chạm đất (hỏng cách điện dây, cuộn dây máy nén chạm đất)",
+        "CB không đủ công suất hoặc cũ",
+        "Quá tải (nạp môi chất quá, áp suất ngưng tụ cao)"
+      ],
+      "procedures_vi": [
+        "1. Xác định loại CB (trip quá dòng vs. trip chạm đất)",
+        "2. Cách ly từng tải riêng lẻ và kiểm tra để xác định tải lỗi",
+        "3. Đo điện trở cách điện cuộn dây máy nén đến đất (≥1MΩ)",
+        "4. Đo dòng khởi động và kiểm tra dung lượng tụ",
+        "5. Xác nhận công suất định mức CB phù hợp"
+      ],
+      "notes_vi": "Đo điện trở cách điện là bắt buộc khi ELCB trip",
+      "category_th": "ไฟฟ้า",
+      "title_th": "เบรกเกอร์ทริปซ้ำๆ",
+      "causes_th": [
+        "กระแสเริ่มเดินของคอมเพรสเซอร์สูงเกิน (คาปาซิเตอร์สตาร์ทเสีย)",
+        "ลงกราวด์ (ฉนวนสายเสียหาย, ขดลวดคอมเพรสเซอร์ลงกราวด์)",
+        "เบรกเกอร์ขนาดเล็กหรือเก่า",
+        "โอเวอร์โหลด (สารทำความเย็นเติมเกิน, ความดันควบแน่นสูง)"
+      ],
+      "procedures_th": [
+        "1. ระบุชนิดเบรกเกอร์ (ทริปกระแสเกิน หรือ ทริปลงกราวด์)",
+        "2. แยกโหลดทีละตัวและทดสอบเพื่อระบุโหลดที่เสีย",
+        "3. วัดความต้านทานฉนวนของขดลวดคอมเพรสเซอร์ต่อกราวด์ (≥1MΩ)",
+        "4. วัดกระแสเริ่มเดินและตรวจความจุคาปาซิเตอร์",
+        "5. ยืนยันว่าพิกัดเบรกเกอร์เหมาะสม"
+      ],
+      "notes_th": "การวัดความต้านทานฉนวนบังคับเมื่อ ELCB ทริป",
+      "category_id": "Kelistrikan",
+      "title_id": "MCB terus trip",
+      "causes_id": [
+        "Arus inrush kompresor berlebihan (kapasitor start rusak)",
+        "Gangguan ground (isolasi kabel rusak, ground gulungan kompresor)",
+        "MCB undersized atau tua",
+        "Overload (overcharge refrigeran, tekanan kondensasi tinggi)"
+      ],
+      "procedures_id": [
+        "1. Identifikasi tipe MCB (trip overcurrent vs. trip ground fault)",
+        "2. Isolasi beban satu per satu dan uji untuk menentukan beban bermasalah",
+        "3. Ukur resistansi isolasi gulungan kompresor ke ground (≥1MΩ)",
+        "4. Ukur arus inrush dan periksa kapasitansi kapasitor",
+        "5. Verifikasi kapasitas MCB sesuai"
+      ],
+      "notes_id": "Pengukuran resistansi isolasi wajib saat ELCB trip",
+      "category_ar": "الكهرباء",
+      "title_ar": "القاطع يفصل بشكل متكرر",
+      "causes_ar": [
+        "تيار بدء الكومبروسر مفرط (كوندنسر بدء معطوب)",
+        "عطل تأريض (تلف عزل الأسلاك، تأريض ملف الكومبروسر)",
+        "قاطع صغير السعة أو قديم",
+        "حمل زائد (زيادة شحن مادة التبريد، ضغط تكثيف عالٍ)"
+      ],
+      "procedures_ar": [
+        "1. حدد نوع القاطع (فصل تيار زائد مقابل فصل عطل تأريض)",
+        "2. اعزل الأحمال فردياً واختبر لتحديد الحمل المعطل",
+        "3. قس مقاومة عزل ملف الكومبروسر إلى الأرض (≥1MΩ)",
+        "4. قس تيار البدء وافحص سعة الكوندنسر",
+        "5. تحقق من ملاءمة السعة المقننة للقاطع"
+      ],
+      "notes_ar": "قياس مقاومة العزل إلزامي عند فصل ELCB"
     },
     {
       "category": "전기",
@@ -922,7 +1462,71 @@
         "4. Probar el funcionamiento de la EEV en modo de control manual forzado",
         "5. Sustituir la bobina si está defectuosa (muchos modelos permiten sustituir solo la bobina)"
       ],
-      "notes_es": "EEV bloqueada en cerrado provoca enfriamiento deficiente; bloqueada en abierto provoca golpe de líquido"
+      "notes_es": "EEV bloqueada en cerrado provoca enfriamiento deficiente; bloqueada en abierto provoca golpe de líquido",
+      "category_vi": "Điện",
+      "title_vi": "Van tiết lưu điện tử (EEV) không phản hồi",
+      "causes_vi": [
+        "Hỏng driver EEV",
+        "Hở mạch cuộn dây EEV",
+        "Lỗi tín hiệu bo điều khiển",
+        "Hỏng cảm biến nhiệt độ (lỗi cảm ứng quá nhiệt)"
+      ],
+      "procedures_vi": [
+        "1. Đo điện trở cuộn dây EEV (so với giá trị định mức theo model)",
+        "2. Đo điện áp tín hiệu ra của driver",
+        "3. Kiểm tra điện trở cảm biến nhiệt độ đường hút",
+        "4. Kiểm tra hoạt động EEV ở chế độ điều khiển tay cưỡng bức",
+        "5. Thay cuộn dây nếu hỏng (nhiều model hỗ trợ chỉ thay cuộn dây)"
+      ],
+      "notes_vi": "EEV kẹt đóng gây làm lạnh kém; kẹt mở gây tràn lỏng",
+      "category_th": "ไฟฟ้า",
+      "title_th": "วาล์วขยายตัวอิเล็กทรอนิกส์ (EEV) ไม่ตอบสนอง",
+      "causes_th": [
+        "ไดร์เวอร์ EEV ล้มเหลว",
+        "คอยล์ EEV วงจรเปิด",
+        "สัญญาณบอร์ดควบคุมผิดปกติ",
+        "เซ็นเซอร์อุณหภูมิล้มเหลว (ตรวจ superheat ผิด)"
+      ],
+      "procedures_th": [
+        "1. วัดความต้านทานคอยล์ EEV (เทียบกับค่าระบุของรุ่น)",
+        "2. วัดแรงดันสัญญาณเอาต์พุตไดร์เวอร์",
+        "3. ตรวจความต้านทานเซ็นเซอร์อุณหภูมิท่อดูด",
+        "4. ทดสอบการทำงาน EEV ในโหมดควบคุมมือบังคับ",
+        "5. เปลี่ยนคอยล์หากเสีย (หลายรุ่นรองรับเปลี่ยนเฉพาะคอยล์)"
+      ],
+      "notes_th": "EEV ค้างปิดทำให้ทำความเย็นไม่ดี; ค้างเปิดทำให้เกิด liquid slugging",
+      "category_id": "Kelistrikan",
+      "title_id": "Katup ekspansi elektronik (EEV) tidak merespon",
+      "causes_id": [
+        "Driver EEV gagal",
+        "Coil EEV rangkaian terbuka",
+        "Gangguan sinyal board kontrol",
+        "Kegagalan sensor suhu (error deteksi superheat)"
+      ],
+      "procedures_id": [
+        "1. Ukur resistansi coil EEV (bandingkan dengan nilai nominal per model)",
+        "2. Ukur tegangan sinyal output driver",
+        "3. Periksa resistansi sensor suhu hisap",
+        "4. Uji operasi EEV dalam mode kontrol manual paksa",
+        "5. Ganti coil jika rusak (banyak model mendukung penggantian coil saja)"
+      ],
+      "notes_id": "EEV stuck tertutup menyebabkan pendinginan kurang; stuck terbuka menyebabkan liquid slugging",
+      "category_ar": "الكهرباء",
+      "title_ar": "صمام التمدد الإلكتروني (EEV) لا يستجيب",
+      "causes_ar": [
+        "عطل درايفر EEV",
+        "ملف EEV دائرة مفتوحة",
+        "عطل إشارة لوحة التحكم",
+        "عطل مستشعر الحرارة (خطأ استشعار السوبرهيت)"
+      ],
+      "procedures_ar": [
+        "1. قس مقاومة ملف EEV (قارن بالقيمة المقننة حسب الطراز)",
+        "2. قس جهد إشارة خرج الدرايفر",
+        "3. افحص مقاومة مستشعر حرارة الشفط",
+        "4. اختبر تشغيل EEV في وضع التحكم اليدوي القسري",
+        "5. استبدل الملف إذا كان معيباً (العديد من الطرازات تدعم استبدال الملف فقط)"
+      ],
+      "notes_ar": "EEV عالق مغلق يسبب تبريداً ضعيفاً؛ عالق مفتوح يسبب عودة سائل"
     },
     {
       "category": "제어",
@@ -1020,7 +1624,71 @@
         "4. Inspeccionar los contactos del conector y volver a insertar",
         "5. Resetear el código de error y monitorear la recurrencia"
       ],
-      "notes_es": "Fotografiar el código de error antes de resetear — útil para identificar patrones de recurrencia"
+      "notes_es": "Fotografiar el código de error antes de resetear — útil para identificar patrones de recurrencia",
+      "category_vi": "Điều khiển",
+      "title_vi": "Bo điều khiển hiển thị mã lỗi",
+      "causes_vi": [
+        "Cảm biến hở hoặc chập mạch",
+        "Nguồn bo điều khiển không ổn định",
+        "Lỗi truyền thông (hệ nhiều unit)",
+        "Hỏng bo điều khiển"
+      ],
+      "procedures_vi": [
+        "1. Tra cứu mã lỗi trong hướng dẫn theo model",
+        "2. Đo điện trở cảm biến liên quan (kiểm tra hở/chập)",
+        "3. Kiểm tra điện áp nguồn vào bo",
+        "4. Kiểm tra tiếp xúc đầu nối và cắm lại",
+        "5. Reset mã lỗi và theo dõi tái phát"
+      ],
+      "notes_vi": "Chụp ảnh mã lỗi trước khi reset — hữu ích để nhận diện mẫu tái phát",
+      "category_th": "ควบคุม",
+      "title_th": "ตัวควบคุม (บอร์ด) แสดงรหัสข้อผิดพลาด",
+      "causes_th": [
+        "เซ็นเซอร์วงจรเปิดหรือลัดวงจร",
+        "แหล่งจ่ายไฟบอร์ดไม่เสถียร",
+        "ข้อผิดพลาดการสื่อสาร (ระบบหลายยูนิต)",
+        "บอร์ดล้มเหลว"
+      ],
+      "procedures_th": [
+        "1. ค้นรหัสข้อผิดพลาดในคู่มือเฉพาะรุ่น",
+        "2. วัดความต้านทานเซ็นเซอร์ที่เกี่ยวข้อง (ตรวจเปิด/ลัด)",
+        "3. ตรวจแรงดันไฟเข้าบอร์ด",
+        "4. ตรวจหน้าสัมผัสขั้วต่อและเสียบใหม่",
+        "5. รีเซ็ตรหัสข้อผิดพลาดและเฝ้าดูการเกิดซ้ำ"
+      ],
+      "notes_th": "ถ่ายรูปรหัสข้อผิดพลาดก่อนรีเซ็ต — ช่วยระบุรูปแบบการเกิดซ้ำ",
+      "category_id": "Kontrol",
+      "title_id": "Kontroler (board) menampilkan kode error",
+      "causes_id": [
+        "Sensor rangkaian terbuka atau hubung singkat",
+        "Catu daya board tidak stabil",
+        "Error komunikasi (sistem multi-unit)",
+        "Kegagalan board"
+      ],
+      "procedures_id": [
+        "1. Cari kode error di manual spesifik model",
+        "2. Ukur resistansi sensor terkait (periksa terbuka/pendek)",
+        "3. Periksa tegangan input daya board",
+        "4. Periksa kontak konektor dan pasang ulang",
+        "5. Reset kode error dan pantau kekambuhan"
+      ],
+      "notes_id": "Foto kode error sebelum reset — berguna untuk mengidentifikasi pola kekambuhan",
+      "category_ar": "التحكم",
+      "title_ar": "وحدة التحكم (اللوحة) تعرض رمز خطأ",
+      "causes_ar": [
+        "مستشعر دائرة مفتوحة أو قصر",
+        "إمداد طاقة اللوحة غير مستقر",
+        "خطأ اتصال (نظام متعدد الوحدات)",
+        "عطل اللوحة"
+      ],
+      "procedures_ar": [
+        "1. ابحث عن رمز الخطأ في دليل خاص بالطراز",
+        "2. قس مقاومة المستشعر المرتبط (افحص مفتوح/قصر)",
+        "3. افحص جهد دخل طاقة اللوحة",
+        "4. افحص تلامس الموصلات وأعد تثبيتها",
+        "5. أعد ضبط رمز الخطأ وراقب التكرار"
+      ],
+      "notes_ar": "صوّر رمز الخطأ قبل إعادة الضبط — مفيد لتحديد أنماط التكرار"
     }
   ]
 }
