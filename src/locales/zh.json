@@ -11,6 +11,13 @@
       "updateAvailable": "有新版本可用",
       "refreshNow": "刷新"
     },
+    "disclaimer": {
+      "title": "重要提示",
+      "body1": "R-Pro 是技师们共同创建的经验共享工具，并非官方手册或维修规程。",
+      "body2": "作业时请始终以制造商规格、当地法规和您自己的专业判断为优先。",
+      "warn": "使用风险由用户自行承担。本应用及运营者不对因使用本信息引起的任何损害、伤害或损失负责。",
+      "acknowledge": "我已了解"
+    },
     "login": {
       "subtitle": "制冷维修实务App",
       "google": "使用Google登录",

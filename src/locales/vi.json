@@ -11,6 +11,13 @@
       "updateAvailable": "Đã có phiên bản mới",
       "refreshNow": "Làm mới"
     },
+    "disclaimer": {
+      "title": "Thông báo quan trọng",
+      "body1": "R-Pro là công cụ chia sẻ kiến thức được tạo ra bởi các kỹ thuật viên cho kỹ thuật viên — không phải là sổ tay chính thức hay quy trình dịch vụ.",
+      "body2": "Luôn tuân theo thông số kỹ thuật của nhà sản xuất, quy định địa phương và phán đoán chuyên môn của bạn.",
+      "warn": "Sử dụng theo rủi ro của bạn. Ứng dụng và nhà điều hành không chịu trách nhiệm về bất kỳ thiệt hại, thương tích hoặc tổn thất nào phát sinh từ việc sử dụng thông tin này.",
+      "acknowledge": "Tôi đã hiểu"
+    },
     "login": {
       "subtitle": "Ứng dụng Sửa chữa Hệ thống lạnh",
       "google": "Đăng nhập với Google",

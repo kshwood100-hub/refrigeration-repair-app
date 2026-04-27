@@ -11,6 +11,13 @@
       "updateAvailable": "Versi baru tersedia",
       "refreshNow": "Segarkan"
     },
+    "disclaimer": {
+      "title": "Pemberitahuan Penting",
+      "body1": "R-Pro adalah alat berbagi pengetahuan yang dibuat oleh teknisi untuk teknisi — bukan manual resmi atau prosedur servis.",
+      "body2": "Selalu ikuti spesifikasi pabrikan, peraturan lokal, dan penilaian profesional Anda sendiri.",
+      "warn": "Penggunaan adalah risiko Anda sendiri. Aplikasi dan operatornya tidak bertanggung jawab atas kerusakan, cedera, atau kerugian yang timbul dari penggunaan informasi ini.",
+      "acknowledge": "Saya mengerti"
+    },
     "login": {
       "subtitle": "Aplikasi Perbaikan Sistem Pendingin",
       "google": "Masuk dengan Google",

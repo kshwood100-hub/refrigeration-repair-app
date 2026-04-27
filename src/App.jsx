@@ -74,6 +74,7 @@ import { seedIfEmpty } from './db'
 import { loadSettings } from './utils/settings'
 import { autoBackupIfDue } from './utils/backup'
 import BottomNav from './components/BottomNav'
+import DisclaimerModal from './components/DisclaimerModal'
 import HomePage from './pages/HomePage'
 import DiagnosisSearchPage from './pages/DiagnosisSearchPage'
 import ChecklistPage from './pages/ChecklistPage'
@@ -205,6 +206,7 @@ function AppLayout() {
         </Routes>
       </main>
       <BottomNav />
+      <DisclaimerModal />
     </div>
   )
 }

@@ -11,6 +11,13 @@
       "updateAvailable": "A new version is available",
       "refreshNow": "Refresh"
     },
+    "disclaimer": {
+      "title": "Important Notice",
+      "body1": "R-Pro is a knowledge-sharing tool built by technicians, for technicians — not an official manual or service procedure.",
+      "body2": "Always follow manufacturer specifications, local codes, and your own professional judgment.",
+      "warn": "Use at your own risk. The app and its operators are not liable for any damages, injuries, or losses arising from use of this information.",
+      "acknowledge": "I understand"
+    },
     "login": {
       "subtitle": "Refrigeration Repair App",
       "google": "Sign in with Google",
