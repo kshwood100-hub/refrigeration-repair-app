@@ -21,6 +21,18 @@ const ALLOWED_ORIGINS = new Set([
 const MAX_BASE64_BYTES = 10 * 1024 * 1024  // 10MB
 const MAX_TEXT_LEN = 20000                  // transcript/job text
 
+// 사용자별 일일 호출 한도 (UTC 자정 기준 리셋)
+// 정상 사용량 대비 충분히 넉넉. 악용·자동 스크립트 차단 목적.
+const DAILY_LIMITS = {
+  scanCard: 100,
+  scanEquipment: 100,
+  scanInvoice: 100,
+  whisper: 100,
+  classify: 200,
+  classifyKnowhow: 200,
+  extractKnowhow: 200,
+}
+
 function applyCors(req, res) {
   const origin = req.get('origin') || ''
   if (ALLOWED_ORIGINS.has(origin)) {
@@ -63,6 +75,40 @@ async function verifyAuth(req, res) {
   }
 }
 
+// 사용자별 일일 호출 카운터. Firestore usage/{email}/days/{YYYY-MM-DD} 사용.
+// 한도 초과 시 429, 통과 시 카운터 +1 후 true.
+async function checkQuota(email, endpoint, res) {
+  const limit = DAILY_LIMITS[endpoint]
+  if (!limit) return true  // 한도 정의 없으면 통과
+
+  const today = new Date().toISOString().slice(0, 10)  // YYYY-MM-DD UTC
+  const ref = admin.firestore().doc(`usage/${email}/days/${today}`)
+
+  try {
+    const snap = await ref.get()
+    const current = snap.exists ? (snap.data()[endpoint] || 0) : 0
+    if (current >= limit) {
+      console.warn(`Quota exceeded: ${email} ${endpoint} ${current}/${limit}`)
+      res.status(429).json({
+        error: 'Daily limit reached',
+        endpoint,
+        limit,
+        resetAt: 'next UTC midnight',
+      })
+      return false
+    }
+    await ref.set(
+      { [endpoint]: admin.firestore.FieldValue.increment(1), updatedAt: Date.now() },
+      { merge: true }
+    )
+    return true
+  } catch (e) {
+    // Firestore 장애 시 통과시킴 (가용성 우선, 비용 안전망은 max_tokens·payload size로 이미 있음)
+    console.error(`Quota check failed (allowing): ${email} ${endpoint}`, e?.message)
+    return true
+  }
+}
+
 function checkBase64(base64, res) {
   if (!base64 || typeof base64 !== 'string') {
     res.status(400).json({ error: 'base64 missing' })
@@ -97,7 +143,9 @@ const fnOpts = (extra = {}) => ({
 exports.scanCard = onRequest(fnOpts({ timeoutSeconds: 120 }), async (req, res) => {
   if (applyCors(req, res)) return
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
-  if (!(await verifyAuth(req, res))) return
+  const decoded = await verifyAuth(req, res)
+  if (!decoded) return
+  if (!(await checkQuota(decoded.email, 'scanCard', res))) return
 
   const { base64, mediaType } = req.body || {}
   if (!checkBase64(base64, res)) return
@@ -139,7 +187,9 @@ exports.scanCard = onRequest(fnOpts({ timeoutSeconds: 120 }), async (req, res) =
 exports.classifyKnowhow = onRequest(fnOpts(), async (req, res) => {
   if (applyCors(req, res)) return
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
-  if (!(await verifyAuth(req, res))) return
+  const decoded = await verifyAuth(req, res)
+  if (!decoded) return
+  if (!(await checkQuota(decoded.email, 'classifyKnowhow', res))) return
 
   const { transcript } = req.body || {}
   if (!checkText(transcript, res, 'transcript')) return
@@ -173,7 +223,9 @@ exports.classifyKnowhow = onRequest(fnOpts(), async (req, res) => {
 exports.classify = onRequest(fnOpts({ timeoutSeconds: 60 }), async (req, res) => {
   if (applyCors(req, res)) return
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
-  if (!(await verifyAuth(req, res))) return
+  const decoded = await verifyAuth(req, res)
+  if (!decoded) return
+  if (!(await checkQuota(decoded.email, 'classify', res))) return
 
   const { transcript } = req.body || {}
   if (!checkText(transcript, res, 'transcript')) return
@@ -207,7 +259,9 @@ exports.classify = onRequest(fnOpts({ timeoutSeconds: 60 }), async (req, res) =>
 exports.whisper = onRequest(fnOpts({ timeoutSeconds: 300, memory: '512MiB' }), async (req, res) => {
   if (applyCors(req, res)) return
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
-  if (!(await verifyAuth(req, res))) return
+  const decoded = await verifyAuth(req, res)
+  if (!decoded) return
+  if (!(await checkQuota(decoded.email, 'whisper', res))) return
 
   const apiKey = openaiApiKey.value()
   if (!apiKey) return res.status(500).json({ error: 'OPENAI_API_KEY not configured' })
@@ -246,7 +300,9 @@ exports.whisper = onRequest(fnOpts({ timeoutSeconds: 300, memory: '512MiB' }), a
 exports.scanEquipment = onRequest(fnOpts({ timeoutSeconds: 120 }), async (req, res) => {
   if (applyCors(req, res)) return
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
-  if (!(await verifyAuth(req, res))) return
+  const decoded = await verifyAuth(req, res)
+  if (!decoded) return
+  if (!(await checkQuota(decoded.email, 'scanEquipment', res))) return
 
   const apiKey = openaiApiKey.value()
   if (!apiKey) return res.status(500).json({ error: 'OPENAI_API_KEY not configured' })
@@ -307,7 +363,9 @@ Be precise. If you can't determine a field, use empty string, do NOT guess wildl
 exports.scanInvoice = onRequest(fnOpts({ timeoutSeconds: 120 }), async (req, res) => {
   if (applyCors(req, res)) return
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
-  if (!(await verifyAuth(req, res))) return
+  const decoded = await verifyAuth(req, res)
+  if (!decoded) return
+  if (!(await checkQuota(decoded.email, 'scanInvoice', res))) return
 
   const apiKey = openaiApiKey.value()
   if (!apiKey) return res.status(500).json({ error: 'OPENAI_API_KEY not configured' })
@@ -350,7 +408,9 @@ exports.scanInvoice = onRequest(fnOpts({ timeoutSeconds: 120 }), async (req, res
 exports.extractKnowhow = onRequest(fnOpts({ timeoutSeconds: 60 }), async (req, res) => {
   if (applyCors(req, res)) return
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
-  if (!(await verifyAuth(req, res))) return
+  const decoded = await verifyAuth(req, res)
+  if (!decoded) return
+  if (!(await checkQuota(decoded.email, 'extractKnowhow', res))) return
 
   const { job } = req.body || {}
   if (!job || typeof job !== 'object') {

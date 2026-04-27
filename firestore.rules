@@ -10,6 +10,11 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // usage: AI 호출 카운터. 클라이언트는 접근 불가, 서버(Cloud Functions admin SDK)만 read/write.
+    match /usage/{email}/{document=**} {
+      allow read, write: if false;
+    }
+
     // 그 외 모든 컬렉션 차단 (필요 시 명시적으로 추가)
     match /{document=**} {
       allow read, write: if false;
