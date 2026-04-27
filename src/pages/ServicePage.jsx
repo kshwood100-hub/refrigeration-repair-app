@@ -95,16 +95,16 @@ export default function ServicePage() {
         <div className="flex gap-2">
           <button
             onClick={() => navigate('/business-cards?scan=1')}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-semibold bg-gradient-to-br from-purple-500 to-indigo-600 text-white rounded-xl shadow-sm active:from-purple-600 active:to-indigo-700"
+            className="flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-bold bg-violet-600 text-white rounded-xl shadow-md active:bg-violet-700"
           >
-            <Camera size={15} strokeWidth={2} />
+            <Camera size={16} strokeWidth={2.5} />
             {t('service.businessCards')}
           </button>
           <button
             onClick={() => navigate('/service/new')}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-semibold bg-gradient-to-br from-blue-500 to-cyan-600 text-white rounded-xl shadow-sm active:from-blue-600 active:to-cyan-700"
+            className="flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-bold bg-emerald-600 text-white rounded-xl shadow-md active:bg-emerald-700"
           >
-            <Plus size={15} strokeWidth={2} />
+            <Plus size={16} strokeWidth={2.5} />
             {t('service.newRequest')}
           </button>
         </div>

@@ -2,6 +2,7 @@
 // DB 저장, 상태 변경, 자동 처리(Whisper 변환 → AI 분류 → 노하우 저장)
 
 import { db } from '../db'
+import { apiFetch } from './apiClient'
 
 // 상태: pending(대기) → transcribing(변환중) → transcribed(변환완료)
 //       → classifying(분류중) → done(완료) → failed(실패)
@@ -53,13 +54,7 @@ export async function transcribeRecording(id) {
 
   try {
     const base64 = await blobToBase64(rec.blob)
-    const res = await fetch('/api/whisper', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ base64, mimeType: rec.mimeType, language: 'ko' }),
-    })
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.error ?? `API ${res.status}`)
+    const data = await apiFetch('/api/whisper', { base64, mimeType: rec.mimeType, language: 'ko' })
     await setStatus(id, 'transcribed', { transcript: data.text })
     return data.text
   } catch (err) {
@@ -76,13 +71,7 @@ export async function classifyRecording(id) {
   await setStatus(id, 'classifying', { errorMsg: null })
 
   try {
-    const res = await fetch('/api/classify-knowhow', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ transcript: rec.transcript }),
-    })
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.error ?? `API ${res.status}`)
+    const data = await apiFetch('/api/classify-knowhow', { transcript: rec.transcript })
 
     // OpenAI 응답에서 JSON 텍스트 추출
     const text = data.choices?.[0]?.message?.content ?? ''
@@ -118,13 +107,14 @@ export async function processRecording(id) {
   await classifyRecording(id)
 }
 
-// 대기 중인 모든 녹음 자동 처리 (온라인 시 호출)
+// 대기 중인 모든 녹음 자동 변환 (온라인 시 호출)
+// 자동으로는 텍스트 변환(transcribe)만 진행. AI 분류는 사용자가 직접 버튼 눌러야 실행됨.
 export async function processPendingAll(onProgress) {
-  const list = await db.voice_recordings.where('status').anyOf(['pending', 'failed']).toArray()
+  const list = await db.voice_recordings.where('status').equals('pending').toArray()
   for (const rec of list) {
     try {
       onProgress?.({ id: rec.id, phase: 'start' })
-      await processRecording(rec.id)
+      await transcribeRecording(rec.id)
       onProgress?.({ id: rec.id, phase: 'done' })
     } catch (err) {
       onProgress?.({ id: rec.id, phase: 'fail', error: err })

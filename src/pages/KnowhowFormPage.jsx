@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useTranslation } from 'react-i18next'
 import { ChevronLeft, Trash2 } from 'lucide-react'
@@ -9,6 +9,7 @@ import KnowhowFormBody, { EMPTY_KNOWHOW } from '../components/KnowhowFormBody'
 
 export default function KnowhowFormPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { id } = useParams()
   const { t } = useTranslation()
   const isNew = !id || id === 'new'
@@ -21,8 +22,21 @@ export default function KnowhowFormPage() {
   const [initialized, setInitialized] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
 
+  // 음성 메모에서 진입 — 거래처/본문 미리 채우기
+  useEffect(() => {
+    if (!isNew) return
+    const st = location.state
+    if (!st) return
+    setForm((p) => ({
+      ...p,
+      customerId: st.customerId ?? p.customerId,
+      notes: st.prefilledNotes ? (p.notes ? `${p.notes}\n\n${st.prefilledNotes}` : st.prefilledNotes) : p.notes,
+    }))
+  }, [isNew, location.state])
+
   if (!isNew && existing && !initialized) {
     setForm({
+      customerId:     existing.customerId     ?? null,
       title:          existing.title          ?? '',
       category:       existing.category       ?? '기타',
       location:       existing.location       ?? '기타',
@@ -43,6 +57,7 @@ export default function KnowhowFormPage() {
   }
 
   async function handleSave() {
+    if (!form.customerId) { showToast(t('knowhow.errCustomer')); return }
     if (!form.title.trim()) { showToast(t('knowhow.errTitle')); return }
     const now = new Date().toISOString()
     try {

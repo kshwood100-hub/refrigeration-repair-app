@@ -113,7 +113,7 @@ export default function SupplierDetailPage() {
               <a
                 href={`https://map.kakao.com/?q=${encodeURIComponent(supplier.address)}`}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="flex items-center gap-1 px-2.5 py-1.5 bg-violet-600 rounded-lg text-white text-xs font-semibold active:bg-violet-700 shrink-0"
               >
                 <Map size={12} strokeWidth={2} />

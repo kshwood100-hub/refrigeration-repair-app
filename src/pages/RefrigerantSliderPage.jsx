@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronDown, Search, X, Check } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { loadSettings } from '../utils/settings'
+import { useLocalField } from '../hooks/useLang'
 import {
   REFRIGERANTS as _REFRIGERANTS,
   UNITS,
@@ -22,8 +23,9 @@ const REFRIGERANTS = [..._REFRIGERANTS].sort((a, b) => rfgSortKey(a.id) - rfgSor
 export default function RefrigerantSliderPage() {
   const navigate = useNavigate()
   const { t, i18n } = useTranslation()
+  const lf = useLocalField()
   const isKo = i18n.language.startsWith('ko')
-  const rfgNote = (r) => (!isKo && r.note_en) ? r.note_en : r.note
+  const rfgNote = (r) => lf(r, 'note')
   const [rfgId, setRfgId]             = useState('R-22')
   const [mode, setMode]               = useState('t2p')
   const [tempC, setTempC]             = useState(-10)

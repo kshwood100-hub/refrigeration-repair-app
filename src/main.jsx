@@ -28,7 +28,8 @@ if (import.meta.env.PROD) {
 ;(function() {
   try {
     const s = JSON.parse(localStorage.getItem('rfg_settings') || '{}')
-    const theme = s.theme || 'dark'
+    let theme = s.theme || 'dark'
+    if (theme === 'lavender') theme = 'dark'  // 폐기된 테마 자동 폴백
     const fontSize = s.fontSize || 'medium'
     const cls = [`theme-${theme}`]
     if (fontSize !== 'medium') cls.push(`font-${fontSize === 'large' ? 'large' : 'xlarge'}`)
@@ -43,30 +44,38 @@ initAlarms()
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).then(reg => {
-    // 앱이 포그라운드로 돌아올 때 업데이트 체크
+    // 1) 등록 직후 즉시 업데이트 체크 — 앱 처음 켤 때 최신 버전 확보
+    reg.update().catch(() => {})
+
+    // 2) 앱이 포그라운드로 돌아올 때 업데이트 체크
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') reg.update()
+      if (document.visibilityState === 'visible') reg.update().catch(() => {})
     })
-    // 이미 대기 중인 SW가 있다면 즉시 알림
+
+    // 3) 앱을 오래 켜둔 사용자(현장)도 놓치지 않도록 30분마다 체크
+    setInterval(() => { reg.update().catch(() => {}) }, 30 * 60 * 1000)
+
+    // 이미 대기 중인 SW가 있으면 즉시 활성화 (사용자 조작 없이 자동)
     if (reg.waiting && navigator.serviceWorker.controller) {
-      window.__swWaiting = reg.waiting
-      window.dispatchEvent(new CustomEvent('sw-update-available'))
+      reg.waiting.postMessage({ type: 'SKIP_WAITING' })
     }
-    // 새 SW 설치 감지 → 사용자에게 알림 이벤트 발행 (App 쪽에서 배너 표시)
+    // 새 SW 설치 완료 → 즉시 자동 활성화 (배너·버튼 없음)
     reg.addEventListener('updatefound', () => {
       const newWorker = reg.installing
       if (!newWorker) return
       newWorker.addEventListener('statechange', () => {
         if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-          window.__swWaiting = newWorker
-          window.dispatchEvent(new CustomEvent('sw-update-available'))
+          newWorker.postMessage({ type: 'SKIP_WAITING' })
         }
       })
     })
   }).catch(() => {})
 
-  // 사용자가 업데이트 수락 → 새 SW 활성화 → 자동 새로고침
+  // 새 SW가 활성화되면 자동 새로고침 (구매자는 아무것도 안 해도 최신 버전)
+  let reloaded = false
   navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (reloaded) return
+    reloaded = true
     window.location.reload()
   })
 }

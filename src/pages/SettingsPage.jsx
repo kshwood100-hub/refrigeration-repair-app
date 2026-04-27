@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { UNITS } from '../data/refrigerantsData'
 import { loadSettings, saveSettings } from '../utils/settings'
 import { createBackup, listBackups, downloadBackup, restoreBackup, formatSize, importAllData } from '../utils/backup'
-import { Download, RotateCcw, Upload, QrCode, ScanLine } from 'lucide-react'
+import { Download, RotateCcw, Upload, QrCode, ScanLine, Lock } from 'lucide-react'
 import QRExportModal from '../components/QRExportModal'
 import QRImportModal from '../components/QRImportModal'
 import { useTranslation } from 'react-i18next'
@@ -127,7 +127,6 @@ export default function SettingsPage() {
           {[
             { val: 'dark',  label: t('settings.themeDark'),  desc: t('settings.themeDarkDesc') },
             { val: 'gray',  label: t('settings.themeGray'),  desc: t('settings.themeGrayDesc') },
-            { val: 'lavender', label: t('settings.themeLavender'), desc: t('settings.themeLavenderDesc') },
           ].map(({ val, label, desc }, i) => (
             <button
               key={val}
@@ -259,6 +258,42 @@ export default function SettingsPage() {
         </div>
       </section>
 
+      {/* 설비기록 공유 (v2 가동 예정 — 비활성) */}
+      <section className="mb-4">
+        <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
+          <Lock size={11} strokeWidth={2} className="text-gray-400" />
+          <span>{t('settings.shareSection')}</span>
+        </div>
+        <div className="bg-white border border-gray-300 rounded-lg overflow-hidden opacity-60">
+          <div className="px-3 py-2.5 border-b border-gray-200">
+            <div className="flex items-start gap-2">
+              <div className="flex-1">
+                <p className="font-medium text-gray-800 text-xs">{t('settings.shareToggle')}</p>
+                <p className="text-[11px] text-gray-500 mt-0.5">{t('settings.shareDesc')}</p>
+                <p className="text-[11px] text-blue-600 font-medium mt-1">{t('settings.shareDiscount')}</p>
+              </div>
+              <button
+                type="button"
+                disabled
+                aria-disabled="true"
+                className="relative w-9 h-5 bg-gray-200 rounded-full shrink-0 cursor-not-allowed"
+              >
+                <span className="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow" />
+              </button>
+            </div>
+          </div>
+          <div className="px-3 py-2 bg-gray-50 text-[10px] text-gray-500 leading-relaxed space-y-0.5">
+            <div><span className="font-semibold text-gray-700">{t('settings.shareWhat')}:</span> {t('settings.shareWhatDesc')}</div>
+            <div><span className="font-semibold text-gray-700">{t('settings.shareWhy')}:</span> {t('settings.shareWhyDesc')}</div>
+            <div><span className="font-semibold text-gray-700">{t('settings.shareKeep')}:</span> {t('settings.shareKeepDesc')}</div>
+            <div><span className="font-semibold text-gray-700">{t('settings.shareWithdraw')}:</span> {t('settings.shareWithdrawDesc')}</div>
+          </div>
+          <div className="px-3 py-1.5 bg-amber-50 border-t border-amber-200 text-[10px] text-amber-700 font-medium text-center">
+            {t('settings.shareComingSoon')}
+          </div>
+        </div>
+      </section>
+
       {/* 앱 업데이트 */}
       <section className="mb-4">
         <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">{t('settings.update')}</div>
@@ -266,7 +301,19 @@ export default function SettingsPage() {
           <p className="text-[11px] text-gray-400 mb-2">{t('settings.updateDesc')}</p>
           <button
             onClick={async () => {
-              document.body.innerHTML = `<div style="height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0f172a;color:white;font-family:sans-serif;gap:12px"><img src="/logo-transparent.png" style="width:72px;height:72px"/><div style="font-size:18px;font-weight:700">R-Pro</div><div style="font-size:13px;color:#94a3b8">${t('settings.updating')}</div></div>`
+              const overlay = document.createElement('div')
+              overlay.style.cssText = 'height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0f172a;color:white;font-family:sans-serif;gap:12px'
+              const img = document.createElement('img')
+              img.src = '/logo-transparent.png'
+              img.style.cssText = 'width:72px;height:72px'
+              const title = document.createElement('div')
+              title.style.cssText = 'font-size:18px;font-weight:700'
+              title.textContent = 'R-Pro'
+              const msg = document.createElement('div')
+              msg.style.cssText = 'font-size:13px;color:#94a3b8'
+              msg.textContent = t('settings.updating')
+              overlay.append(img, title, msg)
+              document.body.replaceChildren(overlay)
               try {
                 const keys = await caches.keys()
                 await Promise.all(keys.map(k => caches.delete(k)))

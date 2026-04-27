@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { ChevronLeft, ChevronRight, XCircle, AlertCircle } from 'lucide-react'
 import { db } from '../db'
 import { showToast } from '../utils/toast'
+import { useLocalField } from '../hooks/useLang'
 
 const PASS_THRESHOLD = 0.8 // 80%
 
@@ -15,8 +16,16 @@ function itemBg(ans) {
 }
 
 export default function ChecklistPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const lf = useLocalField()
+  const lang = i18n.language.split('-')[0]
   const templates = useLiveQuery(() => db.checklist_templates.toArray(), [])
+  const localItems = (tmpl) => {
+    if (!tmpl) return []
+    if (lang === 'ko') return tmpl.items || []
+    const arr = tmpl[`items_${lang}`] ?? tmpl.items_en ?? tmpl.items
+    return arr || []
+  }
   const [selected, setSelected]   = useState(null)
   const [answers,  setAnswers]    = useState({})
   const [view,     setView]       = useState('list') // 'list' | 'check' | 'result'
@@ -32,25 +41,26 @@ export default function ChecklistPage() {
 
   const setAnswer = (i, val) => setAnswers(prev => ({ ...prev, [i]: val }))
 
-  const total         = selected?.items.length ?? 0
+  const selectedItems = selected ? localItems(selected) : []
+  const total         = selectedItems.length
   const answeredCount = Object.keys(answers).length
   const rawScore      = selected
-    ? selected.items.reduce((sum, _, i) => {
+    ? selectedItems.reduce((sum, _, i) => {
         const opt = OPTIONS.find(o => o.value === answers[i])
         return sum + (opt ? opt.score : 0)
       }, 0)
     : 0
   const scorePct   = total ? rawScore / total : 0
   const passed     = scorePct >= PASS_THRESHOLD
-  const badItems   = selected ? selected.items.filter((_, i) => answers[i] === 'bad') : []
-  const midItems   = selected ? selected.items.filter((_, i) => answers[i] === 'mid') : []
+  const badItems   = selectedItems.filter((_, i) => answers[i] === 'bad')
+  const midItems   = selectedItems.filter((_, i) => answers[i] === 'mid')
 
   async function saveResult() {
     if (saved || !selected) return
     try {
       await db.checklist_results.add({
         templateId:    selected.id,
-        templateTitle: selected.title,
+        templateTitle: lf(selected, 'title'),
         createdAt:     new Date().toISOString(),
         score:         Math.round(scorePct * 100),
         level:         passed ? 'pass' : 'fail',
@@ -65,7 +75,7 @@ export default function ChecklistPage() {
   const dateStr   = new Date().toLocaleDateString()
   const shareText = selected ? [
     t('checklist.shareTitle'),
-    `${t('checklist.shareItemLabel')}: ${selected.title}`,
+    `${t('checklist.shareItemLabel')}: ${lf(selected, 'title')}`,
     `${t('checklist.shareDateLabel')}: ${dateStr}`,
     `${t('checklist.shareScoreLabel')}: ${Math.round(scorePct * 100)}`,
     `${t('checklist.shareJudgmentLabel')}: ${passed ? `✅ ${t('checklist.passResult')}` : `⚠️ ${t('checklist.failResult')}`}`,
@@ -88,10 +98,10 @@ export default function ChecklistPage() {
               className="w-full flex items-center gap-4 px-4 py-3.5 bg-white border border-gray-300 rounded-xl shadow-sm text-left active:bg-gray-50"
             >
               <div className="flex-1">
-                <span className="text-xs font-medium text-gray-400 block mb-0.5">{tmpl.category}</span>
-                <span className="text-sm font-medium text-gray-800">{tmpl.title}</span>
+                <span className="text-xs font-medium text-gray-400 block mb-0.5">{lf(tmpl, 'category')}</span>
+                <span className="text-sm font-medium text-gray-800">{lf(tmpl, 'title')}</span>
               </div>
-              <span className="text-xs text-gray-400 shrink-0">{tmpl.items.length}{t('checklist.itemUnit')}</span>
+              <span className="text-xs text-gray-400 shrink-0">{localItems(tmpl).length}{t('checklist.itemUnit')}</span>
               <ChevronRight size={15} strokeWidth={1.5} className="text-gray-300 shrink-0" />
             </button>
           ))}
@@ -126,7 +136,7 @@ export default function ChecklistPage() {
         {/* 점수 바 */}
         <div className="bg-white border border-gray-200 rounded-xl p-4 mb-4">
           <div className="flex justify-between text-sm mb-2">
-            <span className="text-gray-600">{selected.title}</span>
+            <span className="text-gray-600">{lf(selected, 'title')}</span>
             <span className={`font-bold ${passed ? 'text-emerald-600' : 'text-red-600'}`}>
               {Math.round(scorePct * 100)}
             </span>
@@ -140,7 +150,7 @@ export default function ChecklistPage() {
           <div className="flex justify-between text-xs text-gray-400">
             <span>{t('checklist.passLine', { threshold: Math.round(PASS_THRESHOLD * 100) })}</span>
             <span>{t('checklist.scoreSummary', {
-              ok:  selected.items.filter((_, i) => answers[i] === 'ok').length,
+              ok:  selectedItems.filter((_, i) => answers[i] === 'ok').length,
               mid: midItems.length,
               bad: badItems.length,
             })}</span>
@@ -229,7 +239,7 @@ export default function ChecklistPage() {
         {t('checklist.backToList')}
       </button>
 
-      <h2 className="text-base font-semibold text-gray-900 mb-4 truncate">{selected.title}</h2>
+      <h2 className="text-base font-semibold text-gray-900 mb-4 truncate">{lf(selected, 'title')}</h2>
 
       {/* 진행률 */}
       <div className="bg-white border border-gray-300 rounded-xl px-4 py-3 shadow-sm mb-4">
@@ -247,7 +257,7 @@ export default function ChecklistPage() {
 
       {/* 항목 */}
       <div className="space-y-2 mb-4">
-        {selected.items.map((item, i) => {
+        {selectedItems.map((item, i) => {
           const ans = answers[i]
           return (
             <div

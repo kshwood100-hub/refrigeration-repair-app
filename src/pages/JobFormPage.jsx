@@ -20,7 +20,7 @@ const EMPTY_JOB = {
   laborCost: '',
 }
 
-const EMPTY_CUSTOMER = { name: '', phone: '', address: '' }
+const EMPTY_CUSTOMER = { name: '', phone: '', address: '', email: '' }
 
 const HOURS = Array.from({ length: 17 }, (_, i) => String(i + 6).padStart(2, '0'))
 const MINS  = ['00', '10', '20', '30', '40', '50']
@@ -63,6 +63,7 @@ export default function JobFormPage() {
         name: preloadCustomer.name ?? '',
         phone: preloadCustomer.phone ?? '',
         address: preloadCustomer.address ?? '',
+        email: preloadCustomer.email ?? '',
       })
       setInitialized(true)
     }
@@ -99,6 +100,7 @@ export default function JobFormPage() {
       name:    existingCustomer.name    ?? '',
       phone:   existingCustomer.phone   ?? '',
       address: existingCustomer.address ?? '',
+      email:   existingCustomer.email   ?? '',
     })
     setInitialized(true)
   }
@@ -136,7 +138,7 @@ export default function JobFormPage() {
   }
 
   function selectCustomer(c) {
-    setCustomer({ name: c.name, phone: c.phone, address: c.address ?? '' })
+    setCustomer({ name: c.name, phone: c.phone, address: c.address ?? '', email: c.email ?? '' })
     setShowCustomerList(false)
     setCustomerSearch('')
   }
@@ -150,11 +152,11 @@ export default function JobFormPage() {
     let customerId = isNew ? (preloadCustomerId ?? null) : existingJob?.customerId
     if (!customerId) {
       customerId = await db.customers.add({
-        name: customer.name.trim(), phone: customer.phone.trim(), address: customer.address.trim(),
+        name: customer.name.trim(), phone: customer.phone.trim(), address: customer.address.trim(), email: customer.email.trim(),
       })
     } else {
       await db.customers.update(customerId, {
-        name: customer.name.trim(), phone: customer.phone.trim(), address: customer.address.trim(),
+        name: customer.name.trim(), phone: customer.phone.trim(), address: customer.address.trim(), email: customer.email.trim(),
       })
     }
 
@@ -216,12 +218,14 @@ export default function JobFormPage() {
           <ChevronLeft size={18} strokeWidth={1.5} />
           <span className="text-sm">{t('job.back')}</span>
         </button>
-        <h2 className="text-base font-semibold text-gray-900">{isNew ? t('job.newTitle') : t('job.editTitle')}</h2>
-        {!isNew && (
-          <button onClick={handleSave} className="px-4 py-1.5 bg-gray-900 text-white text-sm font-medium rounded-lg">
-            {t('job.save')}
-          </button>
-        )}
+        {/* 신규 진입 시 타이틀 생략(고객등록 → AS접수 흐름이라 중복 표시 불필요), 편집 모드에선 표시 */}
+        {isNew ? <div /> : <h2 className="text-base font-semibold text-gray-900">{t('job.editTitle')}</h2>}
+        <button
+          onClick={handleSave}
+          className="px-3 py-1.5 bg-emerald-600 text-white text-sm font-bold rounded-lg shadow-sm active:bg-emerald-700"
+        >
+          {isNew ? t('job.newTitle') : t('job.save')}
+        </button>
       </div>
 
       <div className="space-y-4">
@@ -262,6 +266,7 @@ export default function JobFormPage() {
           </div>
           <Field label={t('job.labelCustomerName')} value={customer.name}    onChange={(v) => setC('name', v)}    placeholder={t('job.phCustomer')} />
           <Field label={t('job.labelPhone')}        value={customer.phone}   onChange={(v) => setC('phone', v)}   type="tel" placeholder="010-0000-0000" />
+          <Field label={t('job.labelEmail')}        value={customer.email}   onChange={(v) => setC('email', v)}   type="email" placeholder="example@email.com" />
           <Field label={t('job.labelAddress')}      value={customer.address} onChange={(v) => setC('address', v)} placeholder={t('job.phAddress')} />
         </Section>
 

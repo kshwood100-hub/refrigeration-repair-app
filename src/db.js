@@ -274,6 +274,51 @@ db.version(18).stores({
   supplier_transactions: '++id, supplierId, date, createdAt',
 })
 
+// v19: knowhow에 customerId 인덱스 추가 (거래처별 설비 기록 조회용, 거래처 필수 입력)
+db.version(19).stores({
+  symptoms: '++id, category, title',
+  checklist_templates: '++id, category, title',
+  repair_logs: '++id, date, symptomId, equipmentName',
+  flow_categories: '&id',
+  flow_nodes: '&nodeId, categoryId, type',
+  customers: '++id, name, phone',
+  service_jobs: '++id, customerId, status, receiptDate, visitDate',
+  job_photos: '++id, jobId',
+  backups: '++id, createdAt',
+  knowhow: '++id, customerId, category, location, createdAt, updatedAt',
+  business_cards: '++id, customerId, createdAt',
+  expenses: '++id, jobId, date, createdAt',
+  checklist_results: '++id, templateTitle, createdAt, level',
+  equipment_maintenance: '++id, customerId, nextDueDate',
+  user_alarms: '++id, date, fired',
+  voice_recordings: '++id, createdAt, status',
+  suppliers: '++id, name, createdAt',
+  supplier_transactions: '++id, supplierId, date, createdAt',
+})
+
+// v20: share_queue 테이블 추가 (v2 가동용 스캐폴드, 현재는 비어있음)
+db.version(20).stores({
+  symptoms: '++id, category, title',
+  checklist_templates: '++id, category, title',
+  repair_logs: '++id, date, symptomId, equipmentName',
+  flow_categories: '&id',
+  flow_nodes: '&nodeId, categoryId, type',
+  customers: '++id, name, phone',
+  service_jobs: '++id, customerId, status, receiptDate, visitDate',
+  job_photos: '++id, jobId',
+  backups: '++id, createdAt',
+  knowhow: '++id, customerId, category, location, createdAt, updatedAt',
+  business_cards: '++id, customerId, createdAt',
+  expenses: '++id, jobId, date, createdAt',
+  checklist_results: '++id, templateTitle, createdAt, level',
+  equipment_maintenance: '++id, customerId, nextDueDate',
+  user_alarms: '++id, date, fired',
+  voice_recordings: '++id, createdAt, status',
+  suppliers: '++id, name, createdAt',
+  supplier_transactions: '++id, supplierId, date, createdAt',
+  share_queue: '++id, recordType, status, createdAt',
+})
+
 /* global __DATA_HASH__ */
 const DATA_HASH = typeof __DATA_HASH__ !== 'undefined' ? __DATA_HASH__ : ''
 

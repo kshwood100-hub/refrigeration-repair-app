@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useTranslation } from 'react-i18next'
-import { Plus, Search, X, ChevronRight, MapPin, Tag, BookOpen, Trash2, Clock, Mic } from 'lucide-react'
+import { Plus, Search, X, ChevronRight, MapPin, Tag, Trash2, Clock, Mic } from 'lucide-react'
 import { db } from '../db'
 
 const CATEGORIES = ['전체', '압축기', '냉매계통', '전기/제어', '팬/모터', '착상/제상', '결로/배수', '소음/진동', '냉각불량', '오일계통', '기타']
@@ -68,12 +68,6 @@ export default function KnowhowPage() {
               {t('knowhow.firstRecord')}
             </button>
             <button
-              onClick={() => navigate('/diagnosis')}
-              className="w-full py-3.5 bg-blue-600 text-white text-sm font-semibold rounded-xl"
-            >
-              {t('knowhow.viewFailureCases')}
-            </button>
-            <button
               onClick={() => navigate('/voice-memo')}
               className="w-full py-3.5 bg-blue-600 text-white text-sm font-semibold rounded-xl flex items-center justify-center gap-2"
             >
@@ -103,37 +97,22 @@ export default function KnowhowPage() {
         <div className="flex items-center gap-1.5 shrink-0">
           <button
             onClick={() => navigate('/voice-memo')}
-            className="p-2 bg-blue-600 text-white rounded-lg border border-blue-700 shadow-sm"
-            title={t('customer.offlineVoiceTitle')}
+            className="flex items-center gap-1 px-2.5 py-2 bg-blue-600 text-white text-xs font-semibold rounded-lg border-2 border-blue-300 shadow-sm active:bg-blue-700"
             aria-label={t('customer.offlineVoiceTitle')}
           >
-            <Mic size={16} strokeWidth={2} />
+            <Mic size={14} strokeWidth={2} />
+            <span>{t('customer.offlineVoiceTitle')}</span>
           </button>
           <button
             onClick={() => navigate('/knowhow/new')}
-            className="p-2 bg-gray-900 text-white rounded-lg border border-gray-700 shadow-sm"
-            title={t('customer.addEquipment')}
-            aria-label={t('customer.addEquipment')}
+            className="flex items-center gap-1 px-2.5 py-2 bg-gray-900 text-white text-xs font-semibold rounded-lg border-2 border-gray-400 shadow-sm active:bg-gray-700"
+            aria-label={t('knowhow.directEntry')}
           >
-            <Plus size={16} strokeWidth={2} />
+            <Plus size={14} strokeWidth={2.5} />
+            <span>{t('knowhow.directEntry')}</span>
           </button>
         </div>
       </div>
-
-      {/* 고장사례 가이드 배너 */}
-      <button
-        onClick={() => navigate('/diagnosis')}
-        className="w-full flex items-center justify-between px-4 py-3 mb-4 bg-blue-50 border border-blue-200 rounded-xl text-left active:bg-blue-100"
-      >
-        <div className="flex items-center gap-2">
-          <BookOpen size={16} strokeWidth={1.5} className="text-blue-600" />
-          <div>
-            <p className="text-sm font-bold text-blue-800">{t('knowhow.failureCaseBanner')}</p>
-            <p className="text-xs text-blue-400">{t('knowhow.failureCaseBannerDesc')}</p>
-          </div>
-        </div>
-        <ChevronRight size={14} strokeWidth={1.5} className="text-blue-400" />
-      </button>
 
       {/* 검색창 */}
       <div className="relative mb-1">

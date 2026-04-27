@@ -6,56 +6,51 @@ import { useAuth } from './hooks/useAuth.jsx'
 import LoginPage from './pages/LoginPage'
 import { showToast } from './utils/toast'
 
-const TOP_LEVEL_PATHS = ['/home', '/diagnosis', '/service', '/finance', '/knowhow', '/settings']
-const EXIT_PRESS_COUNT = 7   // 종료에 필요한 뒤로가기 누름 횟수
-const EXIT_WINDOW_MS = 2000  // 연속 누름으로 인정할 시간(ms)
+const QUICK_DOUBLE_BACK_MS = 600  // 이 시간 안에 두 번 누르면 앱 종료
 
-const SENTINEL_BUFFER = 30  // 센티넬 미리 푸시 개수 (브라우저별 popstate 타이밍 이슈 방지)
-
+// 동작:
+//   - 단일 뒤로가기 → 평소처럼 한 페이지 이전 (브라우저 기본)
+//   - 앱 첫 진입 페이지(__appRoot)에서 뒤로가기 → 종료 안 하고 토스트
+//   - 토스트 뜬 뒤 600ms 안에 다시 뒤로가기 → 앱 종료
 function useBackExit() {
-  const location = useLocation()
-  const isTopLevel = TOP_LEVEL_PATHS.includes(location.pathname)
-  const stateRef = useRef({ lastBack: 0, pressCount: 0, exiting: false })
+  const stateRef = useRef({ lastRootBack: 0 })
 
   useEffect(() => {
-    if (!isTopLevel) return
-    const s = stateRef.current
-    s.pressCount = 0
-    s.lastBack = 0
-    s.exiting = false
-    // 센티넬을 여러 개 미리 푸시 — 일부 브라우저가 popstate 전에 복수 엔트리를 소비해도 버티게
-    // 이미 센티넬 위에 있으면 중복 푸시 방지 (누적 방지)
-    if (!window.history.state?.__exitSentinel) {
-      for (let i = 0; i < SENTINEL_BUFFER; i++) {
-        window.history.pushState({ __exitSentinel: true, n: i }, '')
-      }
+    // 앱 진입점을 표시(replace)하고, 그 위에 sentinel 1개를 올림
+    // 이렇게 하면 사용자는 sentinel 위에서 자유롭게 navigate/back 가능
+    if (!window.history.state?.__appRoot && !window.history.state?.__exitSentinel) {
+      window.history.replaceState({ __appRoot: true }, '')
+      window.history.pushState({ __exitSentinel: true }, '')
     }
 
-    const onPop = () => {
-      if (s.exiting) {
-        s.exiting = false
+    const onPop = (e) => {
+      const s = stateRef.current
+
+      // 진입점(__appRoot)까지 내려왔다 = 사용자가 앱 밖으로 나가려는 시도
+      if (e.state?.__appRoot) {
+        const now = Date.now()
+        const wasFast = (now - s.lastRootBack) < QUICK_DOUBLE_BACK_MS
+        s.lastRootBack = now
+
+        if (wasFast) {
+          // 빠른 두 번째 → 진짜 종료 (한 칸 더 뒤로)
+          window.history.back()
+          return
+        }
+
+        // 첫 누름 → sentinel 다시 올려서 종료 막고 안내
+        window.history.pushState({ __exitSentinel: true }, '')
+        showToast(i18n.t('common.pressAgainToExit', { count: 1 }))
         return
       }
-      // 소비된 만큼 새 센티넬 보충
-      window.history.pushState({ __exitSentinel: true }, '')
 
-      const now = Date.now()
-      if (now - s.lastBack > EXIT_WINDOW_MS) s.pressCount = 0
-      s.pressCount += 1
-      s.lastBack = now
-
-      if (s.pressCount >= EXIT_PRESS_COUNT) {
-        s.exiting = true
-        // 남은 센티넬을 모두 제거하고 /home 엔트리까지 벗어나도록
-        window.history.go(-(SENTINEL_BUFFER + 1))
-        return
-      }
-      const remaining = EXIT_PRESS_COUNT - s.pressCount
-      showToast(i18n.t('common.pressAgainToExit', { count: remaining }))
+      // sentinel 또는 다른 페이지로 내려간 경우 = 정상 뒤로가기
+      // 타이머 리셋 (깊은 페이지에서 빠르게 연타해도 진입점에서 한 번은 토스트가 뜨도록)
+      s.lastRootBack = 0
     }
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
-  }, [isTopLevel, location.pathname])
+  }, [])
 }
 
 class ErrorBoundary extends Component {
@@ -79,7 +74,6 @@ import { seedIfEmpty } from './db'
 import { loadSettings } from './utils/settings'
 import { autoBackupIfDue } from './utils/backup'
 import BottomNav from './components/BottomNav'
-import UpdateBanner from './components/UpdateBanner'
 import HomePage from './pages/HomePage'
 import DiagnosisSearchPage from './pages/DiagnosisSearchPage'
 import ChecklistPage from './pages/ChecklistPage'
@@ -173,7 +167,6 @@ function AppLayout() {
   useAutoResetToHome()
   return (
     <div className="flex flex-col h-full max-w-lg mx-auto" style={{ backgroundColor: 'var(--app-bg)' }}>
-      <UpdateBanner />
       <main className="flex-1 min-h-0 overflow-y-auto pb-20">
         <Routes>
           <Route path="/home" element={<HomePage />} />

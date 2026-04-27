@@ -195,8 +195,8 @@ export default function HomePage() {
 
     {/* 현장 도구 (메인메뉴 바로 위 고정) */}
     <section
-      className="shrink-0 px-4 py-4 border-t border-b border-gray-300 flex items-center justify-center"
-      style={{ backgroundColor: 'var(--app-bg)', transform: 'translateY(22px)' }}
+      className="shrink-0 px-4 py-4 border-t border-b border-gray-300 flex items-center justify-center relative"
+      style={{ backgroundColor: 'var(--app-bg)', transform: 'translateY(22px)', zIndex: 10 }}
     >
       <div className="grid grid-cols-4 gap-2 w-full">
         {menus.map(({ to, label, Icon, bg, fg }) => (

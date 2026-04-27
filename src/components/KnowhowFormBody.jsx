@@ -1,12 +1,16 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Mic, MicOff, Sparkles, Camera, X } from 'lucide-react'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { useNavigate } from 'react-router-dom'
+import { Mic, MicOff, Sparkles, Camera, X, Building2 } from 'lucide-react'
+import { db } from '../db'
 import {
   KNOWHOW_CATEGORIES, COMPRESSOR_TYPES, COMPRESSOR_STRUCTURES,
   COOLING_METHODS, TEMP_RANGES, REFRIGERANT_TYPES, SYSTEM_TYPES,
 } from '../data/refrigerationTypes'
 import { showToast } from '../utils/toast'
 import { scanEquipment } from '../utils/scanEquipment'
+import { apiFetch } from '../utils/apiClient'
 
 // 한국어 DB값 → i18n 키 매핑 (표시용)
 const CATEGORY_KEY = {
@@ -52,6 +56,7 @@ const LOCATION_DB_VALUES = ['압축기', '응축기', '증발기', '전기패널
 const SHOW_CHIP_INPUTS = false
 
 export const EMPTY_KNOWHOW = {
+  customerId:     null,
   title:          '',
   category:       '기타',
   location:       '기타',
@@ -72,7 +77,15 @@ export const EMPTY_KNOWHOW = {
 
 export default function KnowhowFormBody({ form, setForm }) {
   const { t, i18n } = useTranslation()
+  const navigate = useNavigate()
 
+  // 거래처 목록 (id, name)
+  const customers = useLiveQuery(
+    () => db.customers.orderBy('name').toArray(), []
+  )
+
+  const [showCustomerList, setShowCustomerList] = useState(false)
+  const [customerSearch, setCustomerSearch] = useState('')
   const [isRecording, setIsRecording] = useState(false)
   const [transcript, setTranscript] = useState('')
   const [aiLoading, setAiLoading] = useState(false)
@@ -196,13 +209,7 @@ export default function KnowhowFormBody({ form, setForm }) {
     stopRecording()
     setAiLoading(true)
     try {
-      const res = await fetch('/api/classify-knowhow', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcript }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? `API error ${res.status}`)
+      const data = await apiFetch('/api/classify-knowhow', { transcript })
       const text = data.choices?.[0]?.message?.content ?? ''
       const match = text.match(/\{[\s\S]*\}/)
       if (match) {
@@ -230,6 +237,66 @@ export default function KnowhowFormBody({ form, setForm }) {
 
   return (
     <div className="space-y-4">
+
+      {/* 거래처 선택 (필수) */}
+      <Section title={t('knowhow.customerLabel')}>
+        <p className="text-xs text-gray-400 mb-1.5">{t('knowhow.customerDesc')}</p>
+        {customers && customers.length === 0 ? (
+          <button
+            onClick={() => navigate('/service')}
+            className="w-full flex items-center justify-center gap-2 py-3 bg-amber-100 border-2 border-amber-400 text-amber-900 text-sm font-semibold rounded-xl active:bg-amber-200"
+          >
+            <Building2 size={16} strokeWidth={2} />
+            {t('knowhow.customerNoneAdd')}
+          </button>
+        ) : (
+          <div>
+            <button
+              type="button"
+              onClick={() => setShowCustomerList((v) => !v)}
+              className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm bg-white border-2 rounded-lg outline-none text-left ${form.customerId ? 'border-blue-400 text-gray-900 font-medium' : 'border-white text-gray-500'}`}
+            >
+              <Building2 size={16} strokeWidth={2} className={form.customerId ? 'text-blue-600' : 'text-gray-400'} />
+              <span className="flex-1 truncate">
+                {form.customerId
+                  ? (customers?.find((c) => c.id === form.customerId)?.name ?? t('knowhow.customerSelect'))
+                  : t('knowhow.customerSelect')}
+              </span>
+              <span className="text-gray-400 text-xs">{showCustomerList ? '▲' : '▼'}</span>
+            </button>
+
+            {showCustomerList && (
+              <div className="mt-1 border border-gray-300 rounded-lg overflow-hidden bg-white">
+                <input
+                  type="text"
+                  value={customerSearch}
+                  onChange={(e) => setCustomerSearch(e.target.value)}
+                  placeholder={t('knowhow.customerSelect')}
+                  className="w-full px-3 py-2.5 text-sm border-b border-gray-200 outline-none"
+                />
+                <div className="max-h-48 overflow-y-auto">
+                  {customers
+                    ?.filter((c) => !customerSearch || c.name?.toLowerCase().includes(customerSearch.toLowerCase()))
+                    .map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => {
+                          set('customerId', c.id)
+                          setShowCustomerList(false)
+                          setCustomerSearch('')
+                        }}
+                        className={`w-full text-left px-3 py-2.5 text-sm border-b border-gray-100 last:border-b-0 active:bg-blue-50 ${form.customerId === c.id ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700'}`}
+                      >
+                        {c.name}
+                      </button>
+                    ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </Section>
 
       {/* 음성/카메라 입력 */}
       <Section title={t('knowhow.voiceInput')}>

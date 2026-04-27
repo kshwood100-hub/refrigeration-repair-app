@@ -1,16 +1,7 @@
+import { apiFetch } from './apiClient'
+
 export async function extractKnowhow(job, customer) {
-  const res = await fetch('/api/extract-knowhow', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ job, customer }),
-  })
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    throw new Error(err?.error ?? `API 오류 ${res.status}`)
-  }
-
-  const data = await res.json()
+  const data = await apiFetch('/api/extract-knowhow', { job, customer })
   const text = data.choices?.[0]?.message?.content ?? ''
   const match = text.match(/\{[\s\S]*\}/)
   if (!match) throw new Error('AI 응답 파싱 실패')
