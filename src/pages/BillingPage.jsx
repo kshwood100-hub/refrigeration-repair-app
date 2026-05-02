@@ -70,10 +70,17 @@ export default function BillingPage() {
   }
 
   async function patch(key, value) {
-    await db.service_jobs.update(Number(id), {
+    const updated = {
       [key]: parseAmount(value),
       updatedAt: new Date().toISOString(),
-    })
+    }
+    // 비용 5종 변경 시 cost 합계 자동 갱신 — JobDetailPage paid 토글 노출 조건(cost > 0) 보존
+    if (FIELDS.some((f) => f.key === key)) {
+      const cur = await db.service_jobs.get(Number(id))
+      const merged = { ...cur, ...updated }
+      updated.cost = FIELDS.reduce((s, f) => s + (Number(merged[f.key]) || 0), 0)
+    }
+    await db.service_jobs.update(Number(id), updated)
   }
 
   // "저장" 버튼: 모든 input을 일괄 commit + 토스트로 명시적 확인

@@ -116,6 +116,7 @@ export default function JobDetailPage() {
       const baseTitle = (knowhow.title || knowhow.symptoms || customer?.name || '').trim()
       const knowhowData = {
         ...knowhow,
+        customerId:  job.customerId,
         title:       baseTitle || t('job.sectionReceipt'),
         sourceJobId: jid,
         updatedAt:   now,
