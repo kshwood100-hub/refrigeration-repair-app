@@ -28,9 +28,9 @@ export default function HomePage() {
   const [tomorrowBanner, setTomorrowBanner] = useState(null)
   const [showBanner, setShowBanner] = useState(false)
 
-  const jobs = useLiveQuery(() => db.service_jobs.toArray(), [])
-  const customers = useLiveQuery(() => db.customers.toArray(), [])
-  const todayMaintenances = useLiveQuery(() => db.equipment_maintenance.where('nextDueDate').equals(todayStr()).toArray(), [])
+  const jobs = useLiveQuery(() => db.service_jobs.filter((r) => !r.deletedAt).toArray(), [])
+  const customers = useLiveQuery(() => db.customers.filter((r) => !r.deletedAt).toArray(), [])
+  const todayMaintenances = useLiveQuery(() => db.equipment_maintenance.where('nextDueDate').equals(todayStr()).filter((r) => !r.deletedAt).toArray(), [])
 
   const customerMap = Object.fromEntries((customers ?? []).map((c) => [c.id, c]))
 

@@ -13,27 +13,36 @@ function norm(s) {
   return (s || '').toLowerCase().replace(/\s+/g, '')
 }
 
-function getSearchableText(caseItem, lang) {
+// 검색은 모든 언어 필드에서 동시 매칭 (글로벌 사용자가 자기 언어로 검색해도 결과 보장)
+const ALL_LANGS = ['ko', 'en', 'zh', 'ja', 'es', 'hi', 'vi', 'th', 'id', 'ar']
+
+function allLangs(field) {
+  if (!field) return ''
+  if (typeof field === 'string') return field
+  return ALL_LANGS.map(l => field[l] || '').join(' ')
+}
+
+function getSearchableText(caseItem) {
   const parts = [
-    pickLang(caseItem.title, lang),
-    pickLang(caseItem.tip, lang),
+    allLangs(caseItem.title),
+    allLangs(caseItem.tip),
     ...(caseItem.keywords || []),
     ...(caseItem.causes || []).flatMap(c => [
-      pickLang(c.name, lang),
-      pickLang(c.check, lang),
-      pickLang(c.fix, lang),
+      allLangs(c.name),
+      allLangs(c.check),
+      allLangs(c.fix),
     ]),
   ]
   return norm(parts.join(' '))
 }
 
-function matchLocation(caseItem, lang, words) {
-  const title = norm(pickLang(caseItem.title, lang))
-  const tip = norm(pickLang(caseItem.tip, lang))
+function matchLocation(caseItem, words) {
+  const title = norm(allLangs(caseItem.title))
+  const tip = norm(allLangs(caseItem.tip))
   const keywords = norm((caseItem.keywords || []).join(' '))
-  const causeNames = norm((caseItem.causes || []).map(c => pickLang(c.name, lang)).join(' '))
+  const causeNames = norm((caseItem.causes || []).map(c => allLangs(c.name)).join(' '))
   const causeActions = norm((caseItem.causes || []).map(c =>
-    pickLang(c.check, lang) + ' ' + pickLang(c.fix, lang)
+    allLangs(c.check) + ' ' + allLangs(c.fix)
   ).join(' '))
 
   const inTitle = words.every(w => title.includes(w))
@@ -68,13 +77,13 @@ export default function DiagnosisSearchPage() {
 
     const groups = { title: [], cause: [], action: [], other: [] }
     for (const c of cases) {
-      const text = getSearchableText(c, lang)
+      const text = getSearchableText(c)
       if (!words.every(w => text.includes(w))) continue
-      const loc = matchLocation(c, lang, words)
+      const loc = matchLocation(c, words)
       if (loc) groups[loc].push(c)
     }
     return groups
-  }, [submitted, lang, cases])
+  }, [submitted, cases])
 
   const totalResults = results
     ? results.title.length + results.cause.length + results.action.length + results.other.length
@@ -116,7 +125,8 @@ export default function DiagnosisSearchPage() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t('diagSearch.placeholder')}
-          className="w-full pl-9 pr-9 py-2.5 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-blue-500"
+          style={{ backgroundColor: '#ffffff', color: '#111827' }}
+          className="w-full pl-9 pr-9 py-3 text-sm border-2 border-gray-300 rounded-xl shadow-md placeholder-gray-400 focus:outline-none focus:border-blue-500"
         />
         {query && (
           <button

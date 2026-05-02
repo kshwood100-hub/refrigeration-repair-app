@@ -7,6 +7,10 @@ import { db } from '../db'
 import { showToast } from '../utils/toast'
 import { requestNotificationPermission } from '../utils/alarmManager'
 import KnowhowFormBody, { EMPTY_KNOWHOW } from '../components/KnowhowFormBody'
+import DateInput from '../components/DateInput'
+import TrialLimitModal from '../components/TrialLimitModal'
+import CustomerPickerModal from '../components/CustomerPickerModal'
+import { consumeTrial } from '../utils/trial'
 
 const today = () => new Date().toISOString().slice(0, 10)
 
@@ -39,17 +43,20 @@ export default function JobFormPage() {
     () => existingJob?.customerId ? db.customers.get(existingJob.customerId) : undefined,
     [existingJob?.customerId]
   )
-  const allCustomers = useLiveQuery(() => db.customers.orderBy('name').toArray(), [])
+  const allCustomers = useLiveQuery(() => db.customers.orderBy('name').filter((r) => !r.deletedAt).toArray(), [])
 
   const [job, setJob] = useState(EMPTY_JOB)
   const [knowhow, setKnowhow] = useState(EMPTY_KNOWHOW)
   const [customer, setCustomer] = useState(EMPTY_CUSTOMER)
+  const [selectedCustomerId, setSelectedCustomerId] = useState(null)
   const [photos, setPhotos] = useState([])
   const [customerSearch, setCustomerSearch] = useState('')
   const [showCustomerList, setShowCustomerList] = useState(false)
   const [initialized, setInitialized] = useState(false)
   const [alarmDate, setAlarmDate] = useState('')
   const [alarmTime, setAlarmTime] = useState('')
+  const [trialBlocked, setTrialBlocked] = useState(null)
+  const [saving, setSaving] = useState(false)
   const fileRef = useRef()
 
   const preloadCustomerId = location.state?.customerId
@@ -69,7 +76,8 @@ export default function JobFormPage() {
     }
   }, [isNew, preloadCustomer, initialized])
 
-  if (!isNew && existingJob && existingCustomer && !initialized) {
+  // existingCustomer 매칭 안 되더라도 (stale customerId) job 데이터는 초기화 — 데이터 손실 방지
+  if (!isNew && existingJob && !initialized) {
     setJob({
       status:      existingJob.status      ?? 'received',
       receiptDate: existingJob.receiptDate ?? today(),
@@ -96,17 +104,18 @@ export default function JobFormPage() {
       parts:          existingJob.parts          ?? existingJob.materials ?? '',
       notes:          existingJob.notes          ?? '',
     })
-    setCustomer({
-      name:    existingCustomer.name    ?? '',
-      phone:   existingCustomer.phone   ?? '',
-      address: existingCustomer.address ?? '',
-      email:   existingCustomer.email   ?? '',
-    })
+    if (existingCustomer) {
+      setCustomer({
+        name:    existingCustomer.name    ?? '',
+        phone:   existingCustomer.phone   ?? '',
+        address: existingCustomer.address ?? '',
+        email:   existingCustomer.email   ?? '',
+      })
+    }
     setInitialized(true)
   }
 
   function setJ(field, val) { setJob((p) => ({ ...p, [field]: val })) }
-  function setC(field, val) { setCustomer((p) => ({ ...p, [field]: val })) }
 
   const totalCost = (Number(job.partsCost) || 0) + (Number(job.laborCost) || 0)
 
@@ -139,39 +148,96 @@ export default function JobFormPage() {
 
   function selectCustomer(c) {
     setCustomer({ name: c.name, phone: c.phone, address: c.address ?? '', email: c.email ?? '' })
+    setSelectedCustomerId(c.id)
     setShowCustomerList(false)
     setCustomerSearch('')
   }
 
+  // 모달에서 거래처 선택
+  function handlePickCustomer(c) {
+    selectCustomer(c)
+  }
+
   async function handleSave() {
-    if (!customer.name.trim()) { showToast(t('job.labelCustomerName').replace(' *', '') + ' required'); return }
+    if (saving) return // 중복 클릭 차단
     if ((alarmDate && !alarmTime) || (!alarmDate && alarmTime)) {
       showToast(t('userAlarm.dateTimeRequired')); return
     }
 
-    let customerId = isNew ? (preloadCustomerId ?? null) : existingJob?.customerId
-    if (!customerId) {
-      customerId = await db.customers.add({
-        name: customer.name.trim(), phone: customer.phone.trim(), address: customer.address.trim(), email: customer.email.trim(),
-      })
-    } else {
-      await db.customers.update(customerId, {
-        name: customer.name.trim(), phone: customer.phone.trim(), address: customer.address.trim(), email: customer.email.trim(),
-      })
+    setSaving(true)
+    try {
+      await doSave()
+    } catch (e) {
+      console.error('Save failed:', e)
+      showToast(String(e?.message || e))
+      setSaving(false)
+    }
+  }
+
+  async function doSave() {
+    if (isNew) {
+      try {
+        await consumeTrial('jobs')
+      } catch (e) {
+        if (String(e?.message || e).includes('Trial limit')) {
+          setTrialBlocked('jobs')
+          setSaving(false)
+          return
+        }
+      }
     }
 
-    const jobData = {
-      customerId,
-      status:      isNew ? 'received' : job.status,
-      receiptDate: job.receiptDate,
-      visitDate:   job.visitDate,
-      visitTime:   job.visitTime,
-      partsCost:   Number(job.partsCost) || 0,
-      laborCost:   Number(job.laborCost) || 0,
-      cost:        totalCost,
-      ...knowhow,
-      updatedAt:   new Date().toISOString(),
+    let customerId
+    if (isNew) {
+      // 신규 AS는 반드시 기존(혹은 방금 등록한) 거래처 선택 필수.
+      // 거래처 신규 등록은 별도 폼(/customers/new)에서만.
+      customerId = selectedCustomerId ?? preloadCustomerId ?? null
+      if (!customerId) {
+        showToast(t('job.selectCustomerRequired'))
+        setSaving(false)
+        return
+      }
+    } else {
+      // 편집: 거래처 정보는 절대 수정 안 함 (CustomerDetailPage 담당).
+      // 사용자가 거래처 변경 버튼으로 다른 거래처 선택했으면 customerId만 갈아끼움.
+      customerId = selectedCustomerId ?? existingJob?.customerId ?? null
+      if (!customerId) {
+        showToast(t('job.staleCustomerError') || 'Customer required')
+        setSaving(false)
+        return
+      }
     }
+
+    // 명시적 picking — spread로 우발적 함수 prop 박힘 방지 + JSON 통과로 한 번 더 정리
+    const rawJobData = {
+      customerId,
+      status:         isNew ? 'received' : job.status,
+      receiptDate:    job.receiptDate || '',
+      visitDate:      job.visitDate || '',
+      visitTime:      job.visitTime || '',
+      partsCost:      Number(job.partsCost) || 0,
+      laborCost:      Number(job.laborCost) || 0,
+      cost:           totalCost,
+      updatedAt:      new Date().toISOString(),
+      title:          knowhow.title || '',
+      category:       knowhow.category || '',
+      location:       knowhow.location || '',
+      compressorType: knowhow.compressorType || '',
+      compressorStr:  knowhow.compressorStr || '',
+      coolingMethod:  knowhow.coolingMethod || '',
+      tempRange:      knowhow.tempRange || '',
+      refrigerant:    knowhow.refrigerant || '',
+      systemType:     knowhow.systemType || '',
+      symptoms:       knowhow.symptoms || '',
+      cause:          knowhow.cause || '',
+      checkSteps:     knowhow.checkSteps || '',
+      solution:       knowhow.solution || '',
+      parts:          knowhow.parts || '',
+      notes:          knowhow.notes || '',
+      equipPhotos:    Array.isArray(knowhow.equipPhotos) ? knowhow.equipPhotos.filter((p) => typeof p === 'string') : [],
+      equipments:     Array.isArray(knowhow.equipments)  ? knowhow.equipments.filter((eq) => eq && typeof eq === 'object')  : [],
+    }
+    const jobData = JSON.parse(JSON.stringify(rawJobData))
 
     let jobId
     if (isNew) {
@@ -197,6 +263,7 @@ export default function JobFormPage() {
           time: alarmTime,
           note: job.visitDate ? `${t('job.visitPrefix')} ${job.visitDate}` : '',
           jobId,
+          customerId,
           fired: 0,
           createdAt: new Date().toISOString(),
         })
@@ -222,9 +289,10 @@ export default function JobFormPage() {
         {isNew ? <div /> : <h2 className="text-base font-semibold text-gray-900">{t('job.editTitle')}</h2>}
         <button
           onClick={handleSave}
-          className="px-3 py-1.5 bg-emerald-600 text-white text-sm font-bold rounded-lg shadow-sm active:bg-emerald-700"
+          disabled={saving}
+          className={`px-3 py-1.5 text-white text-sm font-bold rounded-lg shadow-sm ${saving ? 'bg-gray-400 cursor-not-allowed' : 'bg-emerald-600 active:bg-emerald-700'}`}
         >
-          {isNew ? t('job.newTitle') : t('job.save')}
+          {saving ? t('common.saving') : (isNew ? t('job.newTitle') : t('job.save'))}
         </button>
       </div>
 
@@ -232,42 +300,86 @@ export default function JobFormPage() {
 
         {/* 고객 정보 */}
         <Section title={t('job.sectionCustomer')}>
-          <div className="mb-2">
-            <button
-              onClick={() => setShowCustomerList((v) => !v)}
-              className="flex items-center gap-1.5 text-xs font-medium text-blue-600 border border-blue-100 rounded-lg px-3 py-1.5"
-            >
-              <Users size={12} strokeWidth={1.5} />
-              {showCustomerList ? t('settings.close') : t('job.loadCustomer')}
-            </button>
-            {showCustomerList && (
-              <div className="mt-2 border border-gray-300 rounded-xl overflow-hidden">
-                <input
-                  type="text"
-                  value={customerSearch}
-                  onChange={(e) => setCustomerSearch(e.target.value)}
-                  placeholder={t('job.customerSearch')}
-                  className="w-full px-3 py-2 text-sm border-b border-gray-300 outline-none"
-                />
-                <div className="max-h-40 overflow-y-auto">
-                  {filteredCustomers.length === 0
-                    ? <p className="text-xs text-gray-400 px-3 py-2">{t('job.noSearchResult')}</p>
-                    : filteredCustomers.map((c) => (
-                      <button key={c.id} onClick={() => selectCustomer(c)}
-                        className="w-full text-left px-3 py-2 text-sm border-t border-gray-50 active:bg-gray-50">
-                        <span className="font-medium text-gray-800">{c.name}</span>
-                        <span className="ml-2 text-gray-400 text-xs">{c.phone}</span>
-                      </button>
-                    ))
-                  }
+          {isNew ? (
+            <>
+              {/* 신규 AS는 거래처 선택만. 신규 거래처 등록은 별도 폼으로 이동. */}
+              {(selectedCustomerId || preloadCustomerId) && customer.name ? (
+                <div className="bg-white border border-gray-300 rounded-xl p-3 mb-2">
+                  <div className="text-xs text-gray-400 mb-1">{t('job.currentCustomer')}</div>
+                  <div className="text-sm font-bold text-gray-900">{customer.name}</div>
+                  {customer.phone && <div className="text-xs text-gray-500 mt-0.5">{customer.phone}</div>}
+                  {customer.address && <div className="text-xs text-gray-500 mt-0.5">{customer.address}</div>}
+                  <button
+                    onClick={() => setShowCustomerList(true)}
+                    className="mt-2 text-xs font-medium text-blue-600 active:text-blue-800"
+                  >
+                    {t('job.changeCustomer')}
+                  </button>
                 </div>
-              </div>
-            )}
-          </div>
-          <Field label={t('job.labelCustomerName')} value={customer.name}    onChange={(v) => setC('name', v)}    placeholder={t('job.phCustomer')} />
-          <Field label={t('job.labelPhone')}        value={customer.phone}   onChange={(v) => setC('phone', v)}   type="tel" placeholder="010-0000-0000" />
-          <Field label={t('job.labelEmail')}        value={customer.email}   onChange={(v) => setC('email', v)}   type="email" placeholder="example@email.com" />
-          <Field label={t('job.labelAddress')}      value={customer.address} onChange={(v) => setC('address', v)} placeholder={t('job.phAddress')} />
+              ) : (
+                <div className="bg-amber-50 border border-amber-300 rounded-xl p-3 mb-2">
+                  <div className="text-xs text-amber-700 font-bold mb-2">{t('job.noCustomerSelected')}</div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => setShowCustomerList(true)}
+                      className="flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold text-white bg-blue-600 rounded-lg active:bg-blue-700 shadow-sm"
+                    >
+                      <Users size={14} strokeWidth={2} />
+                      {t('job.selectExistingBtn')}
+                    </button>
+                    <button
+                      onClick={() => navigate('/customers/new', { state: { returnTo: '/service/new' } })}
+                      className="flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold text-white bg-emerald-600 rounded-lg active:bg-emerald-700 shadow-sm"
+                    >
+                      <Users size={14} strokeWidth={2} />
+                      {t('job.newCustomerBtn')}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              {/* 편집: 거래처는 표시 + 변경 버튼만 (모달). 거래처 정보 자체 수정은 거래처 상세 페이지에서. */}
+              {existingCustomer ? (
+                <div className="bg-white border border-gray-300 rounded-xl p-3 mb-2">
+                  <div className="text-xs text-gray-400 mb-1">{t('job.currentCustomer')}</div>
+                  <div className="text-sm font-bold text-gray-900">
+                    {selectedCustomerId ? customer.name : existingCustomer.name}
+                  </div>
+                  {(selectedCustomerId ? customer.phone : existingCustomer.phone) && (
+                    <div className="text-xs text-gray-500 mt-0.5">
+                      {selectedCustomerId ? customer.phone : existingCustomer.phone}
+                    </div>
+                  )}
+                  {selectedCustomerId && (
+                    <div className="mt-2 text-[11px] text-blue-600 font-bold">
+                      {t('job.willChangeOnSave')}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-red-50 border border-red-300 rounded-xl p-3 mb-2">
+                  <div className="text-sm font-bold text-red-600">⚠ {t('service.staleCustomer')}</div>
+                  <div className="text-xs text-red-500 mt-1">{t('job.stalePickHint')}</div>
+                  {selectedCustomerId && (
+                    <div className="mt-2 p-2 bg-white rounded border border-red-200">
+                      <div className="text-xs text-gray-400 mb-0.5">{t('job.willChangeTo')}</div>
+                      <div className="text-sm font-bold text-gray-900">{customer.name}</div>
+                      {customer.phone && <div className="text-xs text-gray-500">{customer.phone}</div>}
+                    </div>
+                  )}
+                </div>
+              )}
+              <button
+                onClick={() => setShowCustomerList(true)}
+                className="w-full flex items-center justify-center gap-1.5 text-sm font-bold text-white bg-blue-600 rounded-lg px-3 py-2.5 active:bg-blue-700 shadow-sm"
+              >
+                <Users size={14} strokeWidth={2} />
+                {t('service.fixCustomerBtn')}
+              </button>
+            </>
+          )}
         </Section>
 
         {/* 의뢰 정보 */}
@@ -275,12 +387,7 @@ export default function JobFormPage() {
           <Field label={t('job.labelReceiptDate')} value={job.receiptDate} onChange={(v) => setJ('receiptDate', v)} type="date" />
           <div>
             <label className="text-xs font-semibold text-gray-500 block mb-1">{t('job.labelVisitSchedule')}</label>
-            <input
-              type="date"
-              value={job.visitDate}
-              onChange={(e) => setJ('visitDate', e.target.value)}
-              className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-400"
-            />
+            <DateInput value={job.visitDate} onChange={(v) => setJ('visitDate', v)} />
           </div>
           <TimeSelect
             label={t('job.labelVisitTime')}
@@ -298,14 +405,12 @@ export default function JobFormPage() {
               {t('userAlarm.setForJob')} <span className="text-gray-400 font-normal">{t('job.labelOptional')}</span>
             </label>
             <div className="grid grid-cols-2 gap-2">
-              <input
-                type="date"
+              <DateInput
                 value={alarmDate}
-                onChange={(e) => {
-                  setAlarmDate(e.target.value)
-                  if (e.target.value && !alarmTime && job.visitTime) setAlarmTime(job.visitTime)
+                onChange={(v) => {
+                  setAlarmDate(v)
+                  if (v && !alarmTime && job.visitTime) setAlarmTime(job.visitTime)
                 }}
-                className="text-sm border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-400"
               />
               <input
                 type="time"
@@ -331,9 +436,10 @@ export default function JobFormPage() {
         {isNew && (
           <button
             onClick={handleSave}
-            className="w-full py-4 bg-slate-700 text-white text-base font-semibold rounded-xl border-2 border-slate-400 shadow-md active:bg-slate-600"
+            disabled={saving}
+            className={`w-full py-4 text-white text-base font-semibold rounded-xl border-2 shadow-md ${saving ? 'bg-gray-400 border-gray-300 cursor-not-allowed' : 'bg-slate-700 border-slate-400 active:bg-slate-600'}`}
           >
-            {t('job.save')}
+            {saving ? t('common.saving') : t('job.save')}
           </button>
         )}
 
@@ -341,7 +447,7 @@ export default function JobFormPage() {
         {!isNew && (
           <>
             {/* 설비/고장 정보 (공통 폼) */}
-            <KnowhowFormBody form={knowhow} setForm={setKnowhow} />
+            <KnowhowFormBody form={knowhow} setForm={setKnowhow} hideCustomer />
 
             <Section title={t('job.sectionCost')}>
               <Field label={t('job.labelPartsCost')} value={job.partsCost} onChange={(v) => setJ('partsCost', v)} decimal placeholder="0" />
@@ -376,14 +482,22 @@ export default function JobFormPage() {
 
             <button
               onClick={handleSave}
-              className="w-full py-4 bg-slate-700 text-white text-base font-semibold rounded-xl border-2 border-slate-400 shadow-md active:bg-slate-600"
+              disabled={saving}
+              className={`w-full py-4 text-white text-base font-semibold rounded-xl border-2 shadow-md ${saving ? 'bg-gray-400 border-gray-300 cursor-not-allowed' : 'bg-slate-700 border-slate-400 active:bg-slate-600'}`}
             >
-              {t('job.save')}
+              {saving ? t('common.saving') : t('job.save')}
             </button>
           </>
         )}
 
       </div>
+      {trialBlocked && <TrialLimitModal category={trialBlocked} onClose={() => setTrialBlocked(null)} />}
+      <CustomerPickerModal
+        open={showCustomerList}
+        customers={allCustomers}
+        onSelect={handlePickCustomer}
+        onClose={() => setShowCustomerList(false)}
+      />
     </div>
   )
 }
@@ -400,6 +514,14 @@ function Section({ title, children }) {
 }
 
 function Field({ label, value, onChange, type = 'text', placeholder, decimal = false }) {
+  if (type === 'date') {
+    return (
+      <div>
+        <label className="text-xs font-semibold text-gray-500 block mb-1">{label}</label>
+        <DateInput value={value} onChange={onChange} placeholder={placeholder} />
+      </div>
+    )
+  }
   if (decimal) {
     const display = value === '' || value == null ? '' : (() => {
       const [int, dec] = String(value).split('.')

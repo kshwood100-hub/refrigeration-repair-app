@@ -1,8 +1,12 @@
 {
+  "id": "/",
   "name": "R-Pro",
   "short_name": "R-Pro",
   "description": "Refrigeration Professional — PT Chart & Field Manager",
+  "lang": "en",
+  "dir": "ltr",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#E2E8F0",
   "theme_color": "#0F172A",

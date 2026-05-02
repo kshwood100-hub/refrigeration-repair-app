@@ -1,7 +1,8 @@
+import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useTranslation } from 'react-i18next'
-import { ChevronLeft, Pencil, MapPin, Tag } from 'lucide-react'
+import { ChevronLeft, Pencil, MapPin, Tag, X } from 'lucide-react'
 import { db } from '../db'
 
 export default function KnowhowDetailPage() {
@@ -9,7 +10,11 @@ export default function KnowhowDetailPage() {
   const { id } = useParams()
   const { t } = useTranslation()
 
-  const item = useLiveQuery(() => db.knowhow.get(Number(id)), [id])
+  const item = useLiveQuery(async () => {
+    const r = await db.knowhow.get(Number(id))
+    return r?.deletedAt ? null : r
+  }, [id])
+  const [equipLightboxIdx, setEquipLightboxIdx] = useState(null)
 
   if (!item) return <div className="p-4 text-gray-400 text-sm">{t('knowhow.loading')}</div>
 
@@ -48,19 +53,48 @@ export default function KnowhowDetailPage() {
           </div>
         </div>
 
-        {/* 장비 사진 */}
-        {(item.equipPhotos ?? []).length > 0 && (
+        {/* 장비 정보 (사진 + 분석 결과) */}
+        {((item.equipments ?? []).length > 0 || (item.equipPhotos ?? []).length > 0) && (
           <Card title={t('knowhow.equipPhotos')}>
-            <div className="flex gap-2 flex-wrap">
-              {item.equipPhotos.map((url, i) => (
-                <img
-                  key={i}
-                  src={url}
-                  alt=""
-                  className="w-24 h-24 object-cover rounded-lg border border-gray-200"
-                />
-              ))}
-            </div>
+            {(item.equipments ?? []).length > 0 ? (
+              <div className="space-y-2">
+                {item.equipments.map((eq, i) => (
+                  <div key={i} className="relative w-full bg-white border-2 border-gray-300 rounded-xl p-2 shadow-sm">
+                    <div className="grid grid-cols-[96px_1fr] gap-2">
+                      <button
+                        onClick={() => setEquipLightboxIdx(i)}
+                        className="w-24 h-24 bg-gray-100 border border-gray-300 rounded-md overflow-hidden block"
+                      >
+                        {eq.photo && <img src={eq.photo} alt="" className="w-full h-full object-cover" />}
+                      </button>
+                      <div className="bg-gray-50 border border-gray-200 rounded-md p-2 text-[11px] leading-tight grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5 content-start overflow-hidden">
+                        {eq.kind && (<><span className="text-gray-400 shrink-0">{t('scan.kind')}</span><span className="text-gray-900 font-medium truncate">{eq.kind}</span></>)}
+                        {eq.brand && (<><span className="text-gray-400 shrink-0">{t('scan.brand')}</span><span className="text-gray-900 font-medium truncate">{eq.brand}</span></>)}
+                        {eq.model && (<><span className="text-gray-400 shrink-0">{t('scan.model')}</span><span className="text-gray-900 font-medium truncate">{eq.model}</span></>)}
+                        {eq.serial && (<><span className="text-gray-400 shrink-0">{t('scan.serial')}</span><span className="text-gray-900 font-medium truncate">{eq.serial}</span></>)}
+                        {eq.capacity && (<><span className="text-gray-400 shrink-0">{t('scan.capacity')}</span><span className="text-gray-900 font-medium truncate">{eq.capacity}</span></>)}
+                        {eq.refrigerant && (<><span className="text-gray-400 shrink-0">{t('scan.refrigerant')}</span><span className="text-gray-900 font-medium truncate">{eq.refrigerant}</span></>)}
+                        {!eq.kind && !eq.brand && !eq.model && (
+                          <span className="col-span-2 text-gray-400">{t('knowhow.equipNoData')}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              // 옛 데이터 호환: equipPhotos만 있는 경우 사진만 표시
+              <div className="flex gap-2 flex-wrap">
+                {item.equipPhotos.map((url, i) => (
+                  <img
+                    key={i}
+                    src={url}
+                    alt=""
+                    className="w-24 h-24 object-cover rounded-lg border border-gray-200"
+                  />
+                ))}
+              </div>
+            )}
           </Card>
         )}
 
@@ -132,6 +166,46 @@ export default function KnowhowDetailPage() {
         </p>
 
       </div>
+
+      {/* 장비 사진 라이트박스 */}
+      {equipLightboxIdx != null && (item.equipments ?? [])[equipLightboxIdx]?.photo && (
+        <div
+          className="fixed inset-0 bg-black/90 z-[70] flex items-center justify-center"
+          onClick={() => setEquipLightboxIdx(null)}
+        >
+          <button
+            onClick={(e) => { e.stopPropagation(); setEquipLightboxIdx(null) }}
+            className="absolute top-4 right-4 w-10 h-10 bg-white/20 text-white rounded-full flex items-center justify-center"
+          >
+            <X size={20} strokeWidth={2} />
+          </button>
+          {equipLightboxIdx > 0 && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setEquipLightboxIdx(equipLightboxIdx - 1) }}
+              className="absolute left-2 w-10 h-10 bg-white/20 text-white rounded-full flex items-center justify-center text-2xl"
+            >
+              ‹
+            </button>
+          )}
+          {equipLightboxIdx < (item.equipments ?? []).length - 1 && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setEquipLightboxIdx(equipLightboxIdx + 1) }}
+              className="absolute right-2 w-10 h-10 bg-white/20 text-white rounded-full flex items-center justify-center text-2xl"
+            >
+              ›
+            </button>
+          )}
+          <img
+            src={(item.equipments ?? [])[equipLightboxIdx]?.photo}
+            alt=""
+            className="max-w-full max-h-full object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <div className="absolute bottom-4 text-white/70 text-xs">
+            {equipLightboxIdx + 1} / {(item.equipments ?? []).length}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -4,11 +4,15 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useTranslation } from 'react-i18next'
 import {
   ChevronLeft, Phone, MapPin, Plus, ChevronRight,
-  Calendar, CreditCard, Trash2, Wrench, CheckCircle2, X, Bell, Camera,
+  Calendar, CreditCard, Trash2, Wrench, CheckCircle2, X, Bell, Camera, Mail,
 } from 'lucide-react'
+import DateInput from '../components/DateInput'
 import { db } from '../db'
+import { softDelete, softDeleteCustomerCascade } from '../utils/cloudSync'
+import MediaImage from '../components/MediaImage'
 import { requestNotificationPermission } from '../utils/alarmManager'
 import { showToast } from '../utils/toast'
+import { compressImage } from '../utils/image'
 
 const INTERVAL_OPTIONS = [1, 2, 3, 6, 12]
 
@@ -17,6 +21,8 @@ export default function CustomerDetailPage() {
   const { id } = useParams()
   const { t } = useTranslation()
   const [showDelete, setShowDelete] = useState(false)
+  const [siteLightboxIdx, setSiteLightboxIdx] = useState(null)
+  const [analyzedLightboxIdx, setAnalyzedLightboxIdx] = useState(null)
   const [showEquipForm, setShowEquipForm] = useState(false)
   const [equipName, setEquipName] = useState('')
   const [equipInterval, setEquipInterval] = useState(null)
@@ -30,21 +36,52 @@ export default function CustomerDetailPage() {
   const [showEditCustomer, setShowEditCustomer] = useState(false)
   const [editName, setEditName] = useState('')
   const [editPhone, setEditPhone] = useState('')
+  const [editEmail, setEditEmail] = useState('')
   const [editAddress, setEditAddress] = useState('')
+  const [savingAlarm, setSavingAlarm] = useState(false)
+  const [savingCustomer, setSavingCustomer] = useState(false)
 
-  const customer = useLiveQuery(() => db.customers.get(Number(id)), [id])
+  const customer = useLiveQuery(async () => {
+    const c = await db.customers.get(Number(id))
+    return c?.deletedAt ? null : c
+  }, [id])
   const jobs = useLiveQuery(
-    () => db.service_jobs.where('customerId').equals(Number(id)).reverse().sortBy('receiptDate'),
+    async () => (await db.service_jobs.where('customerId').equals(Number(id)).reverse().sortBy('receiptDate')).filter((r) => !r.deletedAt),
     [id]
   )
   const cards = useLiveQuery(
-    () => db.business_cards.where('customerId').equals(Number(id)).toArray(),
+    () => db.business_cards.where('customerId').equals(Number(id)).filter((r) => !r.deletedAt).toArray(),
     [id]
   )
   const equipments = useLiveQuery(
-    () => db.equipment_maintenance.where('customerId').equals(Number(id)).toArray(),
+    () => db.equipment_maintenance.where('customerId').equals(Number(id)).filter((r) => !r.deletedAt).toArray(),
     [id]
   )
+  const knowhowList = useLiveQuery(
+    () => db.knowhow.where('customerId').equals(Number(id)).filter((r) => !r.deletedAt).toArray(),
+    [id]
+  )
+  // 분석된 장비 통합 — AS와 설비기록에서 모은 equipments
+  const analyzedEquipments = useLiveQuery(async () => {
+    const cid = Number(id)
+    const jobs = await db.service_jobs.where('customerId').equals(cid).filter(r => !r.deletedAt).toArray()
+    const fromJobs = jobs.flatMap(j => (j.equipments ?? []).map(eq => ({ ...eq, sourceType: 'job', sourceId: j.id })))
+    const ks = await db.knowhow.where('customerId').equals(cid).filter(r => !r.deletedAt).toArray()
+    const fromKnowhow = ks.flatMap(k => (k.equipments ?? []).map(eq => ({ ...eq, sourceType: 'knowhow', sourceId: k.id })))
+    return [...fromJobs, ...fromKnowhow]
+  }, [id])
+  const alarms = useLiveQuery(async () => {
+    const cid = Number(id)
+    const cust = await db.customers.get(cid)
+    const customerJobs = await db.service_jobs.where('customerId').equals(cid).filter((r) => !r.deletedAt).toArray()
+    const myJobIds = new Set(customerJobs.map(j => j.id))
+    const all = await db.user_alarms.filter((r) => !r.deletedAt).toArray()
+    return all.filter(a =>
+      a.customerId === cid ||
+      (a.jobId && myJobIds.has(a.jobId)) ||
+      (cust?.name && typeof a.title === 'string' && a.title.startsWith(cust.name + ' -'))
+    ).sort((a, b) => `${b.date} ${b.time}`.localeCompare(`${a.date} ${a.time}`))
+  }, [id])
 
   function calcNextDue(intervalMonths) {
     const d = new Date()
@@ -88,9 +125,9 @@ export default function CustomerDetailPage() {
   async function handleEquipCapture(e) {
     const file = e.target.files?.[0]
     if (!file) return
-    const reader = new FileReader()
-    reader.onload = () => setEquipPhoto(reader.result)
-    reader.readAsDataURL(file)
+    // Firestore 1MB 한도 + IDB 용량 절감 위해 1200px / JPEG 75% 압축
+    const dataUrl = await compressImage(file)
+    setEquipPhoto(dataUrl)
     e.target.value = ''
   }
 
@@ -103,7 +140,7 @@ export default function CustomerDetailPage() {
   }
 
   async function handleDeleteEquipment(equipId) {
-    await db.equipment_maintenance.delete(equipId)
+    await softDelete('equipment_maintenance', equipId)
   }
 
   function openAlarmForEquip(equip) {
@@ -113,19 +150,33 @@ export default function CustomerDetailPage() {
   }
 
   async function handleSaveEquipAlarm() {
+    if (savingAlarm) return
     if (!alarmDate || !alarmTime) return showToast(t('userAlarm.dateTimeRequired'))
-    const granted = await requestNotificationPermission()
-    if (!granted) return showToast(t('userAlarm.permissionDenied'))
-    await db.user_alarms.add({
-      title: `${customer?.name} - ${alarmEquip.name}`,
-      date: alarmDate,
-      time: alarmTime,
-      note: t('customer.nextDue') + ': ' + alarmEquip.nextDueDate,
-      fired: 0,
-      createdAt: new Date().toISOString(),
-    })
-    setAlarmEquip(null)
-    showToast(t('userAlarm.saved'))
+    setSavingAlarm(true)
+    try {
+      const granted = await requestNotificationPermission()
+      if (!granted) {
+        showToast(t('userAlarm.permissionDenied'))
+        setSavingAlarm(false)
+        return
+      }
+      await db.user_alarms.add({
+        title: `${customer?.name} - ${alarmEquip.name}`,
+        date: alarmDate,
+        time: alarmTime,
+        note: t('customer.nextDue') + ': ' + alarmEquip.nextDueDate,
+        customerId: Number(id),
+        equipmentId: alarmEquip.id,
+        fired: 0,
+        createdAt: new Date().toISOString(),
+      })
+      setAlarmEquip(null)
+      showToast(t('userAlarm.saved'))
+    } catch (e) {
+      console.error('Alarm save failed:', e)
+    } finally {
+      setSavingAlarm(false)
+    }
   }
 
   if (!customer) return <div className="p-4 text-gray-400 text-sm">{t('customer.loading')}</div>
@@ -141,35 +192,38 @@ export default function CustomerDetailPage() {
     .filter((j) => j.status === 'completed')
     .reduce((sum, j) => sum + (j.cost || 0), 0)
 
+  // 미결제 = 결제 안 받은 작업 중 cost > 0 (완료 여부 무관)
+  const unpaidJobs = (jobs ?? []).filter((j) => (j.cost || 0) > 0 && !j.paid)
+  const unpaidTotal = unpaidJobs.reduce((sum, j) => sum + (j.cost || 0), 0)
+
   function openEditCustomer() {
     setEditName(customer?.name ?? '')
     setEditPhone(customer?.phone ?? '')
+    setEditEmail(customer?.email ?? '')
     setEditAddress(customer?.address ?? '')
     setShowEditCustomer(true)
   }
 
   async function handleSaveCustomer() {
-    await db.customers.update(Number(id), {
-      name: editName.trim(),
-      phone: editPhone.trim(),
-      address: editAddress.trim(),
-    })
-    setShowEditCustomer(false)
+    if (savingCustomer) return
+    setSavingCustomer(true)
+    try {
+      await db.customers.update(Number(id), {
+        name: editName.trim(),
+        phone: editPhone.trim(),
+        email: editEmail.trim(),
+        address: editAddress.trim(),
+      })
+      setShowEditCustomer(false)
+    } catch (e) {
+      console.error('Customer save failed:', e)
+    } finally {
+      setSavingCustomer(false)
+    }
   }
 
   async function handleDeleteCustomer() {
-    const cid = Number(id)
-    const jobIds = (await db.service_jobs.where('customerId').equals(cid).toArray()).map((j) => j.id)
-    if (jobIds.length) {
-      await db.job_photos.where('jobId').anyOf(jobIds).delete()
-      await db.expenses.where('jobId').anyOf(jobIds).delete()
-      await db.user_alarms.filter((a) => jobIds.includes(a.jobId)).delete()
-    }
-    await db.expenses.filter((e) => e.customerId === cid).delete()
-    await db.service_jobs.where('customerId').equals(cid).delete()
-    await db.business_cards.where('customerId').equals(cid).delete()
-    await db.equipment_maintenance.where('customerId').equals(cid).delete()
-    await db.customers.delete(cid)
+    await softDeleteCustomerCascade(Number(id))
     navigate('/service', { replace: true })
   }
 
@@ -189,72 +243,132 @@ export default function CustomerDetailPage() {
         </button>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-4">
 
-        {/* 고객 정보 카드 */}
-        <div
-          onClick={openEditCustomer}
-          className="bg-white border border-gray-300 rounded-xl p-4 shadow-sm cursor-pointer active:bg-gray-50 relative"
-        >
-          <span className="absolute top-2 right-3 text-[10px] text-gray-300">{t('customer.tapToEdit')}</span>
-          <p className="text-lg font-bold text-gray-900 mb-1">{customer.name}</p>
-          {customer.phone && (
-            <a
-              href={`tel:${customer.phone}`}
-              onClick={(e) => e.stopPropagation()}
-              className="inline-flex items-center gap-1.5 text-blue-600 text-sm font-medium mb-1"
-            >
-              <Phone size={13} strokeWidth={1.5} />
-              {customer.phone}
-            </a>
-          )}
-          {customer.address && (
-            <p className="flex items-center gap-1 text-xs text-gray-400 mt-1">
-              <MapPin size={11} strokeWidth={1.5} />
-              {customer.address}
-            </p>
-          )}
-          {totalRevenue > 0 && (
-            <div className="mt-3 pt-3 border-t border-gray-50 flex items-center justify-between">
-              <span className="text-xs text-gray-400">{t('customer.totalRevenue')}</span>
-              <span className="text-sm font-semibold text-gray-800">{totalRevenue.toLocaleString()}</span>
-            </div>
-          )}
-          <button
-            onClick={(e) => { e.stopPropagation(); navigate('/service/new', { state: { customerId: Number(id) } }) }}
-            className="mt-3 w-full flex items-center justify-center gap-1.5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-lg active:bg-blue-700"
+        {/* 1. 기본 정보 */}
+        <div>
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5 px-1">{t('customer.basicInfo')}</p>
+          <div
+            onClick={openEditCustomer}
+            className="bg-white border border-gray-300 rounded-xl p-4 shadow-sm cursor-pointer active:bg-gray-50 relative"
           >
-            <Plus size={14} strokeWidth={2.5} />
-            {t('customer.newRequest')}
-          </button>
+            <span className="absolute top-2 right-3 text-[10px] text-gray-300">{t('customer.tapToEdit')}</span>
+            <p className="text-lg font-bold text-gray-900 mb-2">{customer.name}</p>
+            {customer.phone ? (
+              <a
+                href={`tel:${customer.phone}`}
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-1.5 text-blue-600 text-sm font-medium mb-1"
+              >
+                <Phone size={13} strokeWidth={1.5} />
+                {customer.phone}
+              </a>
+            ) : (
+              <p className="flex items-center gap-1.5 text-xs text-gray-300 mb-1">
+                <Phone size={11} strokeWidth={1.5} />
+                {t('customer.phoneNone')}
+              </p>
+            )}
+            {customer.email ? (
+              <a
+                href={`mailto:${customer.email}`}
+                onClick={(e) => e.stopPropagation()}
+                className="flex items-center gap-1.5 text-xs text-blue-600 mt-1 break-all"
+              >
+                <Mail size={11} strokeWidth={1.5} />
+                {customer.email}
+              </a>
+            ) : (
+              <p className="flex items-center gap-1.5 text-xs text-gray-300 mt-1">
+                <Mail size={11} strokeWidth={1.5} />
+                {t('customer.emailNone')}
+              </p>
+            )}
+            {customer.address ? (
+              <p className="flex items-center gap-1 text-xs text-gray-400 mt-1">
+                <MapPin size={11} strokeWidth={1.5} />
+                {customer.address}
+              </p>
+            ) : (
+              <p className="flex items-center gap-1 text-xs text-gray-300 mt-1">
+                <MapPin size={11} strokeWidth={1.5} />
+                {t('customer.addressNone')}
+              </p>
+            )}
+            <div className="mt-3 pt-3 border-t border-gray-100 grid grid-cols-2 gap-2">
+              <div>
+                <p className="text-[10px] text-gray-400">{t('customer.jobsCount', { count: (jobs ?? []).length })}</p>
+              </div>
+              {totalRevenue > 0 && (
+                <div className="text-right">
+                  <p className="text-[10px] text-gray-400">{t('customer.totalRevenue')}</p>
+                  <p className="text-sm font-semibold text-gray-800">{totalRevenue.toLocaleString()}</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* 명함 */}
-        {cards && cards.length > 0 && (
-          <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5 px-1">{t('customer.businessCards')}</p>
-            <div className="space-y-2">
-              {cards.map((card) => (
-                <div
-                  key={card.id}
-                  onClick={() => setPreviewCard(card)}
-                  className="bg-white border border-gray-300 rounded-xl p-3 shadow-sm flex gap-3 items-start active:bg-gray-50 cursor-pointer"
+        {/* 1.5 — 고객 성향 메모 */}
+        {customer.traits && (
+          <div className="bg-amber-600 rounded-xl p-3 shadow-md">
+            <p className="text-xs font-bold text-white uppercase tracking-wide mb-1">{t('customerForm.traits')}</p>
+            <p className="text-sm text-white whitespace-pre-wrap leading-relaxed">{customer.traits}</p>
+          </div>
+        )}
+
+        {/* 1.7 — 현장 사진 */}
+        {(customer.sitePhotos ?? []).length > 0 && (
+          <div className="bg-white border border-gray-200 rounded-xl p-3">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">{t('customerForm.sitePhotos')}</p>
+            <div className="flex flex-wrap gap-2">
+              {customer.sitePhotos.map((url, i) => (
+                <button
+                  key={i}
+                  onClick={() => setSiteLightboxIdx(i)}
+                  className="w-20 h-20 block"
                 >
-                  {card.dataUrl ? (
-                    <img
-                      src={card.dataUrl}
-                      alt={t('customer.businessCards')}
-                      className="w-20 h-12 object-cover rounded-lg border border-gray-300 shrink-0 bg-gray-50"
-                    />
-                  ) : (
-                    <div className="w-20 h-12 rounded-lg border border-gray-300 bg-gray-50 flex items-center justify-center shrink-0">
-                      <CreditCard size={18} strokeWidth={1} className="text-gray-300" />
+                  <img
+                    src={url}
+                    alt=""
+                    className="w-full h-full object-cover rounded-lg border border-gray-200"
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 1.8 — 분석된 장비 통합 (AS + 설비기록) */}
+        {(analyzedEquipments ?? []).length > 0 && (
+          <div className="bg-white border border-gray-200 rounded-xl p-3">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+              {t('customer.analyzedEquipments', { count: analyzedEquipments.length })}
+            </p>
+            <div className="space-y-2">
+              {analyzedEquipments.map((eq, i) => (
+                <div key={i} className="relative w-full bg-white border-2 border-gray-300 rounded-xl p-2 shadow-sm">
+                  <span className="absolute -top-2 left-2 px-1.5 py-0.5 bg-blue-600 text-white text-[10px] font-bold rounded">
+                    {eq.sourceType === 'job' ? t('customer.fromJob') : t('customer.fromKnowhow')}
+                  </span>
+                  <div className="grid grid-cols-[96px_1fr] gap-2">
+                    <button
+                      onClick={() => setAnalyzedLightboxIdx(i)}
+                      className="w-24 h-24 bg-gray-100 border border-gray-300 rounded-md overflow-hidden block"
+                    >
+                      {eq.photo && <img src={eq.photo} alt="" className="w-full h-full object-cover" />}
+                    </button>
+                    <div className="bg-gray-50 border border-gray-200 rounded-md p-2 text-[11px] leading-tight grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5 content-start overflow-hidden">
+                      {eq.kind && (<><span className="text-gray-400 shrink-0">{t('scan.kind')}</span><span className="text-gray-900 font-medium truncate">{eq.kind}</span></>)}
+                      {eq.brand && (<><span className="text-gray-400 shrink-0">{t('scan.brand')}</span><span className="text-gray-900 font-medium truncate">{eq.brand}</span></>)}
+                      {eq.model && (<><span className="text-gray-400 shrink-0">{t('scan.model')}</span><span className="text-gray-900 font-medium truncate">{eq.model}</span></>)}
+                      {eq.serial && (<><span className="text-gray-400 shrink-0">{t('scan.serial')}</span><span className="text-gray-900 font-medium truncate">{eq.serial}</span></>)}
+                      {eq.capacity && (<><span className="text-gray-400 shrink-0">{t('scan.capacity')}</span><span className="text-gray-900 font-medium truncate">{eq.capacity}</span></>)}
+                      {eq.refrigerant && (<><span className="text-gray-400 shrink-0">{t('scan.refrigerant')}</span><span className="text-gray-900 font-medium truncate">{eq.refrigerant}</span></>)}
+                      {!eq.kind && !eq.brand && !eq.model && (
+                        <span className="col-span-2 text-gray-400">{t('knowhow.equipNoData')}</span>
+                      )}
                     </div>
-                  )}
-                  <div className="flex-1 min-w-0 text-xs text-gray-500 space-y-0.5">
-                    {card.company && <p className="font-medium text-gray-700">{card.company}</p>}
-                    {card.title && <p>{card.title}</p>}
-                    {card.email && <p className="text-gray-400">{card.email}</p>}
                   </div>
                 </div>
               ))}
@@ -262,16 +376,66 @@ export default function CustomerDetailPage() {
           </div>
         )}
 
-        {/* 장비 관리 */}
+        {/* 2. AS 이력 */}
+        <div>
+          <div className="flex items-center justify-between mb-1.5 px-1">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{t('customer.repairHistory')}</p>
+            <span className="text-xs text-gray-400">{t('customer.historyCount', { count: (jobs ?? []).length })}</span>
+          </div>
+          {(!jobs || jobs.length === 0) ? (
+            <div className="bg-white border border-gray-300 rounded-xl p-6 text-center shadow-sm">
+              <p className="text-xs text-gray-400">{t('customer.noHistory')}</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {jobs.map((job) => {
+                const st = STATUS[job.status] ?? STATUS.received
+                return (
+                  <button
+                    key={job.id}
+                    onClick={() => navigate(`/service/${job.id}`)}
+                    className={`w-full border rounded-xl p-3.5 text-left shadow-sm active:opacity-80 ${st.card}`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-800 line-clamp-1 font-medium">
+                          {(job.symptoms ?? job.symptom) || t('customer.noSymptom')}
+                        </p>
+                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                          <span className="flex items-center gap-1">
+                            <Calendar size={10} strokeWidth={1.5} />
+                            {job.receiptDate}
+                          </span>
+                          {job.cost > 0 && (
+                            <span className="font-medium text-gray-700">
+                              {Number(job.cost).toLocaleString()}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <span className={`w-1.5 h-1.5 rounded-full ${st.dot}`} />
+                        <span className="text-xs text-gray-600">{st.text}</span>
+                        <ChevronRight size={13} strokeWidth={1.5} className="text-gray-400 ml-0.5" />
+                      </div>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* 3. 점검일 내역 (장비별) */}
         <div>
           <div className="flex items-center justify-between mb-2 px-1">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{t('customer.equipment')}</p>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{t('customer.maintenance')}</p>
             {!showEquipForm && (
               <button
                 onClick={() => setShowEquipForm(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-sm font-semibold rounded-lg shadow-sm active:bg-blue-700"
+                className="flex items-center gap-1 px-2 py-1 text-xs text-gray-500 border border-gray-300 rounded-lg active:bg-gray-50"
               >
-                <Plus size={16} strokeWidth={2.5} />
+                <Plus size={11} strokeWidth={2} />
                 {t('customer.addEquipment')}
               </button>
             )}
@@ -417,55 +581,126 @@ export default function CustomerDetailPage() {
           )}
         </div>
 
-        {/* 수리 이력 */}
+        {/* 4. 미결제 내역 */}
         <div>
           <div className="flex items-center justify-between mb-1.5 px-1">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{t('customer.repairHistory')}</p>
-            <span className="text-xs text-gray-400">{t('customer.historyCount', { count: (jobs ?? []).length })}</span>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{t('customer.unpaid')}</p>
+            {unpaidTotal > 0 && (
+              <span className="text-xs font-semibold text-red-600">{unpaidTotal.toLocaleString()}</span>
+            )}
           </div>
-          {(!jobs || jobs.length === 0) ? (
-            <div className="bg-white border border-gray-300 rounded-xl p-6 text-center shadow-sm">
-              <p className="text-xs text-gray-400">{t('customer.noHistory')}</p>
+          {unpaidJobs.length === 0 ? (
+            <div className="bg-white border border-gray-300 rounded-xl p-4 text-center shadow-sm">
+              <p className="text-xs text-gray-400">{t('customer.unpaidNone')}</p>
             </div>
           ) : (
-            <div className="space-y-2">
-              {jobs.map((job) => {
+            <div className="space-y-1.5">
+              {unpaidJobs.map((job) => {
                 const st = STATUS[job.status] ?? STATUS.received
                 return (
                   <button
                     key={job.id}
                     onClick={() => navigate(`/service/${job.id}`)}
-                    className={`w-full border rounded-xl p-3.5 text-left shadow-sm active:opacity-80 ${st.card}`}
+                    className="w-full bg-white border border-red-200 rounded-xl p-3 text-left shadow-sm active:bg-red-50"
                   >
-                    <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-gray-800 line-clamp-1 font-medium">
+                        <p className="text-sm text-gray-800 line-clamp-1">
                           {(job.symptoms ?? job.symptom) || t('customer.noSymptom')}
                         </p>
-                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                        <div className="flex items-center gap-2 mt-0.5 text-[11px] text-gray-400">
                           <span className="flex items-center gap-1">
                             <Calendar size={10} strokeWidth={1.5} />
                             {job.receiptDate}
                           </span>
-                          {job.cost > 0 && (
-                            <span className="font-medium text-gray-700">
-                              {Number(job.cost).toLocaleString()}
-                            </span>
-                          )}
+                          <span className="flex items-center gap-1">
+                            <span className={`w-1.5 h-1.5 rounded-full ${st.dot}`} />
+                            {st.text}
+                          </span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <span className={`w-1.5 h-1.5 rounded-full ${st.dot}`} />
-                        <span className="text-xs text-gray-600">{st.text}</span>
-                        <ChevronRight size={13} strokeWidth={1.5} className="text-gray-400 ml-0.5" />
-                      </div>
+                      <span className="text-sm font-semibold text-red-600 shrink-0">
+                        {Number(job.cost).toLocaleString()}
+                      </span>
                     </div>
                   </button>
                 )
               })}
+              {unpaidJobs.length > 1 && (
+                <div className="flex items-center justify-between px-3 py-2.5 bg-red-600 rounded-xl">
+                  <span className="text-xs text-white font-medium">{t('customer.unpaidTotal')}</span>
+                  <span className="text-sm font-bold text-white">{unpaidTotal.toLocaleString()}</span>
+                </div>
+              )}
             </div>
           )}
         </div>
+
+        {/* 5. 알람 내역 */}
+        <div>
+          <div className="flex items-center justify-between mb-1.5 px-1">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{t('customer.alarms')}</p>
+            {alarms && alarms.length > 0 && (
+              <span className="text-xs text-gray-400">{t('customer.historyCount', { count: alarms.length })}</span>
+            )}
+          </div>
+          {(!alarms || alarms.length === 0) ? (
+            <div className="bg-white border border-gray-300 rounded-xl p-4 text-center shadow-sm">
+              <p className="text-xs text-gray-400">{t('customer.alarmsNone')}</p>
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              {alarms.map((a) => (
+                <div
+                  key={a.id}
+                  className="bg-white border border-gray-300 rounded-xl p-3 shadow-sm flex items-start gap-2"
+                >
+                  <Bell size={13} strokeWidth={1.5} className={`mt-0.5 shrink-0 ${a.fired ? 'text-gray-300' : 'text-amber-500'}`} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-gray-800 truncate">{a.title}</p>
+                    <p className="text-[11px] text-gray-400 mt-0.5">
+                      {a.date} {a.time}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* 6. 명함 */}
+        {cards && cards.length > 0 && (
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5 px-1">{t('customer.businessCards')}</p>
+            <div className="space-y-2">
+              {cards.map((card) => (
+                <div
+                  key={card.id}
+                  onClick={() => setPreviewCard(card)}
+                  className="bg-white border border-gray-300 rounded-xl p-3 shadow-sm flex gap-3 items-start active:bg-gray-50 cursor-pointer"
+                >
+                  {(card.dataUrl || card.storagePath) ? (
+                    <MediaImage
+                      dataUrl={card.dataUrl}
+                      storagePath={card.storagePath}
+                      alt={t('customer.businessCards')}
+                      className="w-20 h-12 object-cover rounded-lg border border-gray-300 shrink-0 bg-gray-50"
+                    />
+                  ) : (
+                    <div className="w-20 h-12 rounded-lg border border-gray-300 bg-gray-50 flex items-center justify-center shrink-0">
+                      <CreditCard size={18} strokeWidth={1} className="text-gray-300" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0 text-xs text-gray-500 space-y-0.5">
+                    {card.company && <p className="font-medium text-gray-700">{card.company}</p>}
+                    {card.title && <p>{card.title}</p>}
+                    {card.email && <p className="text-gray-400">{card.email}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
       </div>
 
@@ -504,9 +739,10 @@ export default function CustomerDetailPage() {
               </button>
             </div>
             <div className="p-4 space-y-4">
-              {previewCard.dataUrl && (
-                <img
-                  src={previewCard.dataUrl}
+              {(previewCard.dataUrl || previewCard.storagePath) && (
+                <MediaImage
+                  dataUrl={previewCard.dataUrl}
+                  storagePath={previewCard.storagePath}
                   alt={t('customer.businessCards')}
                   className="w-full rounded-xl border border-gray-200"
                 />
@@ -563,6 +799,16 @@ export default function CustomerDetailPage() {
               />
             </div>
             <div>
+              <label className="text-xs text-gray-400 block mb-1">{t('customer.fieldEmail')}</label>
+              <input
+                type="email"
+                value={editEmail}
+                onChange={(e) => setEditEmail(e.target.value)}
+                placeholder="example@email.com"
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg outline-none focus:border-blue-400"
+              />
+            </div>
+            <div>
               <label className="text-xs text-gray-400 block mb-1">{t('customer.fieldAddress')}</label>
               <input
                 value={editAddress}
@@ -572,20 +818,29 @@ export default function CustomerDetailPage() {
             </div>
             <button
               onClick={handleSaveCustomer}
-              className="w-full py-3 bg-gray-900 text-white text-sm font-semibold rounded-xl mt-2"
+              disabled={savingCustomer}
+              className={`w-full py-3 text-white text-sm font-bold rounded-xl mt-2 ${savingCustomer ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 active:bg-blue-700'}`}
             >
-              {t('customer.save')}
+              {savingCustomer ? t('common.saving') : t('customer.save')}
             </button>
           </div>
         </div>
       )}
 
-      {/* 삭제 확인 모달 */}
+      {/* 삭제 확인 모달 — cascade 영향 데이터 개수 표시 */}
       {showDelete && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-6">
           <div className="bg-white rounded-2xl p-5 w-full max-w-sm">
-            <p className="font-semibold text-gray-900 mb-1">{t('customer.deleteConfirm')}</p>
-            <p className="text-sm text-gray-400 mb-5">{t('customer.deleteDesc')}</p>
+            <p className="font-semibold text-gray-900 mb-2">{t('customer.deleteConfirm')}</p>
+            <p className="text-sm text-gray-600 mb-3">{t('customer.deleteCascadeWarning')}</p>
+            <ul className="text-xs text-gray-700 bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4 space-y-0.5">
+              <li>• {t('customer.cascadeJobs')}: <span className="font-bold">{(jobs ?? []).length}{t('customer.cascadeUnit')}</span></li>
+              <li>• {t('customer.cascadeKnowhow')}: <span className="font-bold">{(knowhowList ?? []).length}{t('customer.cascadeUnit')}</span></li>
+              <li>• {t('customer.cascadeCards')}: <span className="font-bold">{(cards ?? []).length}{t('customer.cascadeUnit')}</span></li>
+              <li>• {t('customer.cascadeEquipments')}: <span className="font-bold">{(equipments ?? []).length}{t('customer.cascadeUnit')}</span></li>
+              <li>• {t('customer.cascadeAlarms')}: <span className="font-bold">{(alarms ?? []).length}{t('customer.cascadeUnit')}</span></li>
+            </ul>
+            <p className="text-xs text-red-600 font-semibold mb-4 leading-relaxed">⚠️ {t('customer.deleteIrreversibleDetail')}</p>
             <div className="flex gap-2">
               <button
                 onClick={() => setShowDelete(false)}
@@ -595,7 +850,7 @@ export default function CustomerDetailPage() {
               </button>
               <button
                 onClick={handleDeleteCustomer}
-                className="flex-1 py-2.5 text-sm font-medium bg-red-500 text-white rounded-xl"
+                className="flex-1 py-2.5 text-sm font-bold bg-red-600 text-white rounded-xl active:bg-red-700"
               >
                 {t('customer.delete')}
               </button>
@@ -618,12 +873,7 @@ export default function CustomerDetailPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-medium text-gray-500 block mb-1">{t('userAlarm.date')}</label>
-                <input
-                  type="date"
-                  value={alarmDate}
-                  onChange={e => setAlarmDate(e.target.value)}
-                  className="w-full text-sm text-gray-800 border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-blue-400"
-                />
+                <DateInput value={alarmDate} onChange={setAlarmDate} />
               </div>
               <div>
                 <label className="text-xs font-medium text-gray-500 block mb-1">{t('userAlarm.time')}</label>
@@ -641,6 +891,86 @@ export default function CustomerDetailPage() {
             >
               {t('userAlarm.save')}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* 분석 장비 사진 라이트박스 */}
+      {analyzedLightboxIdx != null && (analyzedEquipments ?? [])[analyzedLightboxIdx]?.photo && (
+        <div
+          className="fixed inset-0 bg-black/90 z-[70] flex items-center justify-center"
+          onClick={() => setAnalyzedLightboxIdx(null)}
+        >
+          <button
+            onClick={(e) => { e.stopPropagation(); setAnalyzedLightboxIdx(null) }}
+            className="absolute top-4 right-4 w-10 h-10 bg-white/20 text-white rounded-full flex items-center justify-center"
+          >
+            <X size={20} strokeWidth={2} />
+          </button>
+          {analyzedLightboxIdx > 0 && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setAnalyzedLightboxIdx(analyzedLightboxIdx - 1) }}
+              className="absolute left-2 w-10 h-10 bg-white/20 text-white rounded-full flex items-center justify-center text-2xl"
+            >
+              ‹
+            </button>
+          )}
+          {analyzedLightboxIdx < (analyzedEquipments ?? []).length - 1 && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setAnalyzedLightboxIdx(analyzedLightboxIdx + 1) }}
+              className="absolute right-2 w-10 h-10 bg-white/20 text-white rounded-full flex items-center justify-center text-2xl"
+            >
+              ›
+            </button>
+          )}
+          <img
+            src={(analyzedEquipments ?? [])[analyzedLightboxIdx]?.photo}
+            alt=""
+            className="max-w-full max-h-full object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <div className="absolute bottom-4 text-white/70 text-xs">
+            {analyzedLightboxIdx + 1} / {(analyzedEquipments ?? []).length}
+          </div>
+        </div>
+      )}
+
+      {/* 현장 사진 라이트박스 */}
+      {siteLightboxIdx != null && (customer.sitePhotos ?? [])[siteLightboxIdx] && (
+        <div
+          className="fixed inset-0 bg-black/90 z-[70] flex items-center justify-center"
+          onClick={() => setSiteLightboxIdx(null)}
+        >
+          <button
+            onClick={(e) => { e.stopPropagation(); setSiteLightboxIdx(null) }}
+            className="absolute top-4 right-4 w-10 h-10 bg-white/20 text-white rounded-full flex items-center justify-center"
+          >
+            <X size={20} strokeWidth={2} />
+          </button>
+          {siteLightboxIdx > 0 && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setSiteLightboxIdx(siteLightboxIdx - 1) }}
+              className="absolute left-2 w-10 h-10 bg-white/20 text-white rounded-full flex items-center justify-center text-2xl"
+            >
+              ‹
+            </button>
+          )}
+          {siteLightboxIdx < (customer.sitePhotos ?? []).length - 1 && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setSiteLightboxIdx(siteLightboxIdx + 1) }}
+              className="absolute right-2 w-10 h-10 bg-white/20 text-white rounded-full flex items-center justify-center text-2xl"
+            >
+              ›
+            </button>
+          )}
+          <img
+            src={(customer.sitePhotos ?? [])[siteLightboxIdx]}
+            alt=""
+            className="max-w-full max-h-full object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <div className="absolute bottom-4 text-white/70 text-xs">
+            {siteLightboxIdx + 1} / {(customer.sitePhotos ?? []).length}
           </div>
         </div>
       )}

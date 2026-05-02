@@ -1,14 +1,15 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { UNITS } from '../data/refrigerantsData'
 import { loadSettings, saveSettings } from '../utils/settings'
 import { createBackup, listBackups, downloadBackup, restoreBackup, formatSize, importAllData } from '../utils/backup'
-import { Download, RotateCcw, Upload, QrCode, ScanLine, Lock } from 'lucide-react'
+import { Download, RotateCcw, Upload, QrCode, ScanLine, Lock, CreditCard, CheckCircle2 } from 'lucide-react'
 import QRExportModal from '../components/QRExportModal'
 import QRImportModal from '../components/QRImportModal'
 import { useTranslation } from 'react-i18next'
 import { showToast } from '../utils/toast'
 import ConfirmModal from '../components/ConfirmModal'
-import { insertTestData, deleteAllTestData } from '../utils/testData'
+import { getCheckoutUrl } from '../utils/checkout'
+import { getTrialStatus } from '../utils/trial'
 
 const LANGUAGES = [
   { code: 'en', short: 'EN', label: 'ENGLISH' },
@@ -34,7 +35,13 @@ export default function SettingsPage() {
   const [qrImportOpen, setQrImportOpen] = useState(false)
   const [confirmAction, setConfirmAction] = useState(null)
   const [confirmMsg, setConfirmMsg] = useState('')
-  const [testLoading, setTestLoading] = useState(false)
+  const [trialState, setTrialState] = useState(null)
+  const [showManageInfo, setShowManageInfo] = useState(false)
+
+  useEffect(() => {
+    // force=true — 결제 직후 진입하는 경우 캐시 무시하고 fresh 조회
+    getTrialStatus(true).then(setTrialState).catch(() => {})
+  }, [])
 
   function update(patch) {
     const next = { ...settings, ...patch }
@@ -157,7 +164,6 @@ export default function SettingsPage() {
           {[
             { val: 'medium', label: t('settings.fontMedium'), desc: t('settings.fontMediumDesc') },
             { val: 'large',  label: t('settings.fontLarge'),  desc: t('settings.fontLargeDesc') },
-            { val: 'xlarge', label: t('settings.fontXlarge'), desc: t('settings.fontXlargeDesc') },
           ].map(({ val, label, desc }, i) => (
             <button
               key={val}
@@ -232,6 +238,66 @@ export default function SettingsPage() {
         </div>
       </section>
 
+
+      {/* 구독 (FastSpring) */}
+      <section className="mb-4">
+        <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
+          <CreditCard size={11} strokeWidth={2} className="text-blue-500" />
+          <span>{t('subscription.title')}</span>
+        </div>
+        <div className="bg-white border border-gray-300 rounded-lg overflow-hidden">
+          <div className="px-3 py-2.5">
+            <div className="flex items-start gap-2">
+              <div className="flex-1">
+                <p className="font-bold text-gray-900 text-sm">{t('subscription.priceLine')}</p>
+                <p className="text-[11px] text-gray-500 mt-0.5">{t('subscription.trialLine')}</p>
+                <p className="text-[11px] text-blue-600 font-medium mt-1">{t('subscription.shareLine')}</p>
+                {trialState?.trial && (
+                  <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1 mt-2">
+                    {t('subscription.trialStatus')}
+                    {trialState.remaining && Object.entries(trialState.remaining).map(([cat, n]) => (
+                      <span key={cat} className="ml-1">· {t(`trial.cat.${cat}`)}: {n}/{trialState.limits[cat]}</span>
+                    ))}
+                  </p>
+                )}
+                {trialState && trialState.trial === false && (
+                  <p className="text-[11px] text-green-700 bg-green-50 border border-green-200 rounded px-2 py-1 mt-2 flex items-center gap-1">
+                    <CheckCircle2 size={11} />{t('subscription.activeStatus')}
+                  </p>
+                )}
+              </div>
+            </div>
+            {trialState?.trial === false ? (
+              trialState?.manageUrl ? (
+                <a
+                  href={trialState.manageUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block mt-2.5 text-center bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2.5 rounded-lg active:bg-blue-800"
+                >
+                  {t('subscription.manageBtn')}
+                </a>
+              ) : (
+                <button
+                  onClick={() => setShowManageInfo(true)}
+                  className="block w-full mt-2.5 text-center bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2.5 rounded-lg active:bg-blue-800"
+                >
+                  {t('subscription.manageBtn')}
+                </button>
+              )
+            ) : (
+              <a
+                href={getCheckoutUrl()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block mt-2.5 text-center bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2.5 rounded-lg active:bg-blue-800"
+              >
+                {t('subscription.subscribeBtn')}
+              </a>
+            )}
+          </div>
+        </div>
+      </section>
 
       {/* 영수증 발급 정보 */}
       <section className="mb-4">
@@ -322,7 +388,7 @@ export default function SettingsPage() {
               } catch {}
               setTimeout(() => { window.location.href = '/' }, 600)
             }}
-            className="w-full py-2 text-xs font-medium bg-gray-900 text-white rounded-lg active:bg-gray-700"
+            className="w-full py-2 text-xs font-medium bg-emerald-600 text-white rounded-lg active:bg-emerald-700"
           >
             {t('settings.updateBtn')}
           </button>
@@ -436,51 +502,6 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {/* 임시 테스트 데이터 (출시 전 제거) */}
-      <section className="mb-6">
-        <div className="text-xs font-semibold text-red-500 uppercase tracking-wide mb-2">테스트 데이터 (임시)</div>
-        <div className="bg-white border border-red-300 rounded-xl px-4 py-3 space-y-2">
-          <p className="text-xs text-gray-500 mb-2">11개 테이블 총 1,440개 레코드 삽입/삭제</p>
-          <button
-            disabled={testLoading}
-            onClick={async () => {
-              setTestLoading(true)
-              try {
-                const res = await insertTestData()
-                showToast(`테스트 데이터 ${res.total}개 삽입 완료`)
-              } catch (e) {
-                showToast('삽입 실패: ' + e.message)
-              } finally {
-                setTestLoading(false)
-              }
-            }}
-            className="w-full py-2.5 text-sm font-medium bg-blue-600 text-white rounded-xl active:bg-blue-700 disabled:opacity-50"
-          >
-            {testLoading ? '처리 중...' : '테스트 데이터 생성 (1,440개)'}
-          </button>
-          <button
-            disabled={testLoading}
-            onClick={() => {
-              setConfirmMsg('모든 사용자 데이터(고객/수리의뢰/이력 등)가 삭제됩니다. 진행하시겠습니까?')
-              setConfirmAction(() => async () => {
-                setTestLoading(true)
-                try {
-                  await deleteAllTestData()
-                  showToast('테스트 데이터 전체 삭제 완료')
-                } catch (e) {
-                  showToast('삭제 실패: ' + e.message)
-                } finally {
-                  setTestLoading(false)
-                }
-              })
-            }}
-            className="w-full py-2.5 text-sm font-medium bg-red-600 text-white rounded-xl active:bg-red-700 disabled:opacity-50"
-          >
-            전체 사용자 데이터 삭제
-          </button>
-        </div>
-      </section>
-
       {/* 앱 정보 */}
       <section className="mt-6">
         <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">{t('settings.appInfo')}</div>
@@ -510,6 +531,31 @@ export default function SettingsPage() {
           onConfirm={() => { confirmAction(); setConfirmAction(null) }}
           onCancel={() => setConfirmAction(null)}
         />
+      )}
+
+      {showManageInfo && (
+        <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4" onClick={() => setShowManageInfo(false)}>
+          <div className="bg-white rounded-2xl p-5 w-full max-w-sm shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-sm font-bold text-gray-900 mb-3">{t('subscription.manageTitle')}</h3>
+            <p className="text-xs text-gray-700 leading-relaxed mb-4 whitespace-pre-line">
+              {t('subscription.manageBody')}
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowManageInfo(false)}
+                className="flex-1 py-2.5 bg-gray-100 text-gray-700 text-sm font-bold rounded-xl active:bg-gray-200"
+              >
+                {t('common.close')}
+              </button>
+              <a
+                href="mailto:support@r-pro.app?subject=Subscription%20Management"
+                className="flex-1 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl active:bg-blue-700 text-center"
+              >
+                {t('subscription.contactSupport')}
+              </a>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

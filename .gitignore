@@ -22,3 +22,25 @@ generate_*.cjs
 skills-lock.json
 src/dataconnect-generated/
 src/data/searchDatabase_original.json
+
+# Claude Code 로컬 설정
+.claude/settings.local.json
+
+# Playwright MCP 임시
+.playwright-mcp/
+
+# 디버깅 스크린샷 (사용자 데이터 노출 위험)
+defect-*.png
+job-*.png
+
+# 민감 문서 (개인 주소·등록 PDF)
+kakao*.pdf
+"kakaobanj(Verification of Billing Address).pdf"
+
+# 임시·실수로 들어간 미디어
+991.JPG
+992.JPG
+993.JPG
+994.JPG
+995
+112/

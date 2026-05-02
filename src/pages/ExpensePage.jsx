@@ -4,6 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useTranslation } from 'react-i18next'
 import { Plus, ChevronRight, Calendar, ChevronLeft } from 'lucide-react'
 import { db } from '../db'
+import { softDelete } from '../utils/cloudSync'
 
 // ── 날짜 유틸 ──────────────────────────────────────────
 function toISO(d) { return d.toISOString().slice(0, 10) }
@@ -111,7 +112,7 @@ function MiniCalendar({ selected, onSelect, expenseDates }) {
 export default function ExpensePage({ hideTitle = false }) {
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const [mainTab, setMainTab] = useState('list')    // 'list' | 'summary'
+  const [mainTab, setMainTab] = useState('revenue')  // 'revenue' | 'list' | 'summary'
   const [period, setPeriod] = useState('month')      // week/month/quarter/year
   const [selectedDate, setSelectedDate] = useState(toISO(new Date()))
   const [deleting, setDeleting] = useState(null)
@@ -119,10 +120,10 @@ export default function ExpensePage({ hideTitle = false }) {
   const [showPeriod, setShowPeriod] = useState(false)
 
   const expenses = useLiveQuery(
-    () => db.expenses.orderBy('date').reverse().toArray(), []
+    () => db.expenses.orderBy('date').reverse().filter((r) => !r.deletedAt).toArray(), []
   )
-  const jobs = useLiveQuery(() => db.service_jobs.toArray(), [])
-  const customers = useLiveQuery(() => db.customers.toArray(), [])
+  const jobs = useLiveQuery(() => db.service_jobs.filter((r) => !r.deletedAt).toArray(), [])
+  const customers = useLiveQuery(() => db.customers.filter((r) => !r.deletedAt).toArray(), [])
 
   if (!expenses || !jobs || !customers) {
     return <div className="p-4 text-gray-400 text-sm">{t('expense.loading')}</div>
@@ -133,7 +134,7 @@ export default function ExpensePage({ hideTitle = false }) {
   const expenseDates = new Set(expenses.map((e) => e.date))
 
   async function handleDelete(id) {
-    await db.expenses.delete(id)
+    await softDelete('expenses', id)
     setDeleting(null)
   }
 
@@ -141,6 +142,9 @@ export default function ExpensePage({ hideTitle = false }) {
   const [rangeStart, rangeEnd] = getRange(selectedDate, period)
   const rangeExpenses = expenses.filter((e) => e.date >= rangeStart && e.date <= rangeEnd)
   const rangeTotal = rangeExpenses.reduce((s, e) => s + (e.items ?? []).reduce((ss, i) => ss + (Number(i.amount) || 0), 0), 0)
+  const rangeJobs = jobs.filter((j) => (j.cost || 0) > 0 && j.receiptDate >= rangeStart && j.receiptDate <= rangeEnd)
+  const rangeRevenue = rangeJobs.reduce((s, j) => s + (j.cost || 0), 0)
+  const rangeNet = rangeRevenue - rangeTotal
 
   const PERIOD_TABS = [
     { key: 'week',    label: t('expense.periodWeek') },
@@ -158,9 +162,9 @@ export default function ExpensePage({ hideTitle = false }) {
           {mainTab === 'list' && (
             <button
               onClick={() => navigate('/expenses/new')}
-              className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-gray-900 text-white rounded-lg"
+              className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold bg-blue-600 text-white rounded-xl shadow-md active:bg-blue-700"
             >
-              <Plus size={13} strokeWidth={2} />
+              <Plus size={13} strokeWidth={2.5} />
               {t('expense.newExpense')}
             </button>
           )}
@@ -170,9 +174,9 @@ export default function ExpensePage({ hideTitle = false }) {
         <div className="flex justify-end mb-3">
           <button
             onClick={() => navigate('/expenses/new')}
-            className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-gray-900 text-white rounded-lg"
+            className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold bg-blue-600 text-white rounded-xl shadow-md active:bg-blue-700"
           >
-            <Plus size={13} strokeWidth={2} />
+            <Plus size={13} strokeWidth={2.5} />
             {t('expense.newExpense')}
           </button>
         </div>
@@ -181,8 +185,9 @@ export default function ExpensePage({ hideTitle = false }) {
       {/* 메인 탭 */}
       <div className="flex gap-1 mb-4 bg-gray-100 border border-gray-200 p-1 rounded-xl">
         {[
+          { key: 'revenue', label: t('expense.tabRevenue'), activeClass: 'bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-sm' },
           { key: 'list',    label: t('expense.tabList'),    activeClass: 'bg-gradient-to-br from-blue-500 to-cyan-600 text-white shadow-sm' },
-          { key: 'summary', label: t('expense.tabSummary'), activeClass: 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-sm' },
+          { key: 'summary', label: t('expense.tabSummary'), activeClass: 'bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-sm' },
         ].map((tb) => (
           <button
             key={tb.key}
@@ -196,14 +201,74 @@ export default function ExpensePage({ hideTitle = false }) {
         ))}
       </div>
 
+      {/* ── 매출내역 탭 (AS 기반) ── */}
+      {mainTab === 'revenue' && (
+        (() => {
+          const revenueJobs = jobs.filter((j) => (j.cost || 0) > 0).sort((a, b) => (b.receiptDate ?? '').localeCompare(a.receiptDate ?? ''))
+          const totalRevenue = revenueJobs.reduce((s, j) => s + (j.cost || 0), 0)
+          if (revenueJobs.length === 0) {
+            return (
+              <div className="text-center py-20 text-gray-400">
+                <div className="text-sm mb-4">{t('expense.revenueEmpty')}</div>
+                <button
+                  onClick={() => navigate('/service', { state: { tab: 'customers', revenueAddMode: true } })}
+                  className="inline-flex items-center gap-1 px-4 py-2 bg-emerald-600 text-white text-sm font-bold rounded-lg active:bg-emerald-700"
+                >
+                  <Plus size={14} strokeWidth={2.5} />
+                  {t('expense.revenueAddBtn')}
+                </button>
+              </div>
+            )
+          }
+          return (
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between px-3 py-2.5 bg-emerald-600 rounded-xl mb-2">
+                <span className="text-xs text-white font-medium">{t('expense.revenueTotal')}</span>
+                <span className="text-sm font-bold text-white">{totalRevenue.toLocaleString()}{t('expense.wonUnit')}</span>
+              </div>
+              {revenueJobs.map((job) => {
+                const customer = customerMap[job.customerId]
+                return (
+                  <button
+                    key={job.id}
+                    onClick={() => navigate(`/service/${job.id}`)}
+                    className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 text-left active:bg-gray-50 shadow-sm"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-gray-900 truncate">
+                          {customer?.name ?? t('home.noCustomer')}
+                        </p>
+                        <p className="text-[11px] text-gray-500 line-clamp-1 mt-0.5">
+                          {(job.symptoms ?? job.symptom) || t('home.noSymptom')}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1 text-[11px] text-gray-400">
+                          <span className="flex items-center gap-1">
+                            <Calendar size={10} strokeWidth={1.5} />
+                            {job.receiptDate}
+                          </span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${job.paid ? 'bg-emerald-600 text-white' : 'bg-amber-500 text-white'}`}>
+                            {job.paid ? t('expense.paidYes') : t('expense.paidNo')}
+                          </span>
+                        </div>
+                      </div>
+                      <span className={`text-sm font-semibold shrink-0 ${job.paid ? 'text-emerald-600' : 'text-red-600'}`}>
+                        {(job.cost || 0).toLocaleString()}
+                      </span>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          )
+        })()
+      )}
+
       {/* ── 경비내역기록 탭 ── */}
       {mainTab === 'list' && (
         expenses.length === 0 ? (
           <div className="text-center py-20 text-gray-400">
             <div className="text-sm">{t('expense.empty')}</div>
-            <button onClick={() => navigate('/expenses/new')} className="mt-3 text-xs text-blue-600 font-medium">
-              {t('expense.addFirst')}
-            </button>
           </div>
         ) : (
           <div className="space-y-1.5">
@@ -274,17 +339,31 @@ export default function ExpensePage({ hideTitle = false }) {
             const dayTotal = dayExp.reduce((s, e) => s + (e.items ?? []).reduce((ss, i) => ss + (Number(i.amount) || 0), 0), 0)
             return (
               <>
-                {/* 선택된 기간 합계 (먼저) */}
+                {/* 선택된 기간 합계 (매출/지출/순이익) */}
                 <div>
                   <p className="text-xs font-semibold text-gray-500 mb-2">
                     {t('expense.periodTotal', { period: PERIOD_TABS.find(p => p.key === period)?.label })}
                   </p>
+                  <p className="text-[10px] text-gray-400 mb-2">{rangeStart} ~ {rangeEnd}</p>
+                  <div className="space-y-1.5 mb-2">
+                    <div className="flex items-center justify-between px-3 py-2.5 bg-emerald-600 rounded-xl">
+                      <span className="text-xs text-white font-medium">{t('expense.revenueTotal')}</span>
+                      <span className="text-sm font-bold text-white">{rangeRevenue.toLocaleString()}{t('expense.wonUnit')}</span>
+                    </div>
+                    <div className="flex items-center justify-between px-3 py-2.5 bg-red-600 rounded-xl">
+                      <span className="text-xs text-white font-medium">{t('expense.expenseTotal')}</span>
+                      <span className="text-sm font-bold text-white">−{rangeTotal.toLocaleString()}{t('expense.wonUnit')}</span>
+                    </div>
+                    <div className={`flex items-center justify-between px-3 py-2.5 rounded-xl ${rangeNet >= 0 ? 'bg-blue-600' : 'bg-gray-700'}`}>
+                      <span className="text-xs text-white font-medium">{t('expense.netProfit')}</span>
+                      <span className="text-sm font-bold text-white">{rangeNet.toLocaleString()}{t('expense.wonUnit')}</span>
+                    </div>
+                  </div>
                   <button
                     onClick={() => setShowPeriod(v => !v)}
-                    className="w-full bg-blue-600 rounded-xl px-4 py-3 flex items-center justify-between active:bg-blue-700"
+                    className="w-full text-[11px] text-gray-500 py-1 active:text-gray-800"
                   >
-                    <span className="text-xs text-blue-200">{rangeStart} ~ {rangeEnd}</span>
-                    <span className="text-base font-bold text-white">{rangeTotal.toLocaleString()}{t('expense.wonUnit')}</span>
+                    {showPeriod ? '▲' : '▼'} {t('expense.tabList')}
                   </button>
                   {showPeriod && (
                     rangeExpenses.length === 0 ? (

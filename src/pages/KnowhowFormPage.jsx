@@ -4,6 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useTranslation } from 'react-i18next'
 import { ChevronLeft, Trash2 } from 'lucide-react'
 import { db } from '../db'
+import { softDelete } from '../utils/cloudSync'
 import { showToast } from '../utils/toast'
 import KnowhowFormBody, { EMPTY_KNOWHOW } from '../components/KnowhowFormBody'
 
@@ -21,6 +22,7 @@ export default function KnowhowFormPage() {
   const [form, setForm] = useState(EMPTY_KNOWHOW)
   const [initialized, setInitialized] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
+  const [saving, setSaving] = useState(false)
 
   // 음성 메모에서 진입 — 거래처/본문 미리 채우기
   useEffect(() => {
@@ -57,8 +59,10 @@ export default function KnowhowFormPage() {
   }
 
   async function handleSave() {
+    if (saving) return
     if (!form.customerId) { showToast(t('knowhow.errCustomer')); return }
     if (!form.title.trim()) { showToast(t('knowhow.errTitle')); return }
+    setSaving(true)
     const now = new Date().toISOString()
     try {
       if (isNew) {
@@ -70,11 +74,12 @@ export default function KnowhowFormPage() {
       }
     } catch (e) {
       showToast(t('knowhow.errSave') + e.message)
+      setSaving(false)
     }
   }
 
   async function handleDelete() {
-    await db.knowhow.delete(Number(id))
+    await softDelete('knowhow', Number(id))
     navigate('/knowhow', { replace: true })
   }
 
@@ -87,8 +92,12 @@ export default function KnowhowFormPage() {
           <span className="text-sm">{t('knowhow.back')}</span>
         </button>
         <h2 className="text-base font-semibold text-gray-900">{isNew ? t('knowhow.newTitle') : t('knowhow.editTitle')}</h2>
-        <button onClick={handleSave} className="px-4 py-1.5 bg-gray-900 text-white text-sm font-medium rounded-lg">
-          {t('knowhow.save')}
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className={`px-4 py-1.5 text-white text-sm font-bold rounded-lg ${saving ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 active:bg-blue-700'}`}
+        >
+          {saving ? t('common.saving') : t('knowhow.save')}
         </button>
       </div>
 
@@ -98,9 +107,10 @@ export default function KnowhowFormPage() {
         {/* 저장 버튼 (하단) */}
         <button
           onClick={handleSave}
-          className="w-full py-4 bg-slate-700 text-white text-base font-semibold rounded-xl border-2 border-slate-400 shadow-md active:bg-slate-600"
+          disabled={saving}
+          className={`w-full py-4 text-white text-base font-semibold rounded-xl border-2 shadow-md ${saving ? 'bg-gray-400 border-gray-300 cursor-not-allowed' : 'bg-slate-700 border-slate-400 active:bg-slate-600'}`}
         >
-          {t('knowhow.save')}
+          {saving ? t('common.saving') : t('knowhow.save')}
         </button>
 
         {/* 삭제 */}

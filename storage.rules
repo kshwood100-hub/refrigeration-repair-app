@@ -1,0 +1,23 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // 사용자별 미디어 (사진, 음성, 명함). 본인 인증만으로 허용 (firestore.rules가 보조 차단).
+    // 주: firestore.exists() cross-service 호출이 storage rules에서 일관성 없어 빼고 토큰 기반만 사용.
+    match /users/{email}/{path=**} {
+      allow read: if request.auth != null
+                   && request.auth.token.email_verified == true
+                   && request.auth.token.email == email;
+      // write: 단일 파일 최대 20MB
+      allow write: if request.auth != null
+                    && request.auth.token.email_verified == true
+                    && request.auth.token.email == email
+                    && request.resource.size < 20 * 1024 * 1024;
+    }
+
+    // 그 외 차단
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { ChevronLeft, Save, Camera, X, Sparkles, Plus, Trash2 } from 'lucide-react'
 import { db } from '../db'
 import { scanInvoice } from '../utils/scanInvoice'
+import DateInput from '../components/DateInput'
 
 const EMPTY_ROW = { name: '', qty: '', price: '' }
 
@@ -45,7 +46,9 @@ export default function SupplierTransactionFormPage() {
   const [form, setForm] = useState(EMPTY)
   const [scanLoading, setScanLoading] = useState(false)
   const [scanError, setScanError] = useState('')
+  const [saving, setSaving] = useState(false)
   const fileRef = useRef(null)
+  const appendFileRef = useRef(null)
 
   const set = (k, v) => setForm((p) => ({ ...p, [k]: v }))
 
@@ -64,16 +67,33 @@ export default function SupplierTransactionFormPage() {
   }
 
   async function handleSave() {
-    const now = new Date().toISOString()
-    await db.supplier_transactions.add({
-      supplierId,
-      ...form,
-      subtotal: form.subtotal ? Number(form.subtotal) : null,
-      tax:      form.tax      ? Number(form.tax)      : null,
-      total:    form.total    ? Number(form.total)    : null,
-      createdAt: now,
-    })
-    navigate(`/suppliers/${supplierId}`)
+    if (saving) return
+    setSaving(true)
+    try {
+      const now = new Date().toISOString()
+      // items가 있으면 합계 자동 계산. 사용자가 직접 입력한 값(form.subtotal/tax/total)이 우선.
+      const itemsSum = form.items.reduce(
+        (s, it) => s + (Number(it.qty || 0) * Number(it.price || 0)),
+        0
+      )
+      const subtotalVal = form.subtotal !== '' ? Number(form.subtotal) : (itemsSum || null)
+      const taxVal      = form.tax      !== '' ? Number(form.tax)      : null
+      const totalVal    = form.total    !== '' ? Number(form.total)    : (
+        subtotalVal != null ? subtotalVal + (taxVal || 0) : null
+      )
+      await db.supplier_transactions.add({
+        supplierId,
+        ...form,
+        subtotal: subtotalVal,
+        tax:      taxVal,
+        total:    totalVal,
+        createdAt: now,
+      })
+      navigate(`/suppliers/${supplierId}`)
+    } catch (e) {
+      console.error('Transaction save failed:', e)
+      setSaving(false)
+    }
   }
 
   async function handleScan(e) {
@@ -106,6 +126,36 @@ export default function SupplierTransactionFormPage() {
     }
   }
 
+  // 다음 장 스캔 — 한 거래에 여러 장 명세서 누적. items append + 합계 누적.
+  async function handleScanAppend(e) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    setScanError('')
+    setScanLoading(true)
+    try {
+      const dataUrl = await compressImage(file)
+      const result = await scanInvoice(dataUrl)
+      const newItems = (result.items ?? []).map((it) => ({
+        name:  it.name ?? '',
+        qty:   it.qty  ?? '',
+        price: num(it.price ?? it.amount),
+      }))
+      const sumNum = (a, b) => String(Number(num(a) || 0) + Number(num(b) || 0))
+      setForm((p) => ({
+        ...p,
+        items:    [...p.items, ...newItems],
+        subtotal: sumNum(p.subtotal, result.subtotal),
+        tax:      sumNum(p.tax,      result.tax),
+        total:    sumNum(p.total,    result.total),
+      }))
+    } catch (err) {
+      setScanError(err.message)
+    } finally {
+      setScanLoading(false)
+    }
+  }
+
   return (
     <div className="p-4 pb-20">
       <button
@@ -126,6 +176,14 @@ export default function SupplierTransactionFormPage() {
           capture="environment"
           className="hidden"
           onChange={handleScan}
+        />
+        <input
+          ref={appendFileRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="hidden"
+          onChange={handleScanAppend}
         />
         {form.invoicePhoto ? (
           <div className="relative w-fit mx-auto">
@@ -161,6 +219,19 @@ export default function SupplierTransactionFormPage() {
         {scanError && <p className="text-xs text-red-500 mt-2">{scanError}</p>}
         {!form.invoicePhoto && !scanLoading && (
           <p className="text-xs text-gray-500 mt-2 text-center">{t('tx.scanInvoiceHint')}</p>
+        )}
+        {form.invoicePhoto && (
+          <button
+            onClick={() => appendFileRef.current?.click()}
+            disabled={scanLoading}
+            className="w-full mt-2 flex items-center justify-center gap-2 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl active:bg-blue-700 disabled:opacity-60"
+          >
+            {scanLoading ? (
+              <><Sparkles size={14} strokeWidth={2} className="animate-pulse" /> {t('supplier.aiAnalyzing')}</>
+            ) : (
+              <><Plus size={14} strokeWidth={2} /> {t('tx.scanAppend')}</>
+            )}
+          </button>
         )}
       </div>
 
@@ -228,11 +299,11 @@ export default function SupplierTransactionFormPage() {
 
       <button
         onClick={handleSave}
-        disabled={!form.total && form.items.length === 0}
-        className="mt-6 w-full flex items-center justify-center gap-2 py-3.5 bg-blue-600 text-white text-sm font-semibold rounded-xl active:bg-blue-700 disabled:opacity-50"
+        disabled={saving || (!form.total && form.items.length === 0)}
+        className={`mt-6 w-full flex items-center justify-center gap-2 py-3.5 text-white text-sm font-bold rounded-xl ${saving ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 active:bg-blue-700 disabled:opacity-50'}`}
       >
         <Save size={16} strokeWidth={2} />
-        {t('supplier.save')}
+        {saving ? t('common.saving') : t('supplier.save')}
       </button>
     </div>
   )
@@ -256,6 +327,14 @@ function NumField({ label, value, onChange }) {
 }
 
 function Field({ label, placeholder, value, onChange, type = 'text', multiline }) {
+  if (type === 'date') {
+    return (
+      <div>
+        <label className="text-xs text-gray-500 mb-1 block">{label}</label>
+        <DateInput value={value} onChange={onChange} placeholder={placeholder} />
+      </div>
+    )
+  }
   return (
     <div>
       <label className="text-xs text-gray-500 mb-1 block">{label}</label>

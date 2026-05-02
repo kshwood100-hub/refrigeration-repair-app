@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ChevronLeft, Save } from 'lucide-react'
 import { db } from '../db'
+import DateInput from '../components/DateInput'
 
 export default function SupplierPaymentFormPage() {
   const { t } = useTranslation()
@@ -12,17 +13,25 @@ export default function SupplierPaymentFormPage() {
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10))
   const [amount, setAmount] = useState('')
   const [memo, setMemo] = useState('')
+  const [saving, setSaving] = useState(false)
 
   async function handleSave() {
-    await db.supplier_transactions.add({
-      supplierId,
-      type: 'payment',
-      date,
-      total: amount ? Number(amount) : null,
-      memo,
-      createdAt: new Date().toISOString(),
-    })
-    navigate(`/suppliers/${supplierId}`)
+    if (saving) return
+    setSaving(true)
+    try {
+      await db.supplier_transactions.add({
+        supplierId,
+        type: 'payment',
+        date,
+        total: amount ? Number(amount) : null,
+        memo,
+        createdAt: new Date().toISOString(),
+      })
+      navigate(`/suppliers/${supplierId}`)
+    } catch (e) {
+      console.error('Payment save failed:', e)
+      setSaving(false)
+    }
   }
 
   const display = amount ? Number(amount).toLocaleString() : ''
@@ -42,12 +51,7 @@ export default function SupplierPaymentFormPage() {
       <div className="space-y-3">
         <div>
           <label className="text-xs text-gray-500 mb-1 block">{t('tx.dateLabelPayment')}</label>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2.5 text-sm text-gray-900 outline-none focus:border-blue-500"
-          />
+          <DateInput value={date} onChange={setDate} />
         </div>
 
         <div>
@@ -76,11 +80,11 @@ export default function SupplierPaymentFormPage() {
 
       <button
         onClick={handleSave}
-        disabled={!amount}
-        className="mt-6 w-full flex items-center justify-center gap-2 py-3.5 bg-emerald-600 text-white text-sm font-semibold rounded-xl active:bg-emerald-700 disabled:opacity-50"
+        disabled={saving || !amount}
+        className={`mt-6 w-full flex items-center justify-center gap-2 py-3.5 text-white text-sm font-bold rounded-xl ${saving ? 'bg-gray-400 cursor-not-allowed' : 'bg-emerald-600 active:bg-emerald-700 disabled:opacity-50'}`}
       >
         <Save size={16} strokeWidth={2} />
-        {t('supplier.save')}
+        {saving ? t('common.saving') : t('supplier.save')}
       </button>
     </div>
   )

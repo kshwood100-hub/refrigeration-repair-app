@@ -66691,79 +66691,138 @@
       ],
       "part_en": "Compressor",
       "severity_en": "Normal",
-      "symptom_en": "Refrigerant leak quantity estimation method",
+      "symptom_en": "Refrigeration unit noise level exceeds standard",
       "keywords_en": [
-        "leak rate estimation",
-        "refrigerant loss calculation",
-        "annual leak rate",
-        "charge amount comparison"
+        "noise measurement",
+        "noise level",
+        "dB measurement",
+        "sound level meter",
+        "noise standard exceeded"
       ],
-      "causes_en": [],
+      "causes_en": [
+        "Compressor wear",
+        "Fan imbalance",
+        "Piping vibration",
+        "Poor vibration isolation"
+      ],
       "checks_en": [
-        "Compare initial charge vs current charge (after full recovery)",
-        "Annual leak rate = leaked amount / total charge × 100",
-        "Normal: below 5%/year, abnormal: above 10%/year"
+        "Measure with sound level meter at 1m distance",
+        "Measure compressor side, fan side, and piping side individually",
+        "Compare before and after operation"
       ],
       "actions_en": [
-        "Abnormal leak rate: comprehensive leak detection",
-        "Record charge amount at each maintenance",
-        "Continuous monitoring after repair"
+        "Identify noise source then repair root cause",
+        "Replace anti-vibration pads",
+        "Add piping clamps",
+        "Consider installing soundproof cover"
       ],
       "keywords_zh": [
-        "泄漏率估算",
-        "制冷剂损失计算",
-        "年泄漏率",
-        "充注量比较"
+        "噪音测量",
+        "噪音水平",
+        "dB测量",
+        "声级计",
+        "超过噪音标准"
       ],
-      "symptom_zh": "制冷剂泄漏量估算方法",
+      "symptom_zh": "制冷机噪音超过标准值",
       "part_zh": "压缩机",
-      "causes_zh": [],
+      "severity_zh": "一般",
+      "causes_zh": [
+        "压缩机磨损",
+        "风扇不平衡",
+        "管道振动",
+        "防振不良"
+      ],
       "checks_zh": [
-        "比较初始充注量与当前充注量（完全回收后）",
-        "年泄漏率=泄漏量÷总充注量×100",
-        "正常：5%/年以下，异常：10%/年以上"
+        "用声级计在1米距离处测量",
+        "分别测量压缩机侧、风扇侧、管道侧",
+        "比较运行前后"
+      ],
+      "actions_zh": [
+        "确定噪音源后修理根本原因",
+        "更换防振垫",
+        "增加管道夹",
+        "考虑安装隔音罩"
       ],
       "keywords_ja": [
-        "リーク率推定",
-        "冷媒損失計算",
-        "年間リーク率",
-        "充填量比較"
+        "騒音測定",
+        "騒音レベル",
+        "dB測定",
+        "騒音計",
+        "騒音基準超過"
       ],
-      "symptom_ja": "冷媒リーク量の推定方法",
+      "symptom_ja": "冷凍機の騒音が基準値を超過",
       "part_ja": "コンプレッサー",
-      "causes_ja": [],
+      "severity_ja": "一般",
+      "causes_ja": [
+        "コンプレッサーの摩耗",
+        "ファンの不均衡",
+        "配管の振動",
+        "防振不良"
+      ],
       "checks_ja": [
-        "初回充填量と現在の充填量を比較（完全回収後）",
-        "年間リーク率=リーク量÷総充填量×100",
-        "正常：5%/年以下、異常：10%/年以上"
+        "騒音計で1m距離から測定",
+        "コンプレッサー側、ファン側、配管側を個別に測定",
+        "運転前後を比較"
+      ],
+      "actions_ja": [
+        "騒音源を特定後、根本原因を修理",
+        "防振パッドを交換",
+        "配管クランプを追加",
+        "防音カバーの設置を検討"
       ],
       "keywords_es": [
-        "estimación tasa fuga",
-        "cálculo pérdida refrigerante",
-        "tasa fuga anual",
-        "comparación cantidad carga"
+        "medición de ruido",
+        "nivel de ruido",
+        "medición de dB",
+        "sonómetro",
+        "estándar de ruido superado"
       ],
-      "symptom_es": "Método de estimación de la cantidad de fuga de refrigerante",
+      "symptom_es": "Nivel de ruido de la unidad de refrigeración supera el estándar",
       "part_es": "Compresor",
-      "causes_es": [],
+      "severity_es": "Normal",
+      "causes_es": [
+        "Desgaste del compresor",
+        "Desequilibrio del ventilador",
+        "Vibración de la tubería",
+        "Mala amortiguación de vibraciones"
+      ],
       "checks_es": [
-        "Comparar la carga inicial con la carga actual (después de recuperación completa)",
-        "Tasa de fuga anual = cantidad fugada / carga total × 100",
-        "Normal: por debajo del 5%/año, anormal: por encima del 10%/año"
+        "Medir con sonómetro a 1 m de distancia",
+        "Medir individualmente el lado del compresor, del ventilador y de la tubería",
+        "Comparar antes y después de la operación"
+      ],
+      "actions_es": [
+        "Identificar la fuente del ruido y reparar la causa raíz",
+        "Sustituir las almohadillas antivibración",
+        "Añadir abrazaderas de tubería",
+        "Considerar la instalación de una cubierta insonorizada"
       ],
       "keywords_hi": [
-        "लीक दर अनुमान",
-        "रेफ्रिजरेंट हानि गणना",
-        "वार्षिक लीक दर",
-        "charge मात्रा तुलना"
+        "शोर मापन",
+        "शोर स्तर",
+        "dB मापन",
+        "sound level meter",
+        "शोर मानक उल्लंघन"
       ],
-      "symptom_hi": "रेफ्रिजरेंट लीक मात्रा अनुमान विधि",
+      "symptom_hi": "रेफ्रिजरेशन यूनिट का शोर स्तर मानक से अधिक",
       "part_hi": "कंप्रेसर",
-      "causes_hi": [],
+      "severity_hi": "सामान्य",
+      "causes_hi": [
+        "कंप्रेसर का घिसाव",
+        "पंखे का असंतुलन",
+        "पाइप कंपन",
+        "कंपन रोकने की व्यवस्था खराब"
+      ],
       "checks_hi": [
-        "प्रारंभिक charge बनाम वर्तमान charge की तुलना करें (पूर्ण recovery के बाद)",
-        "वार्षिक लीक दर = लीक मात्रा / कुल charge × 100",
-        "सामान्य: 5%/वर्ष से कम, असामान्य: 10%/वर्ष से अधिक"
+        "Sound level meter से 1 मीटर की दूरी पर मापें",
+        "कंप्रेसर साइड, पंखे की साइड, पाइप साइड अलग-अलग मापें",
+        "संचालन से पहले और बाद की तुलना करें"
+      ],
+      "actions_hi": [
+        "शोर का स्रोत पहचानें और मूल कारण ठीक करें",
+        "Anti-vibration pad बदलें",
+        "पाइप clamp जोड़ें",
+        "Soundproof cover लगाने पर विचार करें"
       ],
       "symptom_vi": "Mức ồn máy lạnh vượt tiêu chuẩn",
       "symptom_th": "ระดับเสียงของเครื่องทำความเย็นเกินมาตรฐาน",
@@ -66903,109 +66962,128 @@
       ],
       "part_en": "Compressor",
       "severity_en": "Critical",
-      "symptom_en": "Oil deterioration assessment from compressor oil color",
+      "symptom_en": "Compressor oil foaming at startup",
       "keywords_en": [
-        "oil color check",
-        "oil degradation",
-        "oil analysis",
-        "oil condition assessment",
-        "oil sampling"
+        "oil foaming",
+        "oil bubbles",
+        "crankcase foaming",
+        "oil refrigerant mixing",
+        "startup oil foaming"
       ],
       "causes_en": [
-        "Normal degradation from extended operation",
-        "Rapid degradation from overheating",
-        "Contamination from refrigerant leaking into oil"
+        "Refrigerant dissolved into oil during shutdown",
+        "Crankcase heater failure",
+        "Sudden startup after extended shutdown"
       ],
       "checks_en": [
-        "Transparent/light yellow: normal",
-        "Brown: mild degradation, plan replacement",
-        "Black: severe degradation, immediate replacement",
-        "Milky: moisture contamination"
+        "Verify crankcase heater operation (surface temperature 40-50°C)",
+        "Check for bubbles in oil sight glass",
+        "Check shutdown duration"
       ],
       "actions_en": [
-        "Replace oil based on color assessment",
-        "Oil analysis (TAN, moisture, metal particles)",
-        "Replace drier simultaneously when changing oil"
+        "Energize crankcase heater and wait at least 30 minutes before startup",
+        "Replace crankcase heater",
+        "Start gradually (unloading start)"
       ],
       "keywords_zh": [
-        "油色检查",
-        "油劣化",
-        "油分析",
-        "油状态评估",
-        "油取样"
+        "油起泡",
+        "油泡沫",
+        "曲轴箱起泡",
+        "油制冷剂混合",
+        "启动时油起泡"
       ],
-      "symptom_zh": "通过压缩机油颜色评估油劣化程度",
+      "symptom_zh": "启动时压缩机油发生起泡",
       "part_zh": "压缩机",
+      "severity_zh": "紧急",
       "causes_zh": [
-        "长期运行的正常劣化",
-        "过热导致快速劣化",
-        "制冷剂渗入油中造成污染"
+        "停机期间制冷剂溶入油中",
+        "曲轴箱加热器故障",
+        "长期停机后突然启动"
       ],
       "checks_zh": [
-        "透明至淡黄色：正常",
-        "棕色：轻度劣化，计划更换",
-        "黑色：严重劣化，立即更换",
-        "乳白色：水分污染"
+        "确认曲轴箱加热器运行（表面温度40~50℃）",
+        "检查油位计是否有气泡",
+        "确认停机时间"
+      ],
+      "actions_zh": [
+        "投入曲轴箱加热器后等待30分钟以上再启动",
+        "更换曲轴箱加热器",
+        "缓慢启动（卸载启动）"
       ],
       "keywords_ja": [
-        "油色確認",
-        "油劣化",
-        "油分析",
-        "油状態評価",
-        "油サンプリング"
+        "油フォーミング",
+        "油の泡",
+        "クランクケース泡立ち",
+        "油冷媒混合",
+        "起動時油フォーミング"
       ],
-      "symptom_ja": "コンプレッサー油の色による劣化評価",
+      "symptom_ja": "起動時にコンプレッサー油のフォーミング発生",
       "part_ja": "コンプレッサー",
+      "severity_ja": "緊急",
       "causes_ja": [
-        "長期運転による正常劣化",
-        "過熱による急速劣化",
-        "冷媒漏れによる油汚染"
+        "停止中に冷媒が油に溶解",
+        "クランクケースヒーター不良",
+        "長期停止後の急起動"
       ],
       "checks_ja": [
-        "透明/薄黄色：正常",
-        "茶色：軽度劣化、交換計画",
-        "黒色：重度劣化、即時交換",
-        "乳白色：水分汚染"
+        "クランクケースヒーター作動確認（表面温度40~50℃）",
+        "油面計の気泡確認",
+        "停止時間の確認"
+      ],
+      "actions_ja": [
+        "クランクケースヒーター投入後、30分以上待ってから起動",
+        "クランクケースヒーター交換",
+        "緩やかに起動（アンローディング起動）"
       ],
       "keywords_es": [
-        "verificación color aceite",
-        "degradación aceite",
-        "análisis aceite",
-        "evaluación estado aceite",
-        "muestreo aceite"
+        "espumeo de aceite",
+        "burbujas de aceite",
+        "espuma en cárter",
+        "mezcla aceite-refrigerante",
+        "espumeo de aceite al arranque"
       ],
-      "symptom_es": "Evaluación del deterioro del aceite a partir del color del aceite del compresor",
+      "symptom_es": "Espumeo del aceite del compresor al arranque",
       "part_es": "Compresor",
+      "severity_es": "Crítico",
       "causes_es": [
-        "Degradación normal por operación prolongada",
-        "Degradación rápida por sobrecalentamiento",
-        "Contaminación por fuga de refrigerante en el aceite"
+        "Refrigerante disuelto en el aceite durante el paro",
+        "Fallo del calentador del cárter",
+        "Arranque repentino tras un paro prolongado"
       ],
       "checks_es": [
-        "Transparente/amarillo claro: normal",
-        "Marrón: degradación leve, planificar sustitución",
-        "Negro: degradación severa, sustitución inmediata",
-        "Lechoso: contaminación por humedad"
+        "Verificar el funcionamiento del calentador del cárter (temperatura de superficie 40~50°C)",
+        "Comprobar burbujas en el visor de aceite",
+        "Verificar el tiempo de paro"
+      ],
+      "actions_es": [
+        "Activar el calentador del cárter y esperar al menos 30 minutos antes de arrancar",
+        "Sustituir el calentador del cárter",
+        "Arrancar gradualmente (arranque en descarga)"
       ],
       "keywords_hi": [
-        "तेल रंग जांच",
-        "तेल ह्रास",
-        "तेल विश्लेषण",
-        "तेल स्थिति आकलन",
-        "तेल sampling"
+        "तेल foaming",
+        "तेल के बुलबुले",
+        "Crankcase foaming",
+        "तेल-रेफ्रिजरेंट मिश्रण",
+        "स्टार्टअप पर तेल foaming"
       ],
-      "symptom_hi": "कंप्रेसर तेल रंग से तेल ह्रास का आकलन",
+      "symptom_hi": "स्टार्टअप पर कंप्रेसर तेल में foaming होना",
       "part_hi": "कंप्रेसर",
+      "severity_hi": "गंभीर",
       "causes_hi": [
-        "लंबे संचालन से सामान्य क्षरण",
-        "अत्यधिक गर्मी से तेज क्षरण",
-        "रेफ्रिजरेंट तेल में रिसाव से संदूषण"
+        "बंदी के दौरान रेफ्रिजरेंट का तेल में घुलना",
+        "Crankcase heater विफलता",
+        "लंबी बंदी के बाद अचानक स्टार्ट"
       ],
       "checks_hi": [
-        "पारदर्शी/हल्का पीला: सामान्य",
-        "भूरा: हल्का क्षरण, प्रतिस्थापन की योजना बनाएं",
-        "काला: गंभीर क्षरण, तुरंत बदलें",
-        "दूधिया: नमी संदूषण"
+        "Crankcase heater संचालन की जांच (सतह तापमान 40~50°C)",
+        "तेल level gauge में बुलबुले की जांच",
+        "बंदी समय की जांच"
+      ],
+      "actions_hi": [
+        "Crankcase heater चालू करके कम से कम 30 मिनट प्रतीक्षा के बाद स्टार्ट करें",
+        "Crankcase heater बदलें",
+        "धीरे-धीरे स्टार्ट करें (unloading start)"
       ],
       "symptom_vi": "Phát sinh foaming dầu máy nén khi khởi động",
       "symptom_th": "เกิดการเป็นฟองของน้ำมันคอมเพรสเซอร์ตอนสตาร์ท",
@@ -67138,104 +67216,133 @@
       ],
       "part_en": "Compressor",
       "severity_en": "Critical",
-      "symptom_en": "Oil foaming at startup causing oil pump cavitation",
+      "symptom_en": "Oil shortage from poor compressor oil circulation",
       "keywords_en": [
-        "oil foaming",
-        "startup foaming",
-        "oil pump cavitation",
-        "crankcase foaming",
-        "rapid pressure drop"
+        "poor oil return",
+        "poor oil circulation",
+        "oil trap",
+        "oil back",
+        "oil shortage cause"
       ],
       "causes_en": [
-        "Refrigerant dissolved in oil during shutdown",
-        "Crankcase heater not operating",
-        "Rapid pressure drop at startup"
+        "Vertical piping without oil trap",
+        "Poor oil return due to low-speed operation",
+        "Oil separator failure"
       ],
       "checks_en": [
-        "Oil sight glass: check for foaming at startup",
-        "Crankcase heater operation check",
-        "Oil pressure after startup: delay in reaching normal"
+        "Check oil level sight glass",
+        "Verify whether piping design includes oil trap",
+        "Check oil separator efficiency"
       ],
       "actions_en": [
-        "Ensure crankcase heater operates during off-cycle",
-        "Install oil pressure safety switch (time delay)",
-        "Preheat sufficiently before startup"
+        "Install oil trap on piping",
+        "Verify minimum operating speed",
+        "Refill oil",
+        "Replace oil separator"
       ],
       "keywords_zh": [
-        "油起泡",
-        "启动起泡",
-        "油泵气蚀",
-        "曲轴箱起泡",
-        "压力急降"
+        "回油不良",
+        "油循环不良",
+        "油弯",
+        "油回流",
+        "缺油原因"
       ],
-      "symptom_zh": "启动时油起泡导致油泵气蚀",
+      "symptom_zh": "压缩机油循环不良导致缺油",
       "part_zh": "压缩机",
+      "severity_zh": "紧急",
       "causes_zh": [
-        "停机时制冷剂溶于油中",
-        "曲轴箱加热器未运行",
-        "启动时压力急剧下降"
+        "垂直管道未设油弯",
+        "低速运行导致回油不良",
+        "油分离器故障"
       ],
       "checks_zh": [
-        "油视镜：检查启动时是否起泡",
-        "检查曲轴箱加热器运行",
-        "启动后油压：达到正常值的延迟"
+        "确认油位计",
+        "确认管道设计是否设有油弯",
+        "确认油分离器效率"
+      ],
+      "actions_zh": [
+        "在管道上安装油弯",
+        "确认最低运行速度",
+        "补充油",
+        "更换油分离器"
       ],
       "keywords_ja": [
-        "油起泡",
-        "起動時起泡",
-        "油ポンプキャビテーション",
-        "クランクケース起泡",
-        "急激な圧力降下"
+        "油戻り不良",
+        "油循環不良",
+        "オイルトラップ",
+        "オイルバック",
+        "油不足原因"
       ],
-      "symptom_ja": "起動時の油起泡による油ポンプキャビテーション",
+      "symptom_ja": "コンプレッサーの油循環不良による油不足",
       "part_ja": "コンプレッサー",
+      "severity_ja": "緊急",
       "causes_ja": [
-        "停止中の冷媒が油に溶解",
-        "クランクケースヒーター未作動",
-        "起動時の急激な圧力降下"
+        "オイルトラップなしの垂直配管",
+        "低速運転による油戻り不良",
+        "オイルセパレーター不良"
       ],
       "checks_ja": [
-        "油視液鏡：起動時の起泡確認",
-        "クランクケースヒーター作動確認",
-        "起動後油圧：正常値への到達遅延"
+        "油面計の確認",
+        "配管設計にトラップがあるか確認",
+        "オイルセパレーター効率の確認"
+      ],
+      "actions_ja": [
+        "配管にオイルトラップを設置",
+        "最低運転速度の確認",
+        "油の補充",
+        "オイルセパレーターの交換"
       ],
       "keywords_es": [
-        "espuma aceite",
-        "espuma arranque",
-        "cavitación bomba aceite",
-        "espuma cárter",
-        "caída presión rápida"
+        "mal retorno de aceite",
+        "mala circulación de aceite",
+        "trampa de aceite",
+        "retorno de aceite",
+        "causa de falta de aceite"
       ],
-      "symptom_es": "Espuma de aceite al arrancar que causa cavitación en la bomba de aceite",
+      "symptom_es": "Falta de aceite por mala circulación del aceite del compresor",
       "part_es": "Compresor",
+      "severity_es": "Crítico",
       "causes_es": [
-        "Refrigerante disuelto en el aceite durante el paro",
-        "Calentador del cárter no funcionando",
-        "Caída de presión rápida al arrancar"
+        "Tubería vertical sin trampa de aceite",
+        "Mal retorno de aceite por funcionamiento a baja velocidad",
+        "Fallo del separador de aceite"
       ],
       "checks_es": [
-        "Visor de aceite: verificar la formación de espuma al arrancar",
-        "Verificar el funcionamiento del calentador del cárter",
-        "Presión de aceite después del arranque: demora en alcanzar el nivel normal"
+        "Verificar el visor de nivel de aceite",
+        "Comprobar si el diseño de la tubería incluye trampa de aceite",
+        "Verificar la eficiencia del separador de aceite"
+      ],
+      "actions_es": [
+        "Instalar trampa de aceite en la tubería",
+        "Verificar la velocidad mínima de funcionamiento",
+        "Reponer aceite",
+        "Sustituir el separador de aceite"
       ],
       "keywords_hi": [
-        "तेल foaming",
-        "स्टार्टअप foaming",
-        "oil pump cavitation",
-        "crankcase foaming",
-        "तेज दबाव गिरावट"
+        "तेल वापसी कम",
+        "तेल परिसंचरण कम",
+        "Oil trap",
+        "Oil back",
+        "तेल की कमी का कारण"
       ],
-      "symptom_hi": "स्टार्टअप पर तेल foaming से oil pump cavitation",
+      "symptom_hi": "कंप्रेसर तेल परिसंचरण खराब होने से तेल की कमी",
       "part_hi": "कंप्रेसर",
+      "severity_hi": "गंभीर",
       "causes_hi": [
-        "बंदी के दौरान तेल में रेफ्रिजरेंट घुलना",
-        "Crankcase heater काम नहीं कर रहा",
-        "स्टार्टअप पर तेज दबाव गिरावट"
+        "Oil trap के बिना vertical piping",
+        "धीमी गति संचालन से तेल वापसी कम",
+        "Oil separator विफलता"
       ],
       "checks_hi": [
-        "Oil sight glass: स्टार्टअप पर foaming जांचें",
-        "Crankcase heater संचालन जांचें",
-        "स्टार्टअप के बाद तेल दबाव: सामान्य तक पहुंचने में देरी"
+        "तेल level gauge की जांच",
+        "Piping डिज़ाइन में trap है या नहीं जांचें",
+        "Oil separator दक्षता जांचें"
+      ],
+      "actions_hi": [
+        "Piping पर oil trap लगाएं",
+        "न्यूनतम संचालन गति जांचें",
+        "तेल भरें",
+        "Oil separator बदलें"
       ],
       "symptom_vi": "Tuần hoàn dầu máy nén kém gây thiếu dầu",
       "symptom_th": "การหมุนเวียนน้ำมันคอมเพรสเซอร์ไม่ดี ทำให้น้ำมันขาด",
@@ -67369,80 +67476,118 @@
       ],
       "part_en": "Compressor",
       "severity_en": "Normal",
-      "symptom_en": "Emergency response procedure for refrigerant leak",
+      "symptom_en": "Periodic inspection items at seasonal changeover",
       "keywords_en": [
-        "refrigerant leak emergency",
-        "leak response",
-        "evacuation procedure",
-        "refrigerant inhalation first aid"
+        "seasonal inspection",
+        "winter inspection",
+        "summer inspection",
+        "periodic inspection season",
+        "seasonal management"
       ],
-      "causes_en": [],
+      "causes_en": [
+        "Summer prep: condenser cleaning, cooling water check",
+        "Winter prep: freeze protection, crankcase heater"
+      ],
       "checks_en": [
-        "Check gas detector alarm",
-        "Identify leak scale (minor/major)",
-        "Check affected persons"
+        "Summer: clean condenser fins, clean cooling tower, verify refrigerant charge",
+        "Winter: piping freeze protection heater, antifreeze concentration in cooling water"
       ],
       "actions_en": [
-        "Evacuate area immediately",
-        "Maximize ventilation",
-        "Wear appropriate PPE for response",
-        "First aid for inhalation: fresh air, CPR if needed, call 119"
+        "Conduct comprehensive inspection before the season",
+        "Replace consumables (filters, oil, belts)",
+        "Review operating records and address abnormal signs in advance"
       ],
       "keywords_zh": [
-        "制冷剂泄漏紧急处理",
-        "泄漏应对",
-        "疏散程序",
-        "制冷剂吸入急救"
+        "季节性检查",
+        "冬季检查",
+        "夏季检查",
+        "换季定期检查",
+        "季节管理"
       ],
-      "symptom_zh": "制冷剂泄漏紧急响应程序",
+      "symptom_zh": "季节转换时定期检查项目",
       "part_zh": "压缩机",
-      "causes_zh": [],
+      "severity_zh": "一般",
+      "causes_zh": [
+        "夏季准备：冷凝器清洁、冷却水检查",
+        "冬季准备：防冻、曲轴箱加热器"
+      ],
       "checks_zh": [
-        "检查气体探测器报警",
-        "判断泄漏规模（小量/大量）",
-        "确认受影响人员"
+        "夏季：清洁冷凝器翅片、清洁冷却塔、确认制冷剂量",
+        "冬季：管道防冻加热器、冷却水防冻液浓度"
+      ],
+      "actions_zh": [
+        "季节前实施综合检查",
+        "更换易耗品（过滤器、油、皮带）",
+        "复查运行记录并提前处理异常征兆"
       ],
       "keywords_ja": [
-        "冷媒リーク緊急対応",
-        "リーク対応",
-        "避難手順",
-        "冷媒吸入応急処置"
+        "季節点検",
+        "冬季点検",
+        "夏季点検",
+        "定期点検シーズン",
+        "シーズン管理"
       ],
-      "symptom_ja": "冷媒リークの緊急対応手順",
+      "symptom_ja": "季節切り替え時の定期点検項目",
       "part_ja": "コンプレッサー",
-      "causes_ja": [],
+      "severity_ja": "一般",
+      "causes_ja": [
+        "夏季準備：凝縮器清掃、冷却水点検",
+        "冬季準備：凍結防止、クランクケースヒーター"
+      ],
       "checks_ja": [
-        "ガス検知器のアラーム確認",
-        "リーク規模特定（小量/大量）",
-        "影響を受けた人の確認"
+        "夏季：凝縮器フィン清掃、冷却塔清掃、冷媒量確認",
+        "冬季：配管凍結防止ヒーター、冷却水不凍液濃度"
+      ],
+      "actions_ja": [
+        "シーズン前に総合点検を実施",
+        "消耗品交換（フィルター、油、ベルト）",
+        "運転記録の確認と異常兆候の事前処置"
       ],
       "keywords_es": [
-        "emergencia fuga refrigerante",
-        "respuesta fuga",
-        "procedimiento evacuación",
-        "primeros auxilios inhalación refrigerante"
+        "inspección estacional",
+        "inspección de invierno",
+        "inspección de verano",
+        "inspección periódica por temporada",
+        "gestión estacional"
       ],
-      "symptom_es": "Procedimiento de respuesta de emergencia ante fuga de refrigerante",
+      "symptom_es": "Elementos de inspección periódica en el cambio de temporada",
       "part_es": "Compresor",
-      "causes_es": [],
+      "severity_es": "Normal",
+      "causes_es": [
+        "Preparación de verano: limpieza del condensador, revisión del agua de refrigeración",
+        "Preparación de invierno: protección contra congelación, calentador del cárter"
+      ],
       "checks_es": [
-        "Verificar la alarma del detector de gas",
-        "Identificar la magnitud de la fuga (menor/mayor)",
-        "Verificar si hay personas afectadas"
+        "Verano: limpiar las aletas del condensador, limpiar la torre de enfriamiento, verificar la carga de refrigerante",
+        "Invierno: calentador anticongelante para tuberías, concentración de anticongelante en el agua de refrigeración"
+      ],
+      "actions_es": [
+        "Realizar una inspección integral antes de la temporada",
+        "Sustituir consumibles (filtros, aceite, correas)",
+        "Revisar los registros de operación y atender por anticipado los signos anómalos"
       ],
       "keywords_hi": [
-        "रेफ्रिजरेंट लीक आपातकाल",
-        "लीक प्रतिक्रिया",
-        "निकासी प्रक्रिया",
-        "रेफ्रिजरेंट सांस लेने पर प्राथमिक उपचार"
+        "मौसमी निरीक्षण",
+        "शीतकालीन निरीक्षण",
+        "ग्रीष्मकालीन निरीक्षण",
+        "मौसमी आवधिक जांच",
+        "मौसम प्रबंधन"
       ],
-      "symptom_hi": "रेफ्रिजरेंट लीक के लिए आपातकालीन प्रतिक्रिया प्रक्रिया",
+      "symptom_hi": "मौसम परिवर्तन के समय आवधिक निरीक्षण आइटम",
       "part_hi": "कंप्रेसर",
-      "causes_hi": [],
+      "severity_hi": "सामान्य",
+      "causes_hi": [
+        "गर्मी की तैयारी: कंडेंसर सफाई, ठंडा पानी जांच",
+        "सर्दी की तैयारी: जमने से बचाव, crankcase heater"
+      ],
       "checks_hi": [
-        "गैस detector alarm जांचें",
-        "लीक का पैमाना पहचानें (छोटा/बड़ा)",
-        "प्रभावित व्यक्तियों की जांच करें"
+        "गर्मी: कंडेंसर fins सफाई, cooling tower सफाई, रेफ्रिजरेंट मात्रा की जांच",
+        "सर्दी: पाइप जमने से बचाव heater, ठंडे पानी में antifreeze सांद्रता"
+      ],
+      "actions_hi": [
+        "मौसम से पहले व्यापक निरीक्षण करें",
+        "Consumables बदलें (filters, तेल, belts)",
+        "संचालन रिकॉर्ड की समीक्षा और असामान्य संकेतों पर पूर्व कार्रवाई"
       ],
       "symptom_vi": "Hạng mục kiểm tra định kỳ khi chuyển mùa",
       "symptom_th": "รายการตรวจสอบประจำเมื่อเปลี่ยนฤดูกาล",
@@ -67566,84 +67711,128 @@
       ],
       "part_en": "Compressor",
       "severity_en": "Normal",
-      "symptom_en": "Seasonal switchover maintenance checklist",
+      "symptom_en": "Performance degradation and frequent failures from refrigeration unit aging",
       "keywords_en": [
-        "seasonal maintenance",
-        "winter preparation",
-        "summer preparation",
-        "seasonal checklist",
-        "switchover maintenance"
+        "aging",
+        "refrigeration unit lifespan",
+        "replacement timing decision",
+        "compressor lifespan",
+        "component lifespan"
       ],
-      "causes_en": [],
+      "causes_en": [
+        "Compressor reaching end of life (typically 7-15 years)",
+        "Refrigerant change required due to regulations",
+        "Excessive cumulative failure costs"
+      ],
       "checks_en": [
-        "Summer prep: condenser cleaning, cooling water system check, refrigerant charge check",
-        "Winter prep: crankcase heater check, drain heater check, antifreeze check",
-        "Year-round: defrost system, safety devices, operating data review"
+        "Verify installation year and operating hours",
+        "Review repair history and cost over the last year",
+        "Check current refrigerant type (R22 etc. under regulation)"
       ],
       "actions_en": [
-        "Complete seasonal checklist before peak season",
-        "Address all findings before season starts",
-        "Review and update maintenance schedule"
+        "Compare repair costs vs replacement costs",
+        "Consider switching to eco-friendly refrigerant",
+        "Establish phased replacement plan"
       ],
       "keywords_zh": [
-        "季节性维护",
-        "冬季准备",
-        "夏季准备",
-        "季节性清单",
-        "换季维护"
+        "老化",
+        "制冷机寿命",
+        "更换时机判断",
+        "压缩机寿命",
+        "部件寿命"
       ],
-      "symptom_zh": "季节转换维护清单",
+      "symptom_zh": "制冷机老化导致性能下降及频繁故障",
       "part_zh": "压缩机",
-      "causes_zh": [],
+      "severity_zh": "一般",
+      "causes_zh": [
+        "压缩机达到使用寿命（通常7~15年）",
+        "因制冷剂法规需更换制冷剂",
+        "累计故障成本过高"
+      ],
       "checks_zh": [
-        "夏季准备：冷凝器清洁、冷却水系统检查、制冷剂充注量检查",
-        "冬季准备：曲轴箱加热器检查、排水加热器检查、防冻液检查",
-        "全年：除霜系统、安全装置、运行数据复查"
+        "确认安装年份和运行时间",
+        "确认最近1年维修履历及费用",
+        "确认当前制冷剂种类（R22等受限品）"
+      ],
+      "actions_zh": [
+        "比较维修费用与更换费用",
+        "考虑更换为环保制冷剂",
+        "制定分阶段更换计划"
       ],
       "keywords_ja": [
-        "季節保守",
-        "冬季準備",
-        "夏季準備",
-        "季節チェックリスト",
-        "切り替え保守"
+        "老朽化",
+        "冷凍機寿命",
+        "交換時期判断",
+        "コンプレッサー寿命",
+        "部品寿命"
       ],
-      "symptom_ja": "季節切り替え保守チェックリスト",
+      "symptom_ja": "冷凍機の老朽化による性能低下と頻発故障",
       "part_ja": "コンプレッサー",
-      "causes_ja": [],
+      "severity_ja": "一般",
+      "causes_ja": [
+        "コンプレッサーが寿命到達（通常7~15年）",
+        "冷媒規制による冷媒変更の必要",
+        "累積故障費用の過大"
+      ],
       "checks_ja": [
-        "夏季準備：凝縮器清掃、冷却水システム確認、冷媒充填量確認",
-        "冬季準備：クランクケースヒーター確認、排水ヒーター確認、不凍液確認",
-        "通年：デフロストシステム、安全装置、運転データ確認"
+        "設置年と運転時間の確認",
+        "直近1年の修理履歴と費用の確認",
+        "現在の冷媒種類確認（R22等の規制対象）"
+      ],
+      "actions_ja": [
+        "修理費用と交換費用を比較分析",
+        "環境配慮型冷媒への交換を検討",
+        "段階的な交換計画の策定"
       ],
       "keywords_es": [
-        "mantenimiento estacional",
-        "preparación invierno",
-        "preparación verano",
-        "lista verificación estacional",
-        "mantenimiento cambio temporada"
+        "envejecimiento",
+        "vida útil de la unidad de refrigeración",
+        "decisión de tiempo de reemplazo",
+        "vida útil del compresor",
+        "vida útil de componentes"
       ],
-      "symptom_es": "Lista de verificación de mantenimiento para el cambio estacional",
+      "symptom_es": "Degradación de rendimiento y fallos frecuentes por envejecimiento de la unidad de refrigeración",
       "part_es": "Compresor",
-      "causes_es": [],
+      "severity_es": "Normal",
+      "causes_es": [
+        "Compresor al final de su vida útil (generalmente 7-15 años)",
+        "Cambio de refrigerante requerido por regulaciones",
+        "Costos acumulados de fallos excesivos"
+      ],
       "checks_es": [
-        "Preparación verano: limpieza del condensador, verificación del sistema de agua de refrigeración, verificación de la carga de refrigerante",
-        "Preparación invierno: verificación del calentador del cárter, verificación del calentador de drenaje, verificación del anticongelante",
-        "Todo el año: sistema de desescarche, dispositivos de seguridad, revisión de datos de operación"
+        "Verificar año de instalación y horas de operación",
+        "Revisar el historial de reparaciones y costos del último año",
+        "Verificar el tipo de refrigerante actual (R22 etc., sujetos a regulación)"
+      ],
+      "actions_es": [
+        "Análisis comparativo entre costo de reparación y costo de sustitución",
+        "Considerar el cambio a un refrigerante ecológico",
+        "Establecer un plan de sustitución por fases"
       ],
       "keywords_hi": [
-        "मौसमी रखरखाव",
-        "सर्दियों की तैयारी",
-        "गर्मियों की तैयारी",
-        "मौसमी checklist",
-        "switchover रखरखाव"
+        "पुरानापन",
+        "रेफ्रिजरेशन यूनिट जीवन",
+        "बदलने का समय निर्धारण",
+        "कंप्रेसर जीवन",
+        "पुर्जा जीवन"
       ],
-      "symptom_hi": "मौसमी परिवर्तन रखरखाव checklist",
+      "symptom_hi": "रेफ्रिजरेशन यूनिट की उम्र के कारण प्रदर्शन में गिरावट और बार-बार खराबी",
       "part_hi": "कंप्रेसर",
-      "causes_hi": [],
+      "severity_hi": "सामान्य",
+      "causes_hi": [
+        "कंप्रेसर का जीवन समाप्त (सामान्यत: 7~15 वर्ष)",
+        "रेफ्रिजरेंट विनियमन के कारण रेफ्रिजरेंट बदलने की आवश्यकता",
+        "संचयी खराबी लागत बहुत अधिक"
+      ],
       "checks_hi": [
-        "गर्मियों की तैयारी: कंडेंसर सफाई, ठंडे पानी प्रणाली जांच, रेफ्रिजरेंट charge जांच",
-        "सर्दियों की तैयारी: crankcase heater जांच, drain heater जांच, antifreeze जांच",
-        "साल भर: defrost प्रणाली, safety devices, संचालन डेटा समीक्षा"
+        "स्थापना वर्ष और संचालन घंटों की जांच",
+        "पिछले 1 वर्ष का मरम्मत इतिहास और लागत की जांच",
+        "वर्तमान रेफ्रिजरेंट प्रकार की जांच (R22 इत्यादि विनियमित)"
+      ],
+      "actions_hi": [
+        "मरम्मत लागत और बदलने की लागत की तुलनात्मक विश्लेषण",
+        "पर्यावरण-अनुकूल रेफ्रिजरेंट में बदलाव पर विचार",
+        "चरणबद्ध बदलने की योजना तैयार करें"
       ],
       "symptom_vi": "Máy lạnh cũ hóa gây giảm hiệu suất và hỏng thường xuyên",
       "symptom_th": "เครื่องทำความเย็นเก่าทำให้ประสิทธิภาพลดและเสียบ่อย",
@@ -67773,91 +67962,130 @@
         "반복 고장 근본 원인 분석 및 해결",
         "예방 정비 계획 수립"
       ],
-      "part_en": "제어계통",
+      "part_en": "Control system",
       "severity_en": "Normal",
-      "symptom_en": "Consumable parts replacement timing guide",
+      "symptom_en": "Difficulty identifying cause due to recurring failures",
       "keywords_en": [
-        "consumable replacement",
-        "parts replacement cycle",
-        "filter replacement",
-        "belt replacement",
-        "maintenance schedule"
+        "failure history management",
+        "repair record",
+        "inspection log",
+        "recurring failure analysis",
+        "trend analysis"
       ],
-      "causes_en": [],
+      "causes_en": [
+        "Failure history not recorded",
+        "Only temporary measures repeated",
+        "Root cause not resolved"
+      ],
       "checks_en": [
-        "Filter drier: replace every 1-2 years or after compressor burnout",
-        "Fan belts: replace every 1-2 years",
-        "Oil: replace every 1-2 years or per oil analysis",
-        "Bearings: replace per vibration/noise assessment"
+        "Review failure history of the last 6 months",
+        "Analyze recurring failure patterns",
+        "Check operating data trends"
       ],
       "actions_en": [
-        "Maintain replacement history log",
-        "Stock critical spare parts",
-        "Follow manufacturer recommended intervals"
+        "Start systematic recording of failure history",
+        "Analyze and resolve root cause of recurring failures",
+        "Establish preventive maintenance plan"
       ],
       "keywords_zh": [
-        "耗材更换",
-        "零件更换周期",
-        "过滤器更换",
-        "皮带更换",
-        "维护计划"
+        "故障历史管理",
+        "维修记录",
+        "检查日志",
+        "重复故障分析",
+        "趋势分析"
       ],
-      "symptom_zh": "耗材零件更换时机指南",
+      "symptom_zh": "因故障反复发生导致难以查明原因",
       "part_zh": "控制系统",
-      "causes_zh": [],
+      "severity_zh": "一般",
+      "causes_zh": [
+        "未记录故障历史",
+        "仅反复采取临时措施",
+        "未解决根本原因"
+      ],
       "checks_zh": [
-        "过滤干燥器：每1~2年或压缩机烧毁后更换",
-        "风扇皮带：每1~2年更换",
-        "润滑油：每1~2年或根据油分析更换",
-        "轴承：根据振动/噪音评估更换"
+        "复查最近6个月的故障历史",
+        "分析重复故障模式",
+        "确认运行数据趋势"
+      ],
+      "actions_zh": [
+        "开始系统性记录故障历史",
+        "分析并解决重复故障的根本原因",
+        "制定预防性维护计划"
       ],
       "keywords_ja": [
-        "消耗品交換",
-        "部品交換周期",
-        "フィルター交換",
-        "ベルト交換",
-        "保守スケジュール"
+        "故障履歴管理",
+        "修理記録",
+        "点検日誌",
+        "繰り返し故障分析",
+        "トレンド分析"
       ],
-      "symptom_ja": "消耗部品の交換タイミングガイド",
+      "symptom_ja": "繰り返し発生する故障により原因特定が困難",
       "part_ja": "制御系統",
-      "causes_ja": [],
+      "severity_ja": "一般",
+      "causes_ja": [
+        "故障履歴の未記録",
+        "応急処置のみを繰り返している",
+        "根本原因が未解決"
+      ],
       "checks_ja": [
-        "フィルタードライヤー：1~2年ごとまたはコンプレッサー焼損後に交換",
-        "ファンベルト：1~2年ごとに交換",
-        "油：1~2年ごとまたは油分析に基づき交換",
-        "軸受：振動/騒音評価に基づき交換"
+        "直近6ヶ月の故障履歴を確認",
+        "繰り返し故障パターンの分析",
+        "運転データのトレンド確認"
+      ],
+      "actions_ja": [
+        "故障履歴の体系的な記録を開始",
+        "繰り返し故障の根本原因を分析して解決",
+        "予防保全計画を策定"
       ],
       "keywords_es": [
-        "sustitución consumibles",
-        "ciclo sustitución piezas",
-        "sustitución filtro",
-        "sustitución correa",
-        "programa mantenimiento"
+        "gestión del historial de fallos",
+        "registro de reparaciones",
+        "diario de inspección",
+        "análisis de fallos recurrentes",
+        "análisis de tendencias"
       ],
-      "symptom_es": "Guía de tiempos de sustitución de piezas consumibles",
+      "symptom_es": "Dificultad para identificar la causa por fallos recurrentes",
       "part_es": "Sistema de control",
-      "causes_es": [],
+      "severity_es": "Normal",
+      "causes_es": [
+        "Historial de fallos no registrado",
+        "Solo se repiten medidas temporales",
+        "Causa raíz no resuelta"
+      ],
       "checks_es": [
-        "Filtro deshidratador: sustituir cada 1-2 años o después de un quemado del compresor",
-        "Correas del ventilador: sustituir cada 1-2 años",
-        "Aceite: sustituir cada 1-2 años o según el análisis de aceite",
-        "Rodamientos: sustituir según la evaluación de vibración/ruido"
+        "Revisar el historial de fallos de los últimos 6 meses",
+        "Analizar los patrones de fallos recurrentes",
+        "Verificar las tendencias de los datos de operación"
+      ],
+      "actions_es": [
+        "Iniciar el registro sistemático del historial de fallos",
+        "Analizar y resolver la causa raíz de los fallos recurrentes",
+        "Establecer un plan de mantenimiento preventivo"
       ],
       "keywords_hi": [
-        "consumable प्रतिस्थापन",
-        "पुर्जे प्रतिस्थापन cycle",
-        "filter प्रतिस्थापन",
-        "belt प्रतिस्थापन",
-        "रखरखाव अनुसूची"
+        "खराबी इतिहास प्रबंधन",
+        "मरम्मत रिकॉर्ड",
+        "निरीक्षण लॉग",
+        "बार-बार खराबी विश्लेषण",
+        "trend विश्लेषण"
       ],
-      "symptom_hi": "Consumable पुर्जे प्रतिस्थापन समय मार्गदर्शिका",
+      "symptom_hi": "बार-बार खराबी के कारण कारण पहचानने में कठिनाई",
       "part_hi": "नियंत्रण प्रणाली",
-      "causes_hi": [],
+      "severity_hi": "सामान्य",
+      "causes_hi": [
+        "खराबी का इतिहास दर्ज नहीं किया गया",
+        "केवल अस्थायी उपायों की पुनरावृत्ति",
+        "मूल कारण हल नहीं हुआ"
+      ],
       "checks_hi": [
-        "Filter drier: हर 1-2 साल या कंप्रेसर जलने के बाद बदलें",
-        "Fan belts: हर 1-2 साल बदलें",
-        "तेल: हर 1-2 साल या तेल विश्लेषण के अनुसार बदलें",
-        "Bearings: कंपन/शोर आकलन के अनुसार बदलें"
+        "पिछले 6 महीनों के खराबी इतिहास की समीक्षा",
+        "बार-बार होने वाली खराबी के पैटर्न का विश्लेषण",
+        "संचालन डेटा प्रवृत्ति की जांच"
+      ],
+      "actions_hi": [
+        "खराबी इतिहास का व्यवस्थित रिकॉर्ड शुरू करें",
+        "बार-बार होने वाली खराबी के मूल कारण का विश्लेषण और समाधान",
+        "निवारक रखरखाव योजना तैयार करें"
       ],
       "symptom_vi": "Khó xác định nguyên nhân do hỏng hóc lặp lại",
       "symptom_th": "การหาต้นเหตุยากเพราะความเสียหายซ้ำๆ",
@@ -67991,110 +68219,138 @@
       ],
       "part_en": "Compressor",
       "severity_en": "Caution",
-      "symptom_en": "Heat pump defrost cycle not activating or incomplete",
+      "symptom_en": "Heat pump heating performance degradation",
       "keywords_en": [
-        "heat pump defrost failure",
-        "defrost not starting",
+        "heat pump poor heating",
+        "poor heating heat pump",
         "outdoor unit frost",
-        "reverse cycle defrost failure"
+        "repeated defrost",
+        "heating performance drop"
       ],
       "causes_en": [
-        "Defrost sensor failure",
-        "Defrost control board failure",
-        "4-way valve not switching",
-        "Timer setting error"
+        "Repeated defrost from outdoor unit frosting",
+        "Refrigerant shortage",
+        "Outdoor unit fan failure",
+        "Compressor efficiency degradation"
       ],
       "checks_en": [
-        "Check defrost initiation sensor",
-        "Check defrost control board output",
-        "Check 4-way valve switching during defrost",
-        "Check defrost timer/controller settings"
+        "Check outdoor unit frosting condition",
+        "Measure current and pressure during heating operation",
+        "Check defrost cycle and duration"
       ],
       "actions_en": [
-        "Replace defrost sensor",
-        "Replace control board",
-        "Check/replace 4-way valve",
-        "Readjust defrost settings"
+        "Improve airflow around outdoor unit",
+        "Recharge refrigerant",
+        "Optimize defrost settings",
+        "Inspect compressor"
       ],
       "keywords_zh": [
-        "热泵除霜失败",
-        "除霜未启动",
+        "热泵制热不良",
+        "制热不良热泵",
         "室外机结霜",
-        "逆循环除霜失败"
+        "除霜反复",
+        "制热性能下降"
       ],
-      "symptom_zh": "热泵除霜周期未启动或除霜不完全",
+      "symptom_zh": "热泵制热性能下降",
       "part_zh": "压缩机",
+      "severity_zh": "注意",
       "causes_zh": [
-        "除霜传感器故障",
-        "除霜控制板故障",
-        "四通阀未切换",
-        "定时器设定错误"
+        "室外机结霜导致除霜反复",
+        "制冷剂不足",
+        "室外机风扇故障",
+        "压缩机效率下降"
       ],
       "checks_zh": [
-        "检查除霜启动传感器",
-        "检查除霜控制板输出",
-        "检查除霜时四通阀切换动作",
-        "检查除霜定时器/控制器设定"
+        "确认室外机结霜状态",
+        "制热运行中测量电流和压力",
+        "确认除霜周期和时间"
+      ],
+      "actions_zh": [
+        "改善室外机周围空气流通",
+        "充注制冷剂",
+        "优化除霜设定",
+        "检查压缩机"
       ],
       "keywords_ja": [
-        "ヒートポンプデフロスト失敗",
-        "デフロスト未起動",
+        "ヒートポンプ暖房不良",
+        "暖房不良ヒートポンプ",
         "室外機着霜",
-        "逆サイクルデフロスト失敗"
+        "デフロスト繰り返し",
+        "暖房性能低下"
       ],
-      "symptom_ja": "ヒートポンプのデフロストサイクルが起動しないまたは不完全",
+      "symptom_ja": "ヒートポンプの暖房性能低下",
       "part_ja": "コンプレッサー",
+      "severity_ja": "注意",
       "causes_ja": [
-        "デフロストセンサー故障",
-        "デフロスト制御基板故障",
-        "四方弁の切替不能",
-        "タイマー設定誤り"
+        "室外機の着霜によるデフロスト繰り返し",
+        "冷媒不足",
+        "室外機ファン不良",
+        "コンプレッサー効率低下"
       ],
       "checks_ja": [
-        "デフロスト起動センサー確認",
-        "デフロスト制御基板出力確認",
-        "デフロスト中の四方弁切替動作確認",
-        "デフロストタイマー/コントローラー設定確認"
+        "室外機の着霜状態確認",
+        "暖房運転中の電流および圧力測定",
+        "デフロスト周期および時間の確認"
+      ],
+      "actions_ja": [
+        "室外機周辺の空気流れ改善",
+        "冷媒充填",
+        "デフロスト設定の最適化",
+        "コンプレッサー点検"
       ],
       "keywords_es": [
-        "fallo desescarche bomba calor",
-        "desescarche no arranca",
+        "mala calefacción bomba calor",
+        "calefacción deficiente bomba calor",
         "escarcha unidad exterior",
-        "fallo desescarche ciclo inverso"
+        "desescarche repetido",
+        "caída rendimiento calefacción"
       ],
-      "symptom_es": "Ciclo de desescarche de la bomba de calor que no se activa o es incompleto",
+      "symptom_es": "Degradación del rendimiento de calefacción de la bomba de calor",
       "part_es": "Compresor",
+      "severity_es": "Precaución",
       "causes_es": [
-        "Fallo del sensor de desescarche",
-        "Fallo de la tarjeta de control del desescarche",
-        "La válvula de 4 vías no conmuta",
-        "Error en el ajuste del temporizador"
+        "Desescarche repetido por escarcha en la unidad exterior",
+        "Falta de refrigerante",
+        "Fallo del ventilador de la unidad exterior",
+        "Degradación de la eficiencia del compresor"
       ],
       "checks_es": [
-        "Verificar el sensor de inicio del desescarche",
-        "Verificar la salida de la tarjeta de control del desescarche",
-        "Verificar la conmutación de la válvula de 4 vías durante el desescarche",
-        "Verificar la configuración del temporizador/controlador de desescarche"
+        "Verificar el estado de escarcha de la unidad exterior",
+        "Medir la corriente y la presión durante la operación de calefacción",
+        "Verificar el ciclo y la duración del desescarche"
+      ],
+      "actions_es": [
+        "Mejorar el flujo de aire alrededor de la unidad exterior",
+        "Recargar refrigerante",
+        "Optimizar la configuración de desescarche",
+        "Inspeccionar el compresor"
       ],
       "keywords_hi": [
-        "heat pump defrost विफलता",
-        "defrost शुरू नहीं",
-        "outdoor unit बर्फ",
-        "reverse cycle defrost विफलता"
+        "Heat pump heating खराब",
+        "खराब heating heat pump",
+        "Outdoor unit बर्फ",
+        "बार-बार defrost",
+        "Heating प्रदर्शन में गिरावट"
       ],
-      "symptom_hi": "Heat pump defrost cycle सक्रिय न होना या अधूरा",
+      "symptom_hi": "Heat pump की heating प्रदर्शन में गिरावट",
       "part_hi": "कंप्रेसर",
+      "severity_hi": "सावधानी",
       "causes_hi": [
-        "Defrost sensor विफलता",
-        "Defrost control board विफलता",
-        "4-way valve switching नहीं",
-        "Timer सेटिंग त्रुटि"
+        "Outdoor unit पर बर्फ जमने से बार-बार defrost",
+        "रेफ्रिजरेंट की कमी",
+        "Outdoor unit का पंखा खराब",
+        "कंप्रेसर की दक्षता में गिरावट"
       ],
       "checks_hi": [
-        "Defrost initiation sensor जांचें",
-        "Defrost control board output जांचें",
-        "Defrost के दौरान 4-way valve switching जांचें",
-        "Defrost timer/controller सेटिंग जांचें"
+        "Outdoor unit पर बर्फ की स्थिति की जांच",
+        "Heating संचालन के दौरान करंट और दबाव मापें",
+        "Defrost cycle और समय की जांच"
+      ],
+      "actions_hi": [
+        "Outdoor unit के चारों ओर हवा का प्रवाह सुधारें",
+        "रेफ्रिजरेंट भरें",
+        "Defrost सेटिंग को इष्टतम करें",
+        "कंप्रेसर की जांच करें"
       ],
       "symptom_vi": "Giảm hiệu suất sưởi của bơm nhiệt (heat pump)",
       "symptom_th": "ประสิทธิภาพการทำความร้อนของฮีทปั๊มลดลง",
@@ -68235,104 +68491,133 @@
       ],
       "part_en": "Evaporator",
       "severity_en": "Caution",
-      "symptom_en": "Drain pipe slope insufficient causing water pooling",
+      "symptom_en": "Water overflow from AC/refrigeration drain blockage",
       "keywords_en": [
-        "drain slope",
-        "drain pooling",
-        "drain gradient",
-        "water stagnation",
-        "drain backup"
+        "drain blockage",
+        "AC water leak",
+        "drain poor drainage",
+        "drain pump failure",
+        "slime"
       ],
       "causes_en": [
-        "Incorrect pipe slope during installation",
-        "Pipe sagging over time",
-        "Support bracket failure"
+        "Slime and algae growth in drain piping",
+        "Drain pump failure",
+        "Reverse slope in piping"
       ],
       "checks_en": [
-        "Check drain pipe slope (minimum 1/100)",
-        "Check for water pooling locations",
-        "Check support bracket condition"
+        "Check drain piping flow",
+        "Verify drain pump operation",
+        "Check water pooling in drain pan"
       ],
       "actions_en": [
-        "Rework drain pipe slope",
-        "Add or repair support brackets",
-        "Clear blockages and verify flow"
+        "Clean drain piping (high-pressure flush or snaking)",
+        "Replace drain pump",
+        "Correct piping slope",
+        "Schedule regular drain cleaning"
       ],
       "keywords_zh": [
-        "排水坡度",
-        "排水积水",
-        "排水坡降",
-        "水滞留",
-        "排水堵塞"
+        "排水管堵塞",
+        "空调漏水",
+        "排水不良",
+        "排水泵故障",
+        "黏泥"
       ],
-      "symptom_zh": "排水管坡度不足导致积水",
+      "symptom_zh": "空调/制冷机排水管堵塞导致水溢出",
       "part_zh": "蒸发器",
+      "severity_zh": "注意",
       "causes_zh": [
-        "安装时管道坡度错误",
-        "管道随时间下垂",
-        "支撑支架故障"
+        "排水管内产生黏泥和苔藓",
+        "排水泵故障",
+        "管道反向坡度"
       ],
       "checks_zh": [
-        "检查排水管坡度（最少1/100）",
-        "检查积水位置",
-        "检查支撑支架状态"
+        "确认排水管流通",
+        "确认排水泵运行",
+        "确认接水盘积水情况"
+      ],
+      "actions_zh": [
+        "清洁排水管（高压冲洗或通管）",
+        "更换排水泵",
+        "修正管道坡度",
+        "定期清洁排水"
       ],
       "keywords_ja": [
-        "排水勾配",
-        "排水たまり",
-        "排水傾斜",
-        "水停滞",
-        "排水逆流"
+        "ドレン詰まり",
+        "エアコン水漏れ",
+        "排水不良ドレン",
+        "ドレンポンプ不良",
+        "スライム"
       ],
-      "symptom_ja": "排水管の勾配不足による水たまり",
+      "symptom_ja": "エアコン/冷凍機のドレン詰まりによる水あふれ",
       "part_ja": "蒸発器",
+      "severity_ja": "注意",
       "causes_ja": [
-        "施工時の管道勾配誤り",
-        "時間経過による管道の垂れ下がり",
-        "サポートブラケット故障"
+        "ドレン配管内のスライムおよび藻の発生",
+        "ドレンポンプ不良",
+        "配管の逆勾配"
       ],
       "checks_ja": [
-        "排水管勾配確認（最低1/100）",
-        "水たまり箇所確認",
-        "サポートブラケット状態確認"
+        "ドレン配管の流れ確認",
+        "ドレンポンプの作動確認",
+        "ドレンパンの水たまり確認"
+      ],
+      "actions_ja": [
+        "ドレン配管の清掃（高圧洗浄または通線）",
+        "ドレンポンプの交換",
+        "配管勾配の修正",
+        "定期的な排水清掃"
       ],
       "keywords_es": [
-        "pendiente drenaje",
-        "charco drenaje",
-        "gradiente drenaje",
-        "estancamiento agua",
-        "obstrucción drenaje"
+        "obstrucción de drenaje",
+        "fuga de agua del aire acondicionado",
+        "drenaje deficiente",
+        "fallo de bomba de drenaje",
+        "limos"
       ],
-      "symptom_es": "Pendiente insuficiente de la tubería de drenaje que causa acumulación de agua",
+      "symptom_es": "Desbordamiento de agua por obstrucción del drenaje del aire acondicionado/unidad de refrigeración",
       "part_es": "Evaporador",
+      "severity_es": "Precaución",
       "causes_es": [
-        "Pendiente incorrecta de la tubería durante la instalación",
-        "Flecha de la tubería con el tiempo",
-        "Fallo del soporte de la abrazadera"
+        "Formación de limos y algas en la tubería de drenaje",
+        "Fallo de la bomba de drenaje",
+        "Pendiente invertida de la tubería"
       ],
       "checks_es": [
-        "Verificar la pendiente de la tubería de drenaje (mínimo 1/100)",
-        "Verificar los puntos de acumulación de agua",
-        "Verificar el estado de los soportes de la abrazadera"
+        "Verificar el flujo de la tubería de drenaje",
+        "Verificar el funcionamiento de la bomba de drenaje",
+        "Verificar la acumulación de agua en la bandeja de drenaje"
+      ],
+      "actions_es": [
+        "Limpiar la tubería de drenaje (lavado a alta presión o desatasco con sonda)",
+        "Sustituir la bomba de drenaje",
+        "Corregir la pendiente de la tubería",
+        "Establecer limpieza periódica del drenaje"
       ],
       "keywords_hi": [
-        "drain ढलान",
-        "drain पानी जमाव",
-        "drain gradient",
-        "पानी रुकना",
-        "drain backup"
+        "Drain अवरोध",
+        "AC में पानी रिसाव",
+        "Drain जल निकासी खराब",
+        "Drain pump विफलता",
+        "Slime"
       ],
-      "symptom_hi": "Drain pipe की ढलान अपर्याप्त होने से पानी जमाव",
+      "symptom_hi": "AC/रेफ्रिजरेशन drain अवरोध से पानी का बहाव",
       "part_hi": "इवेपोरेटर",
+      "severity_hi": "सावधानी",
       "causes_hi": [
-        "स्थापना के दौरान गलत pipe ढलान",
-        "समय के साथ pipe झुकना",
-        "Support bracket विफलता"
+        "Drain piping में slime और काई का बनना",
+        "Drain pump विफलता",
+        "Piping में उल्टा slope"
       ],
       "checks_hi": [
-        "Drain pipe की ढलान जांचें (न्यूनतम 1/100)",
-        "पानी जमाव की जगह जांचें",
-        "Support bracket की स्थिति जांचें"
+        "Drain piping के प्रवाह की जांच",
+        "Drain pump के संचालन की जांच",
+        "Drain pan में पानी जमाव की जांच"
+      ],
+      "actions_hi": [
+        "Drain piping की सफाई (high-pressure flush या snaking)",
+        "Drain pump बदलें",
+        "Piping slope सही करें",
+        "नियमित drainage सफाई की योजना"
       ],
       "symptom_vi": "Tắc drain điều hòa/máy lạnh gây tràn nước",
       "symptom_th": "ท่อระบายน้ำของแอร์/เครื่องทำความเย็นอุดตัน ทำให้น้ำล้น",
@@ -68467,103 +68752,123 @@
       ],
       "part_en": "Evaporator",
       "severity_en": "Normal",
-      "symptom_en": "Drain pipe blockage from slime and debris accumulation",
+      "symptom_en": "Odor backflow due to drain trap not installed",
       "keywords_en": [
-        "drain blockage",
-        "drain clog",
-        "drain cleaning",
-        "slime drain",
-        "drain maintenance"
+        "drain trap",
+        "trap not installed",
+        "odor backflow",
+        "trap seal evaporation",
+        "drain odor"
       ],
       "causes_en": [
-        "Slime/algae growth",
-        "Debris accumulation",
-        "Scale buildup"
+        "Drain trap not installed",
+        "Trap seal water evaporated",
+        "Direct piping connection"
       ],
       "checks_en": [
-        "Check drain flow rate",
-        "Visual inspection of accessible sections",
-        "Check drain pan condition"
+        "Verify whether trap is installed",
+        "Check trap seal water"
       ],
       "actions_en": [
-        "Flush drain with pressurized water",
-        "Apply drain cleaner/algaecide",
-        "Install drain pan treatment tablet",
-        "Set regular cleaning schedule"
+        "Install drain trap",
+        "Refill trap seal water",
+        "Install motorized trap if necessary"
       ],
       "keywords_zh": [
-        "排水堵塞",
-        "排水清洁",
-        "黏液排水",
-        "排水维护"
+        "排水存水弯",
+        "未装存水弯",
+        "异味倒流",
+        "存水弯水封蒸发",
+        "排水异味"
       ],
-      "symptom_zh": "排水管因黏液和异物积聚堵塞",
+      "symptom_zh": "未安装排水存水弯导致异味倒流",
       "part_zh": "蒸发器",
+      "severity_zh": "一般",
       "causes_zh": [
-        "黏液/藻类生长",
-        "异物积聚",
-        "水垢沉积"
+        "未安装排水存水弯",
+        "存水弯水封蒸发",
+        "管道直接连接"
       ],
       "checks_zh": [
-        "检查排水流速",
-        "对可接近部分进行目视检查",
-        "检查接水盘状态"
+        "确认是否安装存水弯",
+        "确认存水弯水封"
+      ],
+      "actions_zh": [
+        "安装排水存水弯",
+        "补充水封水",
+        "必要时安装电动存水弯"
       ],
       "keywords_ja": [
-        "排水詰まり",
-        "排水清掃",
-        "スライム排水",
-        "排水保守"
+        "ドレントラップ",
+        "トラップ未設置",
+        "臭気逆流",
+        "封水蒸発",
+        "排水臭"
       ],
-      "symptom_ja": "排水管のスライムと異物蓄積による詰まり",
+      "symptom_ja": "ドレントラップ未設置による臭気逆流",
       "part_ja": "蒸発器",
+      "severity_ja": "一般",
       "causes_ja": [
-        "スライム/藻類の増殖",
-        "異物蓄積",
-        "スケール堆積"
+        "ドレントラップ未設置",
+        "トラップ封水の蒸発",
+        "配管の直結"
       ],
       "checks_ja": [
-        "排水流量確認",
-        "アクセス可能な区間を目視点検",
-        "ドレンパン状態確認"
+        "トラップ設置の有無確認",
+        "トラップ封水の確認"
+      ],
+      "actions_ja": [
+        "ドレントラップの設置",
+        "封水の補充",
+        "必要に応じて電動トラップの設置"
       ],
       "keywords_es": [
-        "obstrucción drenaje",
-        "atasco drenaje",
-        "limpieza drenaje",
-        "limo drenaje",
-        "mantenimiento drenaje"
+        "sifón de drenaje",
+        "sifón no instalado",
+        "retorno de olor",
+        "evaporación del sello hidráulico",
+        "olor del drenaje"
       ],
-      "symptom_es": "Obstrucción de la tubería de drenaje por acumulación de limos y suciedad",
+      "symptom_es": "Retorno de olores por falta de instalación del sifón de drenaje",
       "part_es": "Evaporador",
+      "severity_es": "Normal",
       "causes_es": [
-        "Crecimiento de limos/algas",
-        "Acumulación de suciedad",
-        "Formación de incrustaciones"
+        "Sifón de drenaje no instalado",
+        "Evaporación del sello hidráulico del sifón",
+        "Conexión directa de la tubería"
       ],
       "checks_es": [
-        "Verificar el caudal del drenaje",
-        "Inspección visual de las secciones accesibles",
-        "Verificar el estado de la bandeja de drenaje"
+        "Verificar si el sifón está instalado",
+        "Verificar el sello hidráulico del sifón"
+      ],
+      "actions_es": [
+        "Instalar el sifón de drenaje",
+        "Reponer el agua del sello hidráulico",
+        "Instalar sifón motorizado si es necesario"
       ],
       "keywords_hi": [
-        "drain blockage",
-        "drain clog",
-        "drain सफाई",
-        "slime drain",
-        "drain रखरखाव"
+        "Drain trap",
+        "Trap नहीं लगा",
+        "बदबू वापस आना",
+        "Trap seal वाष्पीकरण",
+        "Drain से बदबू"
       ],
-      "symptom_hi": "Slime और मलबे के जमाव से drain pipe blockage",
+      "symptom_hi": "Drain trap न लगाने से बदबू वापस आना",
       "part_hi": "इवेपोरेटर",
+      "severity_hi": "सामान्य",
       "causes_hi": [
-        "Slime/algae का विकास",
-        "मलबा जमाव",
-        "Scale जमाव"
+        "Drain trap नहीं लगाया गया",
+        "Trap seal का पानी वाष्पित हो गया",
+        "Piping सीधे जुड़ा"
       ],
       "checks_hi": [
-        "Drain प्रवाह दर जांचें",
-        "सुलभ खंडों का दृश्य निरीक्षण",
-        "Drain pan की स्थिति जांचें"
+        "Trap लगा है या नहीं जांचें",
+        "Trap seal पानी की जांच"
+      ],
+      "actions_hi": [
+        "Drain trap लगाएं",
+        "Seal पानी भरें",
+        "जरूरत हो तो motorized trap लगाएं"
       ],
       "symptom_vi": "Không lắp bẫy drain gây hồi mùi",
       "symptom_th": "ไม่ได้ติดตั้ง trap ทำให้กลิ่นย้อนกลับ",

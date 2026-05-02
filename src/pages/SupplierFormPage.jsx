@@ -43,6 +43,7 @@ export default function SupplierFormPage() {
   const [loaded, setLoaded] = useState(!isEdit)
   const [scanLoading, setScanLoading] = useState(false)
   const [scanError, setScanError] = useState('')
+  const [saving, setSaving] = useState(false)
   const fileRef = useRef(null)
 
   useEffect(() => {
@@ -56,13 +57,20 @@ export default function SupplierFormPage() {
   const set = (k, v) => setForm((p) => ({ ...p, [k]: v }))
 
   async function handleSave() {
-    const now = new Date().toISOString()
-    if (isEdit) {
-      await db.suppliers.update(Number(id), { ...form, updatedAt: now })
-      navigate(`/suppliers/${id}`)
-    } else {
-      const newId = await db.suppliers.add({ ...form, createdAt: now, updatedAt: now })
-      navigate(`/suppliers/${newId}`)
+    if (saving) return
+    setSaving(true)
+    try {
+      const now = new Date().toISOString()
+      if (isEdit) {
+        await db.suppliers.update(Number(id), { ...form, updatedAt: now })
+        navigate(`/suppliers/${id}`)
+      } else {
+        const newId = await db.suppliers.add({ ...form, createdAt: now, updatedAt: now })
+        navigate(`/suppliers/${newId}`)
+      }
+    } catch (e) {
+      console.error('Supplier save failed:', e)
+      setSaving(false)
     }
   }
 
@@ -164,11 +172,11 @@ export default function SupplierFormPage() {
 
       <button
         onClick={handleSave}
-        disabled={!form.items.trim() && !form.name.trim()}
-        className="mt-6 w-full flex items-center justify-center gap-2 py-3.5 bg-blue-600 text-white text-sm font-semibold rounded-xl active:bg-blue-700 disabled:opacity-50"
+        disabled={saving || (!form.items.trim() && !form.name.trim())}
+        className={`mt-6 w-full flex items-center justify-center gap-2 py-3.5 text-white text-sm font-bold rounded-xl ${saving ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 active:bg-blue-700 disabled:opacity-50'}`}
       >
         <Save size={16} strokeWidth={2} />
-        {t('supplier.save')}
+        {saving ? t('common.saving') : t('supplier.save')}
       </button>
       {!form.items.trim() && !form.name.trim() && (
         <p className="text-xs text-amber-600 mt-2 text-center">{t('supplier.requiredHint')}</p>

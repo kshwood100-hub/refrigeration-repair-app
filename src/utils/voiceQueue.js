@@ -3,6 +3,7 @@
 
 import { db } from '../db'
 import { apiFetch } from './apiClient'
+import { softDelete } from './cloudSync'
 
 // 상태: pending(대기) → transcribing(변환중) → transcribed(변환완료)
 //       → classifying(분류중) → done(완료) → failed(실패)
@@ -21,7 +22,7 @@ export async function saveRecording({ blob, mimeType, durationSec }) {
 }
 
 export async function deleteRecording(id) {
-  await db.voice_recordings.delete(id)
+  await softDelete('voice_recordings', id)
 }
 
 export async function listRecordings() {

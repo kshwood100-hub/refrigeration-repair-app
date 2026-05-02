@@ -58,12 +58,31 @@ class ErrorBoundary extends Component {
   static getDerivedStateFromError(error) { return { error } }
   render() {
     if (this.state.error) {
+      const isDev = !import.meta.env.PROD
       return (
-        <div style={{ padding: 20, color: 'red', background: '#fff', fontSize: 14 }}>
-          <b>Error:</b> {this.state.error?.message}<br />
-          <pre style={{ fontSize: 11, marginTop: 8, whiteSpace: 'pre-wrap' }}>
-            {this.state.error?.stack}
-          </pre>
+        <div style={{ padding: 20, background: '#fff', fontSize: 14, fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+          <div style={{ color: '#111', fontSize: 16, fontWeight: 600, marginBottom: 8 }}>
+            Something went wrong
+          </div>
+          <div style={{ color: '#555', fontSize: 13, marginBottom: 16 }}>
+            Please reload the app. If the problem persists, contact support.
+          </div>
+          <button
+            onClick={() => window.location.reload()}
+            style={{ padding: '10px 16px', background: '#2563eb', color: '#fff', border: 0, borderRadius: 8, fontSize: 13, fontWeight: 600 }}
+          >
+            Reload
+          </button>
+          {isDev && (
+            <>
+              <div style={{ marginTop: 20, color: 'red', fontSize: 12 }}>
+                <b>Dev:</b> {this.state.error?.message}
+              </div>
+              <pre style={{ fontSize: 11, marginTop: 8, whiteSpace: 'pre-wrap', color: '#666' }}>
+                {this.state.error?.stack}
+              </pre>
+            </>
+          )}
         </div>
       )
     }
@@ -73,12 +92,13 @@ class ErrorBoundary extends Component {
 import { seedIfEmpty } from './db'
 import { loadSettings } from './utils/settings'
 import { autoBackupIfDue } from './utils/backup'
+import { initAlarms } from './utils/alarmManager'
 import BottomNav from './components/BottomNav'
 import DisclaimerModal from './components/DisclaimerModal'
+import ShareConsentModal from './components/ShareConsentModal'
 import HomePage from './pages/HomePage'
 import DiagnosisSearchPage from './pages/DiagnosisSearchPage'
 import ChecklistPage from './pages/ChecklistPage'
-import RepairLogPage from './pages/RepairLogPage'
 import RefrigerantSliderPage from './pages/RefrigerantSliderPage'
 import SettingsPage from './pages/SettingsPage'
 import ServicePage from './pages/ServicePage'
@@ -90,6 +110,7 @@ import KnowhowFormPage from './pages/KnowhowFormPage'
 import RefrigerationBasicsPage from './pages/RefrigerationBasicsPage'
 import BusinessCardPage from './pages/BusinessCardPage'
 import CustomerDetailPage from './pages/CustomerDetailPage'
+import CustomerFormPage from './pages/CustomerFormPage'
 import ExpensePage from './pages/ExpensePage'
 import ExpenseFormPage from './pages/ExpenseFormPage'
 import ExpenseDetailPage from './pages/ExpenseDetailPage'
@@ -166,6 +187,7 @@ function useAutoResetToHome() {
 function AppLayout() {
   useBackExit()
   useAutoResetToHome()
+  useEffect(() => { initAlarms() }, [])
   return (
     <div className="flex flex-col h-full max-w-lg mx-auto" style={{ backgroundColor: 'var(--app-bg)' }}>
       <main className="flex-1 min-h-0 overflow-y-auto pb-20">
@@ -173,7 +195,6 @@ function AppLayout() {
           <Route path="/home" element={<HomePage />} />
           <Route path="/diagnosis" element={<DiagnosisSearchPage />} />
           <Route path="/checklist" element={<ChecklistPage />} />
-          <Route path="/logs" element={<RepairLogPage />} />
           <Route path="/refrigerant" element={<RefrigerantSliderPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/service" element={<ServicePage />} />
@@ -188,7 +209,9 @@ function AppLayout() {
           <Route path="/knowhow/:id/edit" element={<KnowhowFormPage />} />
           <Route path="/basics" element={<RefrigerationBasicsPage />} />
           <Route path="/business-cards" element={<BusinessCardPage />} />
+          <Route path="/customers/new" element={<CustomerFormPage />} />
           <Route path="/customers/:id" element={<CustomerDetailPage />} />
+          <Route path="/customers/:id/edit" element={<CustomerFormPage />} />
           <Route path="/finance" element={<FinancePage />} />
           <Route path="/expenses" element={<ExpensePage />} />
           <Route path="/expenses/new" element={<ExpenseFormPage />} />
@@ -203,10 +226,12 @@ function AppLayout() {
           <Route path="/alarms" element={<AlarmPage />} />
           <Route path="/voice-memo" element={<VoiceMemoPage />} />
           <Route path="/scan/equipment" element={<EquipmentScanPage />} />
+          <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>
       </main>
       <BottomNav />
       <DisclaimerModal />
+      <ShareConsentModal />
     </div>
   )
 }

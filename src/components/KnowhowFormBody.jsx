@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useNavigate } from 'react-router-dom'
-import { Mic, MicOff, Sparkles, Camera, X, Building2 } from 'lucide-react'
+import { Mic, MicOff, Sparkles, Camera, X, Building2, Trash2 } from 'lucide-react'
 import { db } from '../db'
 import {
   KNOWHOW_CATEGORIES, COMPRESSOR_TYPES, COMPRESSOR_STRUCTURES,
@@ -55,6 +55,23 @@ const LOCATION_DB_VALUES = ['압축기', '응축기', '증발기', '전기패널
 // 분류·설비분류 칩 UI 표시 여부 — false: 카메라 분석 결과로 자동 채움 (state/저장은 유지)
 const SHOW_CHIP_INPUTS = false
 
+// 장비 분석 결과 1개 슬롯 — 사진 + AI 분석 데이터를 함께 보관
+export const EMPTY_EQUIPMENT = {
+  photo:       '',  // 사진 dataUrl
+  kind:        '',  // 종류 (압축기/응축기/증발기/...)
+  brand:       '',
+  model:       '',
+  serial:      '',
+  capacity:    '',
+  refrigerant: '',
+  tempClass:   '',
+  stage:       '',
+  confidence:  '',
+  notes:       '',
+}
+
+export const MAX_EQUIPMENTS = 5
+
 export const EMPTY_KNOWHOW = {
   customerId:     null,
   title:          '',
@@ -72,16 +89,17 @@ export const EMPTY_KNOWHOW = {
   solution:       '',
   parts:          '',
   notes:          '',
-  equipPhotos:    [],
+  equipPhotos:    [],   // 옛 호환: 사진 dataUrl만 보관 (UI는 equipments 사용)
+  equipments:    [],    // 신규: 사진 + 분석 결과 통합 (최대 5개)
 }
 
-export default function KnowhowFormBody({ form, setForm }) {
+export default function KnowhowFormBody({ form, setForm, hideCustomer = false }) {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
 
   // 거래처 목록 (id, name)
   const customers = useLiveQuery(
-    () => db.customers.orderBy('name').toArray(), []
+    () => db.customers.orderBy('name').filter((r) => !r.deletedAt).toArray(), []
   )
 
   const [showCustomerList, setShowCustomerList] = useState(false)
@@ -89,8 +107,8 @@ export default function KnowhowFormBody({ form, setForm }) {
   const [isRecording, setIsRecording] = useState(false)
   const [transcript, setTranscript] = useState('')
   const [aiLoading, setAiLoading] = useState(false)
-  const [equipResult, setEquipResult] = useState(null)
   const [equipLoading, setEquipLoading] = useState(false)
+  const [equipLightboxIdx, setEquipLightboxIdx] = useState(null)
   const recognitionRef = useRef(null)
   const equipFileRef = useRef(null)
   const finalTranscriptRef = useRef('')
@@ -160,7 +178,25 @@ export default function KnowhowFormBody({ form, setForm }) {
     }
   }, [])
 
+  // 옛 데이터 호환: equipPhotos만 있고 equipments가 비어있으면 자동 변환 (1회)
+  useEffect(() => {
+    const photos = form.equipPhotos ?? []
+    const equips = form.equipments ?? []
+    if (photos.length > 0 && equips.length === 0) {
+      setForm((p) => ({
+        ...p,
+        equipments: photos.map((photo) => ({ ...EMPTY_EQUIPMENT, photo })),
+      }))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   function triggerEquipScan() {
+    const count = (form.equipments ?? []).length
+    if (count >= MAX_EQUIPMENTS) {
+      showToast(t('knowhow.equipMaxReached', { max: MAX_EQUIPMENTS }))
+      return
+    }
     equipFileRef.current?.click()
   }
 
@@ -168,14 +204,47 @@ export default function KnowhowFormBody({ form, setForm }) {
     const file = e.target.files?.[0]
     e.target.value = ''
     if (!file) return
+
+    // 5개 cap 재검사 (triggerEquipScan에서도 막지만 race 방지)
+    const count = (form.equipments ?? []).length
+    if (count >= MAX_EQUIPMENTS) {
+      showToast(t('knowhow.equipMaxReached', { max: MAX_EQUIPMENTS }))
+      return
+    }
+
     setEquipLoading(true)
     try {
       const dataUrl = await compressImage(file)
-      setForm((p) => ({ ...p, equipPhotos: [...(p.equipPhotos ?? []), dataUrl] }))
-      const r = await scanEquipment(dataUrl)
-      setEquipResult(r)
+
+      // 분석 시도 — 실패해도 사진은 저장 (사용자 손실 방지)
+      let analyzed = { ...EMPTY_EQUIPMENT, photo: dataUrl }
+      try {
+        const r = await scanEquipment(dataUrl)
+        analyzed = {
+          photo:       dataUrl,
+          kind:        r.kind        || '',
+          brand:       r.brand       || '',
+          model:       r.model       || '',
+          serial:      r.serial      || '',
+          capacity:    r.capacity    || '',
+          refrigerant: r.refrigerant || '',
+          tempClass:   r.tempClass   || '',
+          stage:       r.stage       || '',
+          confidence:  r.confidence  || '',
+          notes:       r.notes       || '',
+        }
+      } catch (err) {
+        showToast(t('knowhow.errAi') + (err.message || ''))
+      }
+
+      setForm((p) => ({
+        ...p,
+        equipments:  [...(p.equipments  ?? []), analyzed],
+        equipPhotos: [...(p.equipPhotos ?? []), dataUrl],  // 옛 코드 호환 동기화
+      }))
+      // 위쪽 단일 미리보기 카드는 제거 — 아래 누적 카드 그리드에서 확인 가능
     } catch (err) {
-      showToast(t('knowhow.errAi') + err.message)
+      showToast(t('knowhow.errAi') + (err.message || ''))
     } finally {
       setEquipLoading(false)
     }
@@ -201,7 +270,12 @@ export default function KnowhowFormBody({ form, setForm }) {
   }
 
   function removeEquipPhoto(idx) {
-    setForm((p) => ({ ...p, equipPhotos: (p.equipPhotos ?? []).filter((_, i) => i !== idx) }))
+    // equipments + equipPhotos 동시 제거 (인덱스 매칭)
+    setForm((p) => ({
+      ...p,
+      equipments:  (p.equipments  ?? []).filter((_, i) => i !== idx),
+      equipPhotos: (p.equipPhotos ?? []).filter((_, i) => i !== idx),
+    }))
   }
 
   async function handleAiClassify() {
@@ -238,7 +312,8 @@ export default function KnowhowFormBody({ form, setForm }) {
   return (
     <div className="space-y-4">
 
-      {/* 거래처 선택 (필수) */}
+      {/* 거래처 선택 (필수) — 작업 상세 등 이미 고객이 정해진 경우 숨김 */}
+      {!hideCustomer && (
       <Section title={t('knowhow.customerLabel')}>
         <p className="text-xs text-gray-400 mb-1.5">{t('knowhow.customerDesc')}</p>
         {customers && customers.length === 0 ? (
@@ -297,6 +372,7 @@ export default function KnowhowFormBody({ form, setForm }) {
           </div>
         )}
       </Section>
+      )}
 
       {/* 음성/카메라 입력 */}
       <Section title={t('knowhow.voiceInput')}>
@@ -330,41 +406,45 @@ export default function KnowhowFormBody({ form, setForm }) {
           onChange={handleEquipFile}
           className="hidden"
         />
-        {equipResult && (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2.5 text-xs text-gray-700">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="font-semibold text-emerald-800">{t('scan.title')}</span>
-              <button onClick={() => setEquipResult(null)} className="text-gray-400 active:text-gray-600">
-                <X size={14} strokeWidth={1.5} />
-              </button>
-            </div>
-            <div className="space-y-0.5">
-              {equipResult.kind        && <Row k={t('scan.kind')}        v={equipResult.kind} />}
-              {equipResult.brand       && <Row k={t('scan.brand')}       v={equipResult.brand} />}
-              {equipResult.model       && <Row k={t('scan.model')}       v={equipResult.model} />}
-              {equipResult.serial      && <Row k={t('scan.serial')}      v={equipResult.serial} />}
-              {equipResult.capacity    && <Row k={t('scan.capacity')}    v={equipResult.capacity} />}
-              {equipResult.tempClass   && <Row k={t('scan.tempClass')}   v={equipResult.tempClass} bold />}
-              {equipResult.stage       && <Row k={t('scan.stage')}       v={equipResult.stage} bold />}
-              {equipResult.refrigerant && <Row k={t('scan.refrigerant')} v={equipResult.refrigerant} />}
-              {equipResult.confidence  && <Row k={t('scan.confidence')}  v={equipResult.confidence} />}
-            </div>
-            {equipResult.notes && (
-              <p className="mt-2 text-gray-600 leading-snug">{equipResult.notes}</p>
-            )}
-          </div>
-        )}
-        {(form.equipPhotos ?? []).length > 0 && (
-          <div className="flex gap-2 flex-wrap">
-            {form.equipPhotos.map((url, i) => (
-              <div key={i} className="relative w-20 h-20">
-                <img src={url} alt="" className="w-full h-full object-cover rounded-lg border border-gray-200" />
+        {(form.equipments ?? []).length > 0 && (
+          <div className="space-y-2">
+            <p className="text-xs text-gray-400">
+              {t('knowhow.equipCount', { current: (form.equipments ?? []).length, max: MAX_EQUIPMENTS })}
+            </p>
+            {(form.equipments ?? []).map((eq, i) => (
+              <div key={i} className="relative w-full bg-white border-2 border-gray-300 rounded-xl p-2 shadow-sm">
                 <button
                   onClick={() => removeEquipPhoto(i)}
-                  className="absolute -top-1 -right-1 w-5 h-5 bg-gray-800 text-white rounded-full flex items-center justify-center"
+                  className="absolute -top-2 -right-2 w-7 h-7 bg-white border-2 border-gray-300 text-gray-600 rounded-full flex items-center justify-center shadow-sm z-10"
+                  aria-label="remove"
                 >
-                  <X size={10} strokeWidth={2.5} />
+                  <Trash2 size={12} strokeWidth={2} />
                 </button>
+                <div className="grid grid-cols-[96px_1fr] gap-2">
+                  {/* 좌: 사진 */}
+                  <button
+                    onClick={() => setEquipLightboxIdx(i)}
+                    className="w-24 h-24 bg-gray-100 border border-gray-300 rounded-md overflow-hidden block"
+                  >
+                    <img
+                      src={eq.photo}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                  {/* 우: 스펙 */}
+                  <div className="bg-gray-50 border border-gray-200 rounded-md p-2 text-[11px] leading-tight grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5 content-start overflow-hidden">
+                    {eq.kind && (<><span className="text-gray-400 shrink-0">{t('scan.kind')}</span><span className="text-gray-900 font-medium truncate">{eq.kind}</span></>)}
+                    {eq.brand && (<><span className="text-gray-400 shrink-0">{t('scan.brand')}</span><span className="text-gray-900 font-medium truncate">{eq.brand}</span></>)}
+                    {eq.model && (<><span className="text-gray-400 shrink-0">{t('scan.model')}</span><span className="text-gray-900 font-medium truncate">{eq.model}</span></>)}
+                    {eq.serial && (<><span className="text-gray-400 shrink-0">{t('scan.serial')}</span><span className="text-gray-900 font-medium truncate">{eq.serial}</span></>)}
+                    {eq.capacity && (<><span className="text-gray-400 shrink-0">{t('scan.capacity')}</span><span className="text-gray-900 font-medium truncate">{eq.capacity}</span></>)}
+                    {eq.refrigerant && (<><span className="text-gray-400 shrink-0">{t('scan.refrigerant')}</span><span className="text-gray-900 font-medium truncate">{eq.refrigerant}</span></>)}
+                    {!eq.kind && !eq.brand && !eq.model && (
+                      <span className="col-span-2 text-gray-400">{t('knowhow.equipNoData')}</span>
+                    )}
+                  </div>
+                </div>
               </div>
             ))}
           </div>
@@ -510,6 +590,46 @@ export default function KnowhowFormBody({ form, setForm }) {
           className="w-full text-sm text-gray-900 outline-none resize-none"
         />
       </Section>
+
+      {/* 장비 사진 라이트박스 */}
+      {equipLightboxIdx != null && (form.equipments ?? [])[equipLightboxIdx]?.photo && (
+        <div
+          className="fixed inset-0 bg-black/90 z-[70] flex items-center justify-center"
+          onClick={() => setEquipLightboxIdx(null)}
+        >
+          <button
+            onClick={(e) => { e.stopPropagation(); setEquipLightboxIdx(null) }}
+            className="absolute top-4 right-4 w-10 h-10 bg-white/20 text-white rounded-full flex items-center justify-center"
+          >
+            <X size={20} strokeWidth={2} />
+          </button>
+          {equipLightboxIdx > 0 && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setEquipLightboxIdx(equipLightboxIdx - 1) }}
+              className="absolute left-2 w-10 h-10 bg-white/20 text-white rounded-full flex items-center justify-center text-white text-2xl"
+            >
+              ‹
+            </button>
+          )}
+          {equipLightboxIdx < (form.equipments ?? []).length - 1 && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setEquipLightboxIdx(equipLightboxIdx + 1) }}
+              className="absolute right-2 w-10 h-10 bg-white/20 text-white rounded-full flex items-center justify-center text-white text-2xl"
+            >
+              ›
+            </button>
+          )}
+          <img
+            src={(form.equipments ?? [])[equipLightboxIdx]?.photo}
+            alt=""
+            className="max-w-full max-h-full object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <div className="absolute bottom-4 text-white/70 text-xs">
+            {equipLightboxIdx + 1} / {(form.equipments ?? []).length}
+          </div>
+        </div>
+      )}
 
     </div>
   )

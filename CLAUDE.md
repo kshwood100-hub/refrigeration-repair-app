@@ -82,7 +82,7 @@
 - [ ] 현장 기사 실기기 테스트
 - [ ] SEO 태그 추가 (출시 직전, 사용자와 내용 협의 후) — title/description/og태그 — index.html에 추가
 - [ ] 앱 소개 + 스크린샷 준비
-- [ ] 테스트 데이터 버튼·유틸 제거 (src/utils/testData.js, SettingsPage)
+- [x] 테스트 데이터 버튼·유틸 제거 (testData.js 삭제, SettingsPage UI 제거, db v21 upgrade로 1회 자동 정리)
 
 ## 데이터 자동 갱신
 - 데이터 파일(symptoms.json, flowchart.json, checklist.json) 수정 후 배포만 하면 됨

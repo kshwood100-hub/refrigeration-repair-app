@@ -4,8 +4,10 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { ChevronLeft, Plus, Trash2, Bell, BellOff } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { db } from '../db'
+import { softDelete } from '../utils/cloudSync'
 import { requestNotificationPermission } from '../utils/alarmManager'
 import { showToast } from '../utils/toast'
+import DateInput from '../components/DateInput'
 
 export default function AlarmPage() {
   const navigate = useNavigate()
@@ -20,7 +22,7 @@ export default function AlarmPage() {
   const [note, setNote] = useState('')
 
   const alarms = useLiveQuery(
-    () => db.user_alarms?.orderBy('date').toArray().catch(() => []),
+    () => db.user_alarms?.orderBy('date').filter((r) => !r.deletedAt).toArray().catch(() => []),
     []
   )
 
@@ -57,7 +59,7 @@ export default function AlarmPage() {
   }
 
   async function handleDelete(id) {
-    await db.user_alarms.delete(id)
+    await softDelete('user_alarms', id)
   }
 
   const upcoming = (alarms ?? []).filter(a => !a.fired && (a.date > todayStr || (a.date === todayStr && a.time >= new Date().toTimeString().slice(0, 5))))
@@ -162,13 +164,7 @@ export default function AlarmPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-medium text-gray-500 block mb-1">{t('userAlarm.date')}</label>
-                  <input
-                    type="date"
-                    value={date}
-                    onChange={e => setDate(e.target.value)}
-                    min={todayStr}
-                    className="w-full text-sm text-gray-800 border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-blue-400"
-                  />
+                  <DateInput value={date} onChange={setDate} />
                 </div>
                 <div>
                   <label className="text-xs font-medium text-gray-500 block mb-1">{t('userAlarm.time')}</label>

@@ -4,6 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useTranslation } from 'react-i18next'
 import { Plus, Search, X, ChevronRight, MapPin, Tag, Trash2, Clock, Mic } from 'lucide-react'
 import { db } from '../db'
+import { softDelete } from '../utils/cloudSync'
 
 const CATEGORIES = ['전체', '압축기', '냉매계통', '전기/제어', '팬/모터', '착상/제상', '결로/배수', '소음/진동', '냉각불량', '오일계통', '기타']
 const CAT_KEYS = {
@@ -21,12 +22,12 @@ export default function KnowhowPage() {
   const [deleteTarget, setDeleteTarget] = useState(null)
 
   async function handleDelete(id) {
-    await db.knowhow.delete(id)
+    await softDelete('knowhow', id)
     setDeleteTarget(null)
   }
 
   const items = useLiveQuery(
-    () => db.knowhow.orderBy('updatedAt').reverse().toArray(), []
+    () => db.knowhow.orderBy('updatedAt').reverse().filter((r) => !r.deletedAt).toArray(), []
   )
 
   if (!items) return <div className="p-4 text-gray-400 text-sm">{t('knowhow.loading')}</div>
@@ -75,7 +76,7 @@ export default function KnowhowPage() {
               {t('customer.voiceQuickRecord')}
             </button>
             <button
-              onClick={() => navigate('/service')}
+              onClick={() => navigate('/service', { state: { tab: 'completed', aiExtractMode: true } })}
               className="w-full py-3.5 bg-gray-50 text-gray-600 text-sm font-medium rounded-xl border border-gray-300"
             >
               {t('knowhow.extractFromService')}

@@ -4,18 +4,22 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useTranslation } from 'react-i18next'
 import { ChevronLeft, Trash2, AlertTriangle } from 'lucide-react'
 import { db } from '../db'
+import { softDelete } from '../utils/cloudSync'
 
 export default function SupplierTransactionDetailPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { id } = useParams()
-  const tx = useLiveQuery(() => db.supplier_transactions.get(Number(id)), [id])
+  const tx = useLiveQuery(async () => {
+    const r = await db.supplier_transactions.get(Number(id))
+    return r?.deletedAt ? null : r
+  }, [id])
   const [confirming, setConfirming] = useState(false)
 
   if (!tx) return <div className="p-4 text-gray-400 text-sm">{t('common.loading')}</div>
 
   async function handleDelete() {
-    await db.supplier_transactions.delete(Number(id))
+    await softDelete('supplier_transactions', Number(id))
     navigate(`/suppliers/${tx.supplierId}`)
   }
 

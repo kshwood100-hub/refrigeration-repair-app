@@ -1,13 +1,16 @@
 const { setGlobalOptions } = require('firebase-functions')
 const { onRequest } = require('firebase-functions/v2/https')
+const { onSchedule } = require('firebase-functions/v2/scheduler')
 const { defineSecret } = require('firebase-functions/params')
 const admin = require('firebase-admin')
+const crypto = require('crypto')
 
 admin.initializeApp()
 
 setGlobalOptions({ maxInstances: 10 })
 
 const openaiApiKey = defineSecret('OPENAI_API_KEY')
+const fastspringWebhookSecret = defineSecret('FASTSPRING_WEBHOOK_SECRET')
 
 const ALLOWED_ORIGINS = new Set([
   'https://www.r-pro.app',
@@ -32,6 +35,20 @@ const DAILY_LIMITS = {
   classifyKnowhow: 200,
   extractKnowhow: 200,
 }
+
+// 트라이얼 사용자 카테고리별 호출 한도 (전체 트라이얼 기간 누적)
+const TRIAL_LIMITS = {
+  ai: 5,        // 전체 AI 엔드포인트 합산 (scan/whisper/classify/extract)
+  jobs: 5,      // service_jobs 추가
+  customers: 5, // customers 추가
+  finance: 5,   // expenses + revenue 추가
+  logs: 5,      // repair_logs / voice_recordings
+}
+
+const AI_ENDPOINTS = new Set([
+  'scanCard', 'scanEquipment', 'scanInvoice', 'whisper',
+  'classify', 'classifyKnowhow', 'extractKnowhow',
+])
 
 function applyCors(req, res) {
   const origin = req.get('origin') || ''
@@ -62,12 +79,17 @@ async function verifyAuth(req, res) {
       res.status(403).json({ error: 'Email not verified' })
       return null
     }
+    // 이메일 정규화 — webhook이 lowercase로 저장하므로 일관성 유지
+    decoded.email = decoded.email.toLowerCase().trim()
     // allowed_users 화이트리스트 재확인
     const snap = await admin.firestore().collection('allowed_users').doc(decoded.email).get()
     if (!snap.exists) {
       res.status(403).json({ error: 'Access denied' })
       return null
     }
+    // trial_until 시점이 미래면 trial 사용자
+    const data = snap.data() || {}
+    decoded._trial = !!(data.trial_until && data.trial_until > Date.now())
     return decoded
   } catch (e) {
     res.status(401).json({ error: 'Invalid token' })
@@ -75,9 +97,50 @@ async function verifyAuth(req, res) {
   }
 }
 
+// 트라이얼 사용자에 한해 카테고리별 누적 카운터 체크. 정식 가입자(trial_until 만료/없음)는 통과.
+// Firestore: usage/{email}/trial/total — { ai: 0, jobs: 0, customers: 0, finance: 0, logs: 0 }
+async function checkTrialQuota(decoded, category, res) {
+  if (!decoded._trial) return true  // 정식 가입자는 무제한
+  const limit = TRIAL_LIMITS[category]
+  if (!limit) return true
+
+  const ref = admin.firestore().doc(`usage/${decoded.email}/trial/total`)
+  try {
+    const snap = await ref.get()
+    const current = snap.exists ? (snap.data()[category] || 0) : 0
+    if (current >= limit) {
+      res.status(429).json({
+        error: 'Trial limit reached',
+        category,
+        limit,
+        message: 'Subscribe to remove all limits.',
+      })
+      return false
+    }
+    await ref.set(
+      { [category]: admin.firestore.FieldValue.increment(1), updatedAt: Date.now() },
+      { merge: true }
+    )
+    return true
+  } catch (e) {
+    console.error(`Trial quota check failed (allowing): ${decoded.email} ${category}`, e?.message)
+    return true
+  }
+}
+
 // 사용자별 일일 호출 카운터. Firestore usage/{email}/days/{YYYY-MM-DD} 사용.
 // 한도 초과 시 429, 통과 시 카운터 +1 후 true.
-async function checkQuota(email, endpoint, res) {
+// AI 엔드포인트면 트라이얼 ai 카테고리 카운터도 체크.
+async function checkQuota(decodedOrEmail, endpoint, res) {
+  const decoded = typeof decodedOrEmail === 'string' ? { email: decodedOrEmail } : decodedOrEmail
+  const email = decoded.email
+
+  // 트라이얼 사용자는 ai 카테고리 5회 cap 먼저 검사
+  if (AI_ENDPOINTS.has(endpoint) && decoded._trial) {
+    const ok = await checkTrialQuota(decoded, 'ai', res)
+    if (!ok) return false
+  }
+
   const limit = DAILY_LIMITS[endpoint]
   if (!limit) return true  // 한도 정의 없으면 통과
 
@@ -145,7 +208,7 @@ exports.scanCard = onRequest(fnOpts({ timeoutSeconds: 120 }), async (req, res) =
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
   const decoded = await verifyAuth(req, res)
   if (!decoded) return
-  if (!(await checkQuota(decoded.email, 'scanCard', res))) return
+  if (!(await checkQuota(decoded, 'scanCard', res))) return
 
   const { base64, mediaType } = req.body || {}
   if (!checkBase64(base64, res)) return
@@ -189,7 +252,7 @@ exports.classifyKnowhow = onRequest(fnOpts(), async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
   const decoded = await verifyAuth(req, res)
   if (!decoded) return
-  if (!(await checkQuota(decoded.email, 'classifyKnowhow', res))) return
+  if (!(await checkQuota(decoded, 'classifyKnowhow', res))) return
 
   const { transcript } = req.body || {}
   if (!checkText(transcript, res, 'transcript')) return
@@ -225,7 +288,7 @@ exports.classify = onRequest(fnOpts({ timeoutSeconds: 60 }), async (req, res) =>
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
   const decoded = await verifyAuth(req, res)
   if (!decoded) return
-  if (!(await checkQuota(decoded.email, 'classify', res))) return
+  if (!(await checkQuota(decoded, 'classify', res))) return
 
   const { transcript } = req.body || {}
   if (!checkText(transcript, res, 'transcript')) return
@@ -261,7 +324,7 @@ exports.whisper = onRequest(fnOpts({ timeoutSeconds: 300, memory: '512MiB' }), a
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
   const decoded = await verifyAuth(req, res)
   if (!decoded) return
-  if (!(await checkQuota(decoded.email, 'whisper', res))) return
+  if (!(await checkQuota(decoded, 'whisper', res))) return
 
   const apiKey = openaiApiKey.value()
   if (!apiKey) return res.status(500).json({ error: 'OPENAI_API_KEY not configured' })
@@ -302,7 +365,7 @@ exports.scanEquipment = onRequest(fnOpts({ timeoutSeconds: 120 }), async (req, r
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
   const decoded = await verifyAuth(req, res)
   if (!decoded) return
-  if (!(await checkQuota(decoded.email, 'scanEquipment', res))) return
+  if (!(await checkQuota(decoded, 'scanEquipment', res))) return
 
   const apiKey = openaiApiKey.value()
   if (!apiKey) return res.status(500).json({ error: 'OPENAI_API_KEY not configured' })
@@ -365,7 +428,7 @@ exports.scanInvoice = onRequest(fnOpts({ timeoutSeconds: 120 }), async (req, res
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
   const decoded = await verifyAuth(req, res)
   if (!decoded) return
-  if (!(await checkQuota(decoded.email, 'scanInvoice', res))) return
+  if (!(await checkQuota(decoded, 'scanInvoice', res))) return
 
   const apiKey = openaiApiKey.value()
   if (!apiKey) return res.status(500).json({ error: 'OPENAI_API_KEY not configured' })
@@ -410,7 +473,7 @@ exports.extractKnowhow = onRequest(fnOpts({ timeoutSeconds: 60 }), async (req, r
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
   const decoded = await verifyAuth(req, res)
   if (!decoded) return
-  if (!(await checkQuota(decoded.email, 'extractKnowhow', res))) return
+  if (!(await checkQuota(decoded, 'extractKnowhow', res))) return
 
   const { job } = req.body || {}
   if (!job || typeof job !== 'object') {
@@ -452,5 +515,289 @@ exports.extractKnowhow = onRequest(fnOpts({ timeoutSeconds: 60 }), async (req, r
     res.status(200).json(data)
   } catch (e) {
     res.status(500).json({ error: e.message })
+  }
+})
+
+// 비AI 카테고리 trial 카운터 증가 (jobs/customers/finance/logs)
+exports.trialCheck = onRequest(fnOpts({ timeoutSeconds: 10 }), async (req, res) => {
+  if (applyCors(req, res)) return
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+  const decoded = await verifyAuth(req, res)
+  if (!decoded) return
+
+  const { category } = req.body || {}
+  if (!['jobs', 'customers', 'finance', 'logs'].includes(category)) {
+    return res.status(400).json({ error: 'Invalid category' })
+  }
+  if (!(await checkTrialQuota(decoded, category, res))) return
+
+  let remaining = null
+  if (decoded._trial) {
+    try {
+      const snap = await admin.firestore().doc(`usage/${decoded.email}/trial/total`).get()
+      const used = snap.exists ? (snap.data()[category] || 0) : 0
+      remaining = Math.max(0, TRIAL_LIMITS[category] - used)
+    } catch (e) { /* ignore */ }
+  }
+  res.status(200).json({ ok: true, trial: !!decoded._trial, remaining })
+})
+
+// 트라이얼 상태 + 카테고리별 남은 횟수 + manageUrl 조회 (배지·모달·구독관리 버튼용)
+exports.trialStatus = onRequest(fnOpts({ timeoutSeconds: 10 }), async (req, res) => {
+  if (applyCors(req, res)) return
+  if (req.method !== 'POST' && req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
+  const decoded = await verifyAuth(req, res)
+  if (!decoded) return
+
+  try {
+    const userSnap = await admin.firestore().doc(`allowed_users/${decoded.email}`).get()
+    const userData = userSnap.exists ? userSnap.data() : {}
+    const manageUrl = userData.manageUrl || null
+
+    if (!decoded._trial) {
+      return res.status(200).json({ trial: false, manageUrl })
+    }
+
+    const trialUntil = userData.trial_until || 0
+    const usageSnap = await admin.firestore().doc(`usage/${decoded.email}/trial/total`).get()
+    const used = usageSnap.exists ? usageSnap.data() : {}
+    const remaining = {}
+    for (const k of Object.keys(TRIAL_LIMITS)) {
+      remaining[k] = Math.max(0, TRIAL_LIMITS[k] - (used[k] || 0))
+    }
+    res.status(200).json({ trial: true, trialUntil, limits: TRIAL_LIMITS, used, remaining, manageUrl })
+  } catch (e) {
+    res.status(500).json({ error: e.message })
+  }
+})
+
+// FastSpring Webhook — 결제·구독 이벤트 → Firestore allowed_users 자동 등록/제거
+// HMAC SHA256 서명 검증 (X-FS-Signature 헤더, base64)
+exports.fastspringWebhook = onRequest(
+  { secrets: [fastspringWebhookSecret], invoker: 'public', timeoutSeconds: 60 },
+  async (req, res) => {
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+
+    const secret = fastspringWebhookSecret.value()
+    if (!secret) {
+      console.error('FASTSPRING_WEBHOOK_SECRET not configured')
+      return res.status(500).json({ error: 'Server not configured' })
+    }
+
+    const signature = req.get('x-fs-signature') || ''
+    const rawBody = req.rawBody ? req.rawBody.toString('utf8') : JSON.stringify(req.body)
+    const expected = crypto.createHmac('sha256', secret).update(rawBody).digest('base64')
+    // 타이밍 공격 방지를 위해 timingSafeEqual 사용. 길이 다르면 미리 차단.
+    let valid = false
+    try {
+      const sigBuf = Buffer.from(signature, 'base64')
+      const expBuf = Buffer.from(expected, 'base64')
+      valid = sigBuf.length === expBuf.length && crypto.timingSafeEqual(sigBuf, expBuf)
+    } catch (e) {
+      valid = false
+    }
+    if (!valid) {
+      console.warn('FastSpring webhook signature mismatch')
+      return res.status(401).json({ error: 'Invalid signature' })
+    }
+
+    const events = Array.isArray(req.body?.events) ? req.body.events : []
+    const dbAdmin = admin.firestore()
+    const CRITICAL_EVENTS = new Set([
+      'subscription.activated',
+      'order.completed',
+      'subscription.charge.completed',
+    ])
+
+    for (const ev of events) {
+      try {
+        const type = ev.type
+        const data = ev.data || {}
+        // FastSpring 페이로드 이메일 위치는 이벤트별로 다양:
+        // - order.* : data.account.contact.email or data.customer.email
+        // - subscription.* : data.account.contact.email or data.contact.email
+        // - 단축 페이로드 : data.email
+        const rawEmail = data.account?.contact?.email
+          || data.customer?.email
+          || data.contact?.email
+          || data.subscription?.account?.contact?.email
+          || data.email
+          || ''
+        const email = String(rawEmail).toLowerCase().trim()
+        if (!email) {
+          console.warn('Webhook event missing email:', type)
+          continue
+        }
+        const userRef = dbAdmin.doc(`allowed_users/${email}`)
+
+        // FastSpring 공식 필드: data.account.url — Customer-facing account management URL
+        // (https://developer.fastspring.com/reference/* 의 모든 subscription/order 이벤트에 포함)
+        const accountUrl = data.account?.url
+          || data.subscription?.account?.url
+          || ''
+
+        switch (type) {
+          case 'subscription.activated':
+          case 'order.completed': {
+            // 멱등성: 이미 활성화된 사용자(activatedAt 존재)는 trial_until 갱신 안 함.
+            // 그래야 webhook 재시도로 트라이얼이 무한 연장되지 않음.
+            const existing = await userRef.get()
+            if (existing.exists && existing.data()?.activatedAt) {
+              const existingData = existing.data()
+              const updates = {}
+              if (accountUrl) updates.manageUrl = accountUrl
+              // 15일 유예 중 재가입 → 취소 마크 풀기 (데이터 자동 복구)
+              if (existingData?.cancelledAt) {
+                updates.cancelledAt = admin.firestore.FieldValue.delete()
+                updates.purgeAt = admin.firestore.FieldValue.delete()
+                console.log(`[webhook] ${type} → reactivated within grace period ${email} (data recovered)`)
+              }
+              if (Object.keys(updates).length > 0) {
+                await userRef.set(updates, { merge: true })
+              }
+              if (!existingData?.cancelledAt) {
+                console.log(`[webhook] ${type} → already activated ${email} (manageUrl refreshed)`)
+              }
+              break
+            }
+            const trialDays = data.trialPeriodDays ?? data.subscription?.trialPeriodDays ?? 7
+            const trialUntil = Date.now() + trialDays * 24 * 60 * 60 * 1000
+            await userRef.set({
+              email,
+              source: 'fastspring',
+              subscriptionId: data.id || data.subscription?.id || null,
+              activatedAt: admin.firestore.FieldValue.serverTimestamp(),
+              trial_until: trialUntil,
+              shareModalShown: false,
+              ...(accountUrl ? { manageUrl: accountUrl } : {}),
+            }, { merge: true })
+            console.log(`[webhook] ${type} → activated ${email}`)
+            break
+          }
+          case 'subscription.charge.completed': {
+            await userRef.set({
+              trial_until: admin.firestore.FieldValue.delete(),
+              lastChargeAt: admin.firestore.FieldValue.serverTimestamp(),
+              ...(accountUrl ? { manageUrl: accountUrl } : {}),
+            }, { merge: true })
+            console.log(`[webhook] ${type} → trial cleared ${email}`)
+            break
+          }
+          case 'subscription.updated': {
+            // 결제수단 변경·구독 정보 갱신 시 manageUrl 최신화
+            await userRef.set({
+              ...(accountUrl ? { manageUrl: accountUrl } : {}),
+            }, { merge: true })
+            console.log(`[webhook] ${type} → manageUrl refreshed ${email}`)
+            break
+          }
+          case 'subscription.charge.failed':
+          case 'subscription.payment.overdue': {
+            console.log(`[webhook] ${type} for ${email} (FastSpring dunning will retry)`)
+            break
+          }
+          case 'subscription.canceled':
+          case 'subscription.deactivated':
+          case 'order.refunded': {
+            // 15일 유예 후 자동 삭제. 그 안에 재가입하면 데이터 복구.
+            // 즉시 삭제 X — purgeExpiredUsers scheduled function이 매일 검사하여 처리.
+            const purgeAt = Date.now() + 15 * 24 * 60 * 60 * 1000
+            await userRef.set({
+              cancelledAt: admin.firestore.FieldValue.serverTimestamp(),
+              purgeAt,
+            }, { merge: true })
+            console.log(`[webhook] ${type} → marked for purge in 15 days ${email}`)
+            break
+          }
+          default:
+            console.log(`[webhook] unhandled event: ${type}`)
+        }
+      } catch (e) {
+        console.error('Webhook event handler error:', e?.message, ev?.type)
+        if (CRITICAL_EVENTS.has(ev?.type)) {
+          // FastSpring이 재시도하도록 500 반환 (핵심 이벤트는 누락되면 안 됨)
+          return res.status(500).json({ error: 'Critical event failed', type: ev.type })
+        }
+      }
+    }
+
+    res.status(200).json({ ok: true, processed: events.length })
+  }
+)
+
+// 매일 1회 실행 — purgeAt 지난 (취소 후 15일 경과) 사용자 데이터 일괄 삭제
+// 환불/탈퇴 → cancelledAt + purgeAt 마크 → 15일 안에 재가입하면 자동 복구
+// 15일 지나면 이 function이 모든 데이터 + Storage + allowed_users 삭제
+exports.purgeExpiredUsers = onSchedule({
+  schedule: 'every 24 hours',
+  timeZone: 'UTC',
+  timeoutSeconds: 540,
+  memory: '512MiB',
+}, async () => {
+  const dbAdmin = admin.firestore()
+  const now = Date.now()
+  const SYNC_COLLECTIONS = [
+    'customers', 'service_jobs', 'job_photos', 'repair_logs',
+    'knowhow', 'business_cards', 'expenses', 'checklist_results',
+    'equipment_maintenance', 'user_alarms', 'voice_recordings',
+    'suppliers', 'supplier_transactions',
+  ]
+
+  const snap = await dbAdmin.collection('allowed_users')
+    .where('purgeAt', '<=', now)
+    .get()
+
+  if (snap.empty) {
+    console.log('[purge] no expired users')
+    return
+  }
+
+  console.log(`[purge] processing ${snap.size} expired users`)
+
+  for (const userDoc of snap.docs) {
+    const email = userDoc.id
+    try {
+      // 1) 사용자 sync 컬렉션 모두 삭제 (500개씩 배치)
+      for (const c of SYNC_COLLECTIONS) {
+        let total = 0
+        while (true) {
+          const batchSnap = await dbAdmin.collection(`users/${email}/${c}`).limit(500).get()
+          if (batchSnap.empty) break
+          const batch = dbAdmin.batch()
+          batchSnap.forEach((d) => batch.delete(d.ref))
+          await batch.commit()
+          total += batchSnap.size
+          if (batchSnap.size < 500) break
+        }
+        if (total > 0) console.log(`[purge] ${email}/${c}: ${total} docs`)
+      }
+      // 2) Storage 사용자 폴더 통째 삭제
+      try {
+        const bucket = admin.storage().bucket()
+        await bucket.deleteFiles({ prefix: `users/${email}/` })
+        console.log(`[purge] ${email} storage cleaned`)
+      } catch (e) {
+        console.warn(`[purge] storage failed ${email}:`, e?.message)
+      }
+      // 3) usage 카운터 삭제
+      try {
+        const days = await dbAdmin.collection(`usage/${email}/days`).get()
+        if (!days.empty) {
+          const batch = dbAdmin.batch()
+          days.forEach((d) => batch.delete(d.ref))
+          await batch.commit()
+        }
+        await dbAdmin.doc(`usage/${email}/trial/total`).delete().catch(() => {})
+      } catch (e) {
+        console.warn(`[purge] usage failed ${email}:`, e?.message)
+      }
+      // 4) user_sessions 삭제
+      try { await dbAdmin.doc(`user_sessions/${email}`).delete() } catch (_) {}
+      // 5) allowed_users 삭제 (로그인 차단)
+      await userDoc.ref.delete()
+      console.log(`[purge] ${email} fully removed`)
+    } catch (e) {
+      console.error(`[purge] failed ${email}:`, e?.message)
+    }
   }
 })

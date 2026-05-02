@@ -15,7 +15,10 @@ export default function ReceiptPage() {
   const receiptRef = useRef()
   const [saving, setSaving] = useState(false)
 
-  const job = useLiveQuery(() => db.service_jobs.get(Number(id)), [id])
+  const job = useLiveQuery(async () => {
+    const r = await db.service_jobs.get(Number(id))
+    return r?.deletedAt ? null : r
+  }, [id])
   const customer = useLiveQuery(
     () => job?.customerId ? db.customers.get(job.customerId) : undefined,
     [job?.customerId]
@@ -54,6 +57,28 @@ export default function ReceiptPage() {
         }
       }
 
+      const a = document.createElement('a')
+      a.href = dataUrl
+      a.download = `receipt_${customer?.name ?? id}.png`
+      a.click()
+    } catch (e) {
+      showToast(t('receipt.errSave') + e.message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // 다운로드 전용 (공유 API 우회)
+  async function downloadOnly() {
+    if (saving) return
+    setSaving(true)
+    try {
+      const canvas = await html2canvas(receiptRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+      })
+      const dataUrl = canvas.toDataURL('image/png')
       const a = document.createElement('a')
       a.href = dataUrl
       a.download = `receipt_${customer?.name ?? id}.png`
@@ -172,15 +197,27 @@ export default function ReceiptPage() {
         </div>
       </div>
 
-      {/* 저장/공유 버튼 */}
-      <button
-        onClick={capture}
-        disabled={saving}
-        className="mt-4 w-full flex items-center justify-center gap-2 py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl disabled:opacity-50 active:opacity-80"
-      >
-        {navigator.share ? <Share2 size={16} strokeWidth={1.5} /> : <Download size={16} strokeWidth={1.5} />}
-        {saving ? t('receipt.saving') : (navigator.share ? t('receipt.share') : t('receipt.download'))}
-      </button>
+      {/* 공유 + 저장 버튼 분리 */}
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        {navigator.share && (
+          <button
+            onClick={capture}
+            disabled={saving}
+            className={`w-full flex items-center justify-center gap-2 py-3.5 text-white text-sm font-bold rounded-xl shadow-md ${saving ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 active:bg-blue-700'}`}
+          >
+            <Share2 size={16} strokeWidth={2} />
+            {saving ? t('receipt.saving') : t('receipt.share')}
+          </button>
+        )}
+        <button
+          onClick={downloadOnly}
+          disabled={saving}
+          className={`w-full flex items-center justify-center gap-2 py-3.5 text-white text-sm font-bold rounded-xl shadow-md ${navigator.share ? '' : 'col-span-2'} ${saving ? 'bg-gray-400 cursor-not-allowed' : 'bg-emerald-600 active:bg-emerald-700'}`}
+        >
+          <Download size={16} strokeWidth={2} />
+          {saving ? t('receipt.saving') : t('receipt.download')}
+        </button>
+      </div>
     </div>
   )
 }

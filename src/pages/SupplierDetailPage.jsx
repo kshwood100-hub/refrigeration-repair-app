@@ -4,6 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useTranslation } from 'react-i18next'
 import { ChevronLeft, Pencil, Trash2, Phone, Mail, MapPin, Tag, MessageSquare, Map, Clock, Plus, Receipt, AlertTriangle } from 'lucide-react'
 import { db } from '../db'
+import { softDeleteSupplierCascade } from '../utils/cloudSync'
 import { relativeTime } from '../utils/relativeTime'
 
 export default function SupplierDetailPage() {
@@ -11,9 +12,12 @@ export default function SupplierDetailPage() {
   const navigate = useNavigate()
   const { id } = useParams()
 
-  const supplier = useLiveQuery(() => db.suppliers.get(Number(id)), [id])
+  const supplier = useLiveQuery(async () => {
+    const s = await db.suppliers.get(Number(id))
+    return s?.deletedAt ? null : s
+  }, [id])
   const transactions = useLiveQuery(
-    () => db.supplier_transactions.where('supplierId').equals(Number(id)).reverse().sortBy('date'),
+    async () => (await db.supplier_transactions.where('supplierId').equals(Number(id)).reverse().sortBy('date')).filter((r) => !r.deletedAt),
     [id]
   ) ?? []
   const [confirming, setConfirming] = useState(false)
@@ -25,8 +29,7 @@ export default function SupplierDetailPage() {
   const balance     = purchaseSum - paymentSum
 
   async function handleDelete() {
-    await db.supplier_transactions.where('supplierId').equals(Number(id)).delete()
-    await db.suppliers.delete(Number(id))
+    await softDeleteSupplierCascade(Number(id))
     navigate('/finance?tab=supplier', { replace: true })
   }
 
@@ -227,10 +230,14 @@ export default function SupplierDetailPage() {
 
       {confirming ? (
         <div className="bg-red-50 border border-red-200 rounded-xl p-3">
-          <div className="flex items-center gap-2 text-amber-700 text-sm font-semibold mb-3">
+          <div className="flex items-center gap-2 text-amber-700 text-sm font-semibold mb-2">
             <AlertTriangle size={16} strokeWidth={2} />
             <span>{t('supplier.deleteConfirm')}</span>
           </div>
+          <ul className="text-xs text-gray-700 bg-white border border-gray-200 rounded-lg p-2.5 mb-2 space-y-0.5">
+            <li>• {t('supplier.cascadeTransactions')}: <span className="font-bold">{transactions.length}{t('customer.cascadeUnit')}</span></li>
+          </ul>
+          <p className="text-[11px] text-red-600 font-semibold mb-3 leading-relaxed">⚠️ {t('supplier.deleteIrreversibleDetail')}</p>
           <div className="flex gap-2">
             <button
               onClick={() => setConfirming(false)}

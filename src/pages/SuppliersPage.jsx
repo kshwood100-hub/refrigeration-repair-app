@@ -9,10 +9,10 @@ export default function SuppliersPage({ hideTitle = false }) {
   const { t } = useTranslation()
   const [q, setQ] = useState('')
   const suppliers = useLiveQuery(
-    () => db.suppliers.orderBy('createdAt').reverse().toArray(),
+    () => db.suppliers.orderBy('createdAt').reverse().filter((r) => !r.deletedAt).toArray(),
     []
   )
-  const allTx = useLiveQuery(() => db.supplier_transactions.toArray(), [])
+  const allTx = useLiveQuery(() => db.supplier_transactions.filter((r) => !r.deletedAt).toArray(), [])
 
   const purchaseTotal = (allTx ?? []).filter(t => t.type !== 'payment').reduce((s, t) => s + (Number(t.total) || 0), 0)
   const paymentTotal  = (allTx ?? []).filter(t => t.type === 'payment').reduce((s, t) => s + (Number(t.total) || 0), 0)
@@ -52,7 +52,7 @@ export default function SuppliersPage({ hideTitle = false }) {
       <div className="flex justify-end mb-3">
         <Link
           to="/suppliers/new"
-          className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-gray-900 text-white rounded-lg"
+          className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold bg-amber-600 text-white rounded-xl shadow-md active:bg-amber-700"
         >
           <Plus size={13} strokeWidth={2.5} />
           {t('supplier.add')}
@@ -83,7 +83,6 @@ export default function SuppliersPage({ hideTitle = false }) {
         <div className="bg-white border border-gray-300 rounded-xl p-8 text-center">
           <Building2 size={32} strokeWidth={1.2} className="mx-auto text-gray-400 mb-2" />
           <p className="text-sm text-gray-500">{t('supplier.empty')}</p>
-          <p className="text-xs text-gray-400 mt-1">{t('supplier.emptyHint')}</p>
         </div>
       ) : sorted.length === 0 ? (
         <p className="text-sm text-gray-400 text-center mt-8">{t('supplier.noResult')}</p>

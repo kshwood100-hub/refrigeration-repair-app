@@ -4,6 +4,9 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useTranslation } from 'react-i18next'
 import { ChevronLeft, Plus, Trash2, Camera, X, ChevronDown, Check } from 'lucide-react'
 import { db } from '../db'
+import DateInput from '../components/DateInput'
+import TrialLimitModal from '../components/TrialLimitModal'
+import { consumeTrial } from '../utils/trial'
 
 const today = () => new Date().toISOString().slice(0, 10)
 
@@ -36,8 +39,8 @@ export default function ExpenseFormPage() {
   const isNew = !id
 
   const existing = useLiveQuery(() => id ? db.expenses.get(Number(id)) : undefined, [id])
-  const jobs = useLiveQuery(() => db.service_jobs.orderBy('receiptDate').reverse().toArray(), [])
-  const customers = useLiveQuery(() => db.customers.orderBy('name').toArray(), [])
+  const jobs = useLiveQuery(() => db.service_jobs.orderBy('receiptDate').reverse().filter((r) => !r.deletedAt).toArray(), [])
+  const customers = useLiveQuery(() => db.customers.orderBy('name').filter((r) => !r.deletedAt).toArray(), [])
 
   const [title, setTitle] = useState('')
   const [date, setDate] = useState(today())
@@ -47,16 +50,21 @@ export default function ExpenseFormPage() {
   const [notes, setNotes] = useState('')
   const [photos, setPhotos] = useState([])
   const [initialized, setInitialized] = useState(false)
+  const [trialBlocked, setTrialBlocked] = useState(null)
+  const [saving, setSaving] = useState(false)
   const [customerOpen, setCustomerOpen] = useState(false)
   const [jobOpen, setJobOpen] = useState(false)
+  const [categoryOpenIdx, setCategoryOpenIdx] = useState(-1)
   const fileRef = useRef()
   const customerRef = useRef()
   const jobRef = useRef()
+  const categoryRef = useRef()
 
   useEffect(() => {
     function onClickOutside(e) {
       if (customerRef.current && !customerRef.current.contains(e.target)) setCustomerOpen(false)
       if (jobRef.current && !jobRef.current.contains(e.target)) setJobOpen(false)
+      if (categoryRef.current && !categoryRef.current.contains(e.target)) setCategoryOpenIdx(-1)
     }
     document.addEventListener('mousedown', onClickOutside)
     document.addEventListener('touchstart', onClickOutside)
@@ -125,22 +133,43 @@ export default function ExpenseFormPage() {
   }
 
   async function handleSave() {
-    const data = {
-      title: title.trim(),
-      date,
-      jobId: jobId ? Number(jobId) : null,
-      customerId: customerId ? Number(customerId) : null,
-      items,
-      notes: notes.trim(),
-      photos,
-      updatedAt: new Date().toISOString(),
-    }
-    if (isNew) {
-      await db.expenses.add({ ...data, createdAt: new Date().toISOString() })
+    if (saving) return
+    setSaving(true)
+    try {
+      if (isNew) {
+        try {
+          await consumeTrial('finance')
+        } catch (e) {
+          if (String(e?.message || e).includes('Trial limit')) {
+            setTrialBlocked('finance')
+            setSaving(false)
+            return
+          }
+        }
+      }
+      // items 합계를 amount/total에 반영 — 회계 통계·필터·정렬에서 합계 직접 사용
+      const itemsSum = items.reduce((s, i) => s + (Number(i.amount) || 0), 0)
+      const data = {
+        title: title.trim(),
+        date,
+        jobId: jobId ? Number(jobId) : null,
+        customerId: customerId ? Number(customerId) : null,
+        items,
+        amount: itemsSum,
+        total:  itemsSum,
+        notes: notes.trim(),
+        photos,
+        updatedAt: new Date().toISOString(),
+      }
+      if (isNew) {
+        await db.expenses.add({ ...data, createdAt: new Date().toISOString() })
+      } else {
+        await db.expenses.update(Number(id), data)
+      }
       navigate('/finance', { replace: true })
-    } else {
-      await db.expenses.update(Number(id), data)
-      navigate('/finance', { replace: true })
+    } catch (e) {
+      console.error('Expense save failed:', e)
+      setSaving(false)
     }
   }
 
@@ -153,8 +182,12 @@ export default function ExpenseFormPage() {
         </button>
         <h2 className="text-base font-semibold text-gray-900">{isNew ? t('expense.newTitle') : t('expense.editTitle')}</h2>
         {!isNew && (
-          <button onClick={handleSave} className="px-4 py-1.5 bg-gray-900 text-white text-sm font-medium rounded-lg">
-            {t('expense.save')}
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className={`px-4 py-1.5 text-white text-sm font-bold rounded-lg ${saving ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 active:bg-blue-700'}`}
+          >
+            {saving ? t('common.saving') : t('expense.save')}
           </button>
         )}
       </div>
@@ -169,32 +202,32 @@ export default function ExpenseFormPage() {
             <button
               type="button"
               onClick={() => setCustomerOpen((v) => !v)}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white flex items-center justify-between"
+              className="w-full px-3 py-2 text-sm rounded-lg bg-emerald-600 flex items-center justify-between"
             >
-              <span className={customerId ? 'text-gray-900' : 'text-gray-400'}>
+              <span className="text-white font-medium">
                 {customerId ? customerMap[Number(customerId)]?.name ?? t('expense.noLink') : t('expense.noLink')}
               </span>
-              <ChevronDown size={14} strokeWidth={1.5} className="text-gray-400" />
+              <ChevronDown size={14} strokeWidth={1.5} className="text-white" />
             </button>
             {customerOpen && (
-              <div className="absolute left-0 right-0 top-full mt-1 z-20 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+              <div className="absolute left-0 right-0 top-full mt-1 z-20 bg-slate-800 border border-slate-600 rounded-lg shadow-lg max-h-48 overflow-y-auto">
                 <button
                   type="button"
                   onClick={() => { setCustomerId(''); setJobId(''); setCustomerOpen(false) }}
-                  className="w-full px-3 py-2 text-sm text-left flex items-center justify-between hover:bg-gray-50"
+                  className="w-full px-3 py-2 text-sm text-left flex items-center justify-between active:bg-slate-700"
                 >
-                  <span className="text-gray-500">{t('expense.noLink')}</span>
-                  {!customerId && <Check size={14} className="text-blue-500" />}
+                  <span className="text-slate-300">{t('expense.noLink')}</span>
+                  {!customerId && <Check size={14} className="text-emerald-400" />}
                 </button>
                 {(customers ?? []).map((c) => (
                   <button
                     key={c.id}
                     type="button"
                     onClick={() => { setCustomerId(String(c.id)); setJobId(''); setCustomerOpen(false) }}
-                    className="w-full px-3 py-2 text-sm text-left flex items-center justify-between hover:bg-gray-50 border-t border-gray-100"
+                    className="w-full px-3 py-2 text-sm text-left flex items-center justify-between active:bg-slate-700 border-t border-slate-700"
                   >
-                    <span className="text-gray-900">{c.name}</span>
-                    {String(c.id) === customerId && <Check size={14} className="text-blue-500" />}
+                    <span className="text-white">{c.name}</span>
+                    {String(c.id) === customerId && <Check size={14} className="text-emerald-400" />}
                   </button>
                 ))}
               </div>
@@ -206,36 +239,36 @@ export default function ExpenseFormPage() {
               <button
                 type="button"
                 onClick={() => setJobOpen((v) => !v)}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white flex items-center justify-between"
+                className="w-full px-3 py-2 text-sm rounded-lg bg-blue-600 flex items-center justify-between"
               >
-                <span className={jobId ? 'text-gray-900' : 'text-gray-400'}>
+                <span className="text-white font-medium">
                   {(() => {
                     if (!jobId) return t('expense.noJobLink')
                     const j = (jobs ?? []).find((x) => x.id === Number(jobId))
                     return j ? `${j.receiptDate}${(j.symptoms ?? j.symptom) ? ` — ${j.symptoms ?? j.symptom}` : ''}` : t('expense.noJobLink')
                   })()}
                 </span>
-                <ChevronDown size={14} strokeWidth={1.5} className="text-gray-400" />
+                <ChevronDown size={14} strokeWidth={1.5} className="text-white" />
               </button>
               {jobOpen && (
-                <div className="absolute left-0 right-0 top-full mt-1 z-20 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                <div className="absolute left-0 right-0 top-full mt-1 z-20 bg-slate-800 border border-slate-600 rounded-lg shadow-lg max-h-48 overflow-y-auto">
                   <button
                     type="button"
                     onClick={() => { setJobId(''); setJobOpen(false) }}
-                    className="w-full px-3 py-2 text-sm text-left flex items-center justify-between hover:bg-gray-50"
+                    className="w-full px-3 py-2 text-sm text-left flex items-center justify-between active:bg-slate-700"
                   >
-                    <span className="text-gray-500">{t('expense.noJobLink')}</span>
-                    {!jobId && <Check size={14} className="text-blue-500" />}
+                    <span className="text-slate-300">{t('expense.noJobLink')}</span>
+                    {!jobId && <Check size={14} className="text-blue-400" />}
                   </button>
                   {(jobs ?? []).filter((j) => j.customerId === Number(customerId)).map((j) => (
                     <button
                       key={j.id}
                       type="button"
                       onClick={() => { setJobId(String(j.id)); setJobOpen(false) }}
-                      className="w-full px-3 py-2 text-sm text-left flex items-center justify-between hover:bg-gray-50 border-t border-gray-100"
+                      className="w-full px-3 py-2 text-sm text-left flex items-center justify-between active:bg-slate-700 border-t border-slate-700"
                     >
-                      <span className="text-gray-900">{j.receiptDate}{(j.symptoms ?? j.symptom) ? ` — ${j.symptoms ?? j.symptom}` : ''}</span>
-                      {String(j.id) === jobId && <Check size={14} className="text-blue-500" />}
+                      <span className="text-white">{j.receiptDate}{(j.symptoms ?? j.symptom) ? ` — ${j.symptoms ?? j.symptom}` : ''}</span>
+                      {String(j.id) === jobId && <Check size={14} className="text-blue-400" />}
                     </button>
                   ))}
                 </div>
@@ -253,12 +286,7 @@ export default function ExpenseFormPage() {
           </div>
           <div>
             <label className="text-xs text-gray-400 block mb-1">{t('expense.labelDate')}</label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg outline-none focus:border-gray-400"
-            />
+            <DateInput value={date} onChange={setDate} />
           </div>
         </div>
 
@@ -270,13 +298,31 @@ export default function ExpenseFormPage() {
             {items.map((item, idx) => (
               <div key={idx} className="border border-gray-300 rounded-xl p-3 space-y-2">
                 <div className="flex items-center justify-between">
-                  <select
-                    value={item.category}
-                    onChange={(e) => setItem(idx, 'category', e.target.value)}
-                    className="text-sm font-medium text-gray-700 border-none outline-none bg-transparent"
-                  >
-                    {CATEGORIES.map((c) => <option key={c} value={c}>{t(ITEM_CAT_KEYS[c] ?? c)}</option>)}
-                  </select>
+                  <div ref={categoryOpenIdx === idx ? categoryRef : null} className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setCategoryOpenIdx(categoryOpenIdx === idx ? -1 : idx)}
+                      className="px-3 py-1.5 text-sm font-medium text-white bg-slate-600 rounded-lg flex items-center gap-1.5"
+                    >
+                      <span>{t(ITEM_CAT_KEYS[item.category] ?? item.category)}</span>
+                      <ChevronDown size={12} strokeWidth={2} className="text-white" />
+                    </button>
+                    {categoryOpenIdx === idx && (
+                      <div className="absolute left-0 top-full mt-1 z-20 bg-slate-800 border border-slate-600 rounded-lg shadow-lg overflow-hidden min-w-[140px]">
+                        {CATEGORIES.map((c) => (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() => { setItem(idx, 'category', c); setCategoryOpenIdx(-1) }}
+                            className="w-full px-3 py-2 text-sm text-left flex items-center justify-between active:bg-slate-700 border-t border-slate-700 first:border-t-0"
+                          >
+                            <span className="text-white">{t(ITEM_CAT_KEYS[c] ?? c)}</span>
+                            {item.category === c && <Check size={14} className="text-emerald-400" />}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   {items.length > 1 && (
                     <button onClick={() => removeItem(idx)} className="text-gray-300">
                       <Trash2 size={14} strokeWidth={1.5} />
@@ -303,7 +349,7 @@ export default function ExpenseFormPage() {
 
           <button
             onClick={addItem}
-            className="w-full mt-3 py-2.5 border border-dashed border-gray-300 rounded-xl text-sm text-gray-500 flex items-center justify-center gap-1.5 bg-gray-100 active:bg-gray-200"
+            className="w-full mt-3 py-2.5 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-1.5 bg-slate-600 active:bg-slate-700"
           >
             <Plus size={14} strokeWidth={2} />
             {t('expense.addItem')}
@@ -351,12 +397,14 @@ export default function ExpenseFormPage() {
 
         <button
           onClick={handleSave}
-          className="w-full py-4 bg-slate-700 text-white text-base font-semibold rounded-xl border-2 border-slate-400 shadow-md active:bg-slate-600"
+          disabled={saving}
+          className={`w-full py-4 text-white text-base font-semibold rounded-xl border-2 shadow-md ${saving ? 'bg-gray-400 border-gray-300 cursor-not-allowed' : 'bg-slate-700 border-slate-400 active:bg-slate-600'}`}
         >
-          {t('expense.save')}
+          {saving ? t('common.saving') : t('expense.save')}
         </button>
 
       </div>
+      {trialBlocked && <TrialLimitModal category={trialBlocked} onClose={() => setTrialBlocked(null)} />}
     </div>
   )
 }

@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { ChevronLeft, FileText } from 'lucide-react'
+import { ChevronLeft, FileText, Check } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { db } from '../db'
+import { showToast } from '../utils/toast'
 
 const LOCALE_MAP = {
   ko: { locale: 'ko-KR', currency: 'KRW', suffix: '원' },
@@ -37,6 +39,7 @@ export default function BillingPage() {
   ]
 
   const job = useLiveQuery(() => db.service_jobs.get(Number(id)), [id])
+  const [saving, setSaving] = useState(false)
 
   if (!job) return <div className="p-4 text-gray-400 text-sm">{t('logs.loading')}</div>
 
@@ -71,6 +74,28 @@ export default function BillingPage() {
       [key]: parseAmount(value),
       updatedAt: new Date().toISOString(),
     })
+  }
+
+  // "저장" 버튼: 모든 input을 일괄 commit + 토스트로 명시적 확인
+  async function handleSave() {
+    if (saving) return
+    setSaving(true)
+    try {
+      const inputs = document.querySelectorAll('[data-billing-field]')
+      const update = { updatedAt: new Date().toISOString() }
+      inputs.forEach((input) => {
+        const key = input.getAttribute('data-billing-field')
+        update[key] = parseAmount(input.value)
+      })
+      // 합계 cost 갱신 — JobDetailPage의 paid 토글 노출 조건(cost > 0)과 미결제 추적 위해 필요
+      update.cost = FIELDS.reduce((sum, f) => sum + (Number(update[f.key]) || 0), 0)
+      await db.service_jobs.update(Number(id), update)
+      showToast(t('billing.saved'))
+    } catch (e) {
+      console.error('Billing save failed:', e)
+    } finally {
+      setSaving(false)
+    }
   }
 
   function handleInput(e) {
@@ -117,6 +142,7 @@ export default function BillingPage() {
               onInput={handleInput}
               onBlur={(e) => patch(key, e.target.value)}
               placeholder="0"
+              data-billing-field={key}
               className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-400"
             />
           </div>
@@ -129,10 +155,19 @@ export default function BillingPage() {
       </div>
 
       <button
-        onClick={() => navigate(`/service/${id}/receipt`)}
-        className="mt-4 w-full flex items-center justify-center gap-2 py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl active:opacity-80"
+        onClick={handleSave}
+        disabled={saving}
+        className={`mt-4 w-full flex items-center justify-center gap-2 py-3.5 text-white text-sm font-bold rounded-xl ${saving ? 'bg-gray-400 cursor-not-allowed' : 'bg-emerald-600 active:bg-emerald-700'}`}
       >
-        <FileText size={16} strokeWidth={1.5} />
+        <Check size={16} strokeWidth={2.5} />
+        {saving ? t('common.saving') : t('billing.save')}
+      </button>
+
+      <button
+        onClick={() => navigate(`/service/${id}/receipt`)}
+        className="mt-2 w-full flex items-center justify-center gap-2 py-3.5 bg-blue-600 text-white text-sm font-bold rounded-xl shadow-md active:bg-blue-700"
+      >
+        <FileText size={16} strokeWidth={2} />
         {t('billing.issueReceipt')}
       </button>
     </div>

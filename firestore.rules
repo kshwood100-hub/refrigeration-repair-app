@@ -2,17 +2,51 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // allowed_users: 본인 이메일 doc만 읽기 허용. 쓰기는 서버(Paddle webhook 등)에서만.
+    // allowed_users: 본인 이메일 doc 읽기 허용. 쓰기는 서버(FastSpring webhook)에서만.
+    // 예외: 본인이 데이터 공유 동의 토글(shareConsent + shareModalShown)만 update 가능.
     match /allowed_users/{email} {
       allow read: if request.auth != null
                   && request.auth.token.email_verified == true
                   && request.auth.token.email == email;
-      allow write: if false;
+      allow update: if request.auth != null
+                    && request.auth.token.email_verified == true
+                    && request.auth.token.email == email
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                       .hasOnly(['shareConsent', 'shareModalShown']);
+      allow create, delete: if false;
     }
 
     // usage: AI 호출 카운터. 클라이언트는 접근 불가, 서버(Cloud Functions admin SDK)만 read/write.
     match /usage/{email}/{document=**} {
       allow read, write: if false;
+    }
+
+    // user_sessions: 동시 접속 1개 강제용 활성 세션 토큰. 본인만 read/write.
+    // 새 로그인 시 토큰을 덮어쓰고, 기존 세션은 onSnapshot으로 토큰 불일치 감지 → 자동 로그아웃.
+    match /user_sessions/{email} {
+      allow read, write: if request.auth != null
+                          && request.auth.token.email_verified == true
+                          && request.auth.token.email == email;
+    }
+
+    // users/{email}/** : 사용자별 클라우드 동기화 데이터.
+    // 본인 doc만 read/write. allowed_users 등록자(트라이얼+정식 모두) 허용.
+    // 컬렉션: customers, service_jobs, expenses, repair_logs, voice_recordings,
+    //         equipment_maintenance, business_cards, job_photos, user_alarms,
+    //         knowhow, suppliers, supplier_transactions, checklist_results, _meta
+    match /users/{email}/{collection}/{doc} {
+      allow read, write: if request.auth != null
+                          && request.auth.token.email_verified == true
+                          && request.auth.token.email == email
+                          && exists(/databases/$(database)/documents/allowed_users/$(email));
+    }
+
+    // users/{email} 자체 doc (메타데이터 보관용, 옵션)
+    match /users/{email} {
+      allow read, write: if request.auth != null
+                          && request.auth.token.email_verified == true
+                          && request.auth.token.email == email
+                          && exists(/databases/$(database)/documents/allowed_users/$(email));
     }
 
     // 그 외 모든 컬렉션 차단 (필요 시 명시적으로 추가)

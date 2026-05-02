@@ -1,7 +1,10 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth'
-import { doc, getDoc } from 'firebase/firestore'
+import { doc, getDoc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore'
 import { auth, googleProvider, firestore } from '../firebase'
+import { clearTrialCache } from '../utils/trial'
+import { startAutoSync, stopAutoSync, syncAll } from '../utils/cloudSync'
+import i18n from '../i18n'
 
 const AuthContext = createContext(null)
 
@@ -13,18 +16,56 @@ const FALLBACK_ALLOWED_EMAILS = [
   'kkswood386@gmail.com',
 ]
 
-async function isEmailAllowed(email) {
-  if (!email) return false
+const SESSION_TOKEN_KEY = 'rfg_session_token'
+
+function genToken() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID()
+  return Math.random().toString(36).slice(2) + Date.now().toString(36)
+}
+
+// 반환:
+//   { allowed: true } — 정상 접근
+//   { allowed: false, reason: 'denied' } — 접근 거부 (allowed_users 없음)
+//   { allowed: false, reason: 'cancelled', purgeAt } — 구독 취소 (15일 유예 중, 재가입 시 복구)
+async function checkEmailAccess(email, retried = false) {
+  if (!email) return { allowed: false, reason: 'denied' }
   try {
     const snap = await getDoc(doc(firestore, 'allowed_users', email))
-    if (snap.exists()) return true
-    // Firestore는 정상 응답, 해당 이메일 없음 → 거부
-    return FALLBACK_ALLOWED_EMAILS.includes(email)
+    if (!snap.exists()) {
+      // 결제 직후 FastSpring webhook 도착 전 race 대비 — denied면 3초 후 1회만 재시도
+      if (!retried) {
+        await new Promise((r) => setTimeout(r, 3000))
+        return checkEmailAccess(email, true)
+      }
+      // Firestore 정상 응답, 해당 이메일 없음 → 폴백 체크 후 거부
+      return { allowed: FALLBACK_ALLOWED_EMAILS.includes(email), reason: 'denied' }
+    }
+    const data = snap.data()
+    // 15일 유예 중 — 재가입 안 하면 데이터 삭제 예정. 로그인 차단.
+    if (data?.cancelledAt) {
+      return { allowed: false, reason: 'cancelled', purgeAt: data.purgeAt }
+    }
+    return { allowed: true }
   } catch (e) {
     // Firestore 미활성·네트워크 장애 → 하드코딩 목록으로 폴백
     console.warn('Firestore allowlist unreachable, using fallback:', e?.message)
-    return FALLBACK_ALLOWED_EMAILS.includes(email)
+    return { allowed: FALLBACK_ALLOWED_EMAILS.includes(email), reason: 'denied' }
   }
+}
+
+async function claimSession(email) {
+  const token = genToken()
+  localStorage.setItem(SESSION_TOKEN_KEY, token)
+  try {
+    await setDoc(doc(firestore, 'user_sessions', email), {
+      activeToken: token,
+      updatedAt: serverTimestamp(),
+      ua: typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 200) : '',
+    })
+  } catch (e) {
+    console.warn('Session claim failed (allowing):', e?.message)
+  }
+  return token
 }
 
 export function AuthProvider({ children }) {
@@ -35,16 +76,71 @@ export function AuthProvider({ children }) {
     return unsubscribe
   }, [])
 
+  // 자동 복원된 세션도 claim — Firebase auth 세션은 살아있는데 로컬 토큰 없으면
+  // 이 기기가 활성 세션이라고 등록 (다른 기기는 onSnapshot으로 mismatch 감지 → 자동 로그아웃)
+  // 주의: cancelled(15일 유예) 차단은 loginWithGoogle 시점에만. 자동 복원에서 차단하면
+  // race로 자기 자신을 강제 로그아웃하는 버그 발생함 (실제 환불 사용자는 다음 로그인 시점에 차단됨).
+  useEffect(() => {
+    if (!user?.email) return
+    if (!localStorage.getItem(SESSION_TOKEN_KEY)) {
+      claimSession(user.email)
+    }
+  }, [user?.email])
+
+  // 로그인 후 클라우드 자동 동기화 시작 / 로그아웃 시 정지
+  useEffect(() => {
+    if (user?.email) {
+      startAutoSync()
+    } else {
+      stopAutoSync()
+    }
+  }, [user?.email])
+
+  // 사용자별 활성 세션 감시 — 다른 기기에서 로그인하면 토큰이 바뀌고 여기서 강제 로그아웃
+  useEffect(() => {
+    if (!user?.email) return
+    const unsub = onSnapshot(
+      doc(firestore, 'user_sessions', user.email),
+      (snap) => {
+        if (!snap.exists()) return
+        const remote = snap.data().activeToken
+        const local = localStorage.getItem(SESSION_TOKEN_KEY)
+        // 원격 토큰이 있고, 로컬과 다르면 → 다른 기기가 차지함 → 로그아웃
+        // 로그아웃 직전 push 1회 강제 — 로컬 미동기화 변경분 손실 방지
+        if (remote && remote !== local) {
+          ;(async () => {
+            try { await syncAll() } catch (e) { console.warn('Pre-logout sync failed:', e?.message) }
+            localStorage.removeItem(SESSION_TOKEN_KEY)
+            try { await signOut(auth) } catch (e) { console.warn('Forced signOut failed:', e?.message) }
+          })()
+        }
+      },
+      (err) => console.warn('Session watch failed:', err?.message)
+    )
+    return unsub
+  }, [user?.email])
+
   const loginWithGoogle = async () => {
     const result = await signInWithPopup(auth, googleProvider)
-    const allowed = await isEmailAllowed(result.user.email)
-    if (!allowed) {
-      await signOut(auth)
-      throw new Error('Access denied.')
+    const access = await checkEmailAccess(result.user.email)
+    if (!access.allowed) {
+      try { await signOut(auth) } catch (e) { console.warn('Reject signOut failed:', e?.message) }
+      if (access.reason === 'cancelled') {
+        const dateStr = access.purgeAt
+          ? new Date(access.purgeAt).toISOString().slice(0, 10)
+          : ''
+        throw new Error(i18n.t('error.subscriptionCancelled', { date: dateStr }))
+      }
+      throw new Error(i18n.t('error.accessDenied'))
     }
+    await claimSession(result.user.email)
     return result
   }
-  const logout = () => signOut(auth)
+  const logout = async () => {
+    localStorage.removeItem(SESSION_TOKEN_KEY)
+    clearTrialCache()
+    try { await signOut(auth) } catch (e) { console.warn('Logout signOut failed:', e?.message) }
+  }
 
   return (
     <AuthContext.Provider value={{ user, loginWithGoogle, logout }}>

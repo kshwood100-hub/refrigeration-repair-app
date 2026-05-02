@@ -1,6 +1,8 @@
 // 음성 녹음 유틸 (MediaRecorder 래퍼)
 // 녹음 시작/정지 → Blob 반환. 마이크 권한 요청 포함.
 
+import i18n from '../i18n'
+
 let mediaRecorder = null
 let audioChunks = []
 let stream = null
@@ -39,7 +41,7 @@ export async function startRecording() {
 export function stopRecording() {
   return new Promise((resolve, reject) => {
     if (!mediaRecorder || mediaRecorder.state === 'inactive') {
-      reject(new Error('녹음 중이 아닙니다'))
+      reject(new Error(i18n.t('error.notRecording')))
       return
     }
     mediaRecorder.onstop = () => {
@@ -52,7 +54,7 @@ export function stopRecording() {
       stream = null
       resolve({ blob, mimeType, durationSec })
     }
-    mediaRecorder.onerror = (e) => reject(e.error || new Error('녹음 오류'))
+    mediaRecorder.onerror = (e) => reject(e.error || new Error(i18n.t('error.recordingError')))
     mediaRecorder.stop()
   })
 }

@@ -6,7 +6,6 @@ import App from './App.jsx'
 import { AuthProvider } from './hooks/useAuth.jsx'
 import i18n from './i18n'
 import './index.css'
-import { initAlarms } from './utils/alarmManager'
 
 const applyLang = (lng) => {
   document.documentElement.dir = lng === 'ar' ? 'rtl' : 'ltr'
@@ -38,9 +37,6 @@ if (import.meta.env.PROD) {
     document.documentElement.className = 'theme-dark'
   }
 })()
-
-// 앱 시작 시 알람 초기화 (권한 요청 + 오늘 일정 알람 예약)
-initAlarms()
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).then(reg => {

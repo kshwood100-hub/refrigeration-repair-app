@@ -4,6 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useTranslation } from 'react-i18next'
 import { ChevronLeft, Pencil, Trash2 } from 'lucide-react'
 import { db } from '../db'
+import { softDelete } from '../utils/cloudSync'
 
 const ITEM_CAT_KEYS = {
   '출장비': 'expense.itemTravel', '자재비': 'expense.itemMaterial', '시간인건비': 'expense.itemLabor',
@@ -17,9 +18,12 @@ export default function ExpenseDetailPage() {
   const { t } = useTranslation()
   const [deleting, setDeleting] = useState(false)
 
-  const expense = useLiveQuery(() => db.expenses.get(Number(id)), [id])
-  const jobs = useLiveQuery(() => db.service_jobs.toArray(), [])
-  const customers = useLiveQuery(() => db.customers.toArray(), [])
+  const expense = useLiveQuery(async () => {
+    const r = await db.expenses.get(Number(id))
+    return r?.deletedAt ? null : r
+  }, [id])
+  const jobs = useLiveQuery(() => db.service_jobs.filter((r) => !r.deletedAt).toArray(), [])
+  const customers = useLiveQuery(() => db.customers.filter((r) => !r.deletedAt).toArray(), [])
 
   if (!expense || !jobs || !customers) {
     return <div className="p-4 text-gray-400 text-sm">{t('expense.loading')}</div>
@@ -32,7 +36,7 @@ export default function ExpenseDetailPage() {
   const total = (expense.items ?? []).reduce((s, i) => s + (Number(i.amount) || 0), 0)
 
   async function handleDelete() {
-    await db.expenses.delete(Number(id))
+    await softDelete('expenses', Number(id))
     navigate('/finance', { replace: true })
   }
 

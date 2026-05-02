@@ -44024,8 +44024,8 @@
             "hi": "सेंसर बल्ब क्षतिग्रस्त या सेंसिंग ट्यूब गैस लीक",
             "vi": "Hỏng cảm biến hoặc rò khí ống cảm biến",
             "th": "ตัวรับรู้อุณหภูมิ (เซนเซอร์) เสียหรือก๊าซในท่อรับรู้รั่ว",
-            "id": "Sensor (감온부) rusak atau kebocoran gas pipa kapiler sensor",
-            "ar": "تلف المستشعر (감온부) أو تسرب الغاز من أنبوب المستشعر"
+            "id": "Sensor bulb rusak atau kebocoran gas pipa kapiler sensor",
+            "ar": "تلف المستشعر (لمبة الاستشعار) أو تسرب الغاز من أنبوب المستشعر"
           },
           "check": {
             "ko": "출력 단자에서 기동 신호 전압 측정",

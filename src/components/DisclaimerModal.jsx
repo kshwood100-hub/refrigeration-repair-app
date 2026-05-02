@@ -1,21 +1,25 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AlertTriangle } from 'lucide-react'
+import { useAuth } from '../hooks/useAuth.jsx'
 
-const KEY = 'rfg_disclaimer_acknowledged_v1'
+const KEY_PREFIX = 'rfg_disclaimer_acknowledged_v1:'
 
 export default function DisclaimerModal() {
   const { t } = useTranslation()
+  const { user } = useAuth()
   const [open, setOpen] = useState(false)
+  const key = user?.email ? KEY_PREFIX + user.email : null
 
   useEffect(() => {
-    if (localStorage.getItem(KEY) !== '1') setOpen(true)
-  }, [])
+    if (!key) return
+    if (localStorage.getItem(key) !== '1') setOpen(true)
+  }, [key])
 
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/60 z-[80] flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl p-5 w-full max-w-sm shadow-xl">
         <div className="flex items-center gap-2 mb-3">
           <AlertTriangle size={20} strokeWidth={2} className="text-amber-500 shrink-0" />
@@ -33,7 +37,7 @@ export default function DisclaimerModal() {
         </p>
 
         <button
-          onClick={() => { localStorage.setItem(KEY, '1'); setOpen(false) }}
+          onClick={() => { if (key) localStorage.setItem(key, '1'); setOpen(false) }}
           className="w-full py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl active:bg-blue-700"
         >
           {t('disclaimer.acknowledge')}

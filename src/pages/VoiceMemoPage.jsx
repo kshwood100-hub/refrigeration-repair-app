@@ -2,11 +2,16 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useTranslation } from 'react-i18next'
-import { Mic, Square, Play, Pause, Trash2, Wifi, WifiOff, ChevronLeft, RefreshCw, ChevronRight, Info, Building2 } from 'lucide-react'
+import { Mic, Square, Play, Pause, Trash2, Wifi, WifiOff, ChevronLeft, RefreshCw, ChevronRight, Info, Building2, Video } from 'lucide-react'
 import { db } from '../db'
 import { startRecording, stopRecording } from '../utils/voiceRecorder'
 import { saveRecording, deleteRecording, transcribeRecording, classifyRecording, processRecording, processPendingAll } from '../utils/voiceQueue'
+import { extractAudioFromVideo } from '../utils/extractAudioFromVideo'
 import { showToast } from '../utils/toast'
+import ConfirmModal from '../components/ConfirmModal'
+import TrialLimitModal from '../components/TrialLimitModal'
+import { consumeTrial } from '../utils/trial'
+import { softDelete, getMediaUrl } from '../utils/cloudSync'
 
 function fmtDuration(sec) {
   const m = Math.floor(sec / 60)
@@ -59,9 +64,11 @@ export default function VoiceMemoPage() {
   const [playingId, setPlayingId] = useState(null)
   const audioRef = useRef(null)
   const tickRef = useRef(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null)
+  const [trialBlocked, setTrialBlocked] = useState(null)
 
-  const recordings = useLiveQuery(() => db.voice_recordings.orderBy('createdAt').reverse().toArray(), [])
-  const customers = useLiveQuery(() => db.customers.orderBy('name').toArray(), [])
+  const recordings = useLiveQuery(() => db.voice_recordings.orderBy('createdAt').reverse().filter((r) => !r.deletedAt).toArray(), [])
+  const customers = useLiveQuery(() => db.customers.orderBy('name').filter((r) => !r.deletedAt).toArray(), [])
   const [customerId, setCustomerId] = useState(null)
   const [showCustomerList, setShowCustomerList] = useState(false)
   const [customerSearch, setCustomerSearch] = useState('')
@@ -73,7 +80,7 @@ export default function VoiceMemoPage() {
     const expired = recordings.filter((r) => r.status === 'done' && r.doneAt && r.doneAt < cutoff)
     if (expired.length === 0) return
     ;(async () => {
-      for (const r of expired) await db.voice_recordings.delete(r.id)
+      for (const r of expired) await softDelete('voice_recordings', r.id)
     })()
   }, [recordings])
 
@@ -94,6 +101,14 @@ export default function VoiceMemoPage() {
     if (!customerId) {
       showToast(t('knowhow.errCustomer'))
       return
+    }
+    try {
+      await consumeTrial('logs')
+    } catch (e) {
+      if (String(e?.message || e).includes('Trial limit')) {
+        setTrialBlocked('logs')
+        return
+      }
     }
     try {
       await startRecording()
@@ -128,7 +143,7 @@ export default function VoiceMemoPage() {
     }
   }
 
-  function handlePlay(rec) {
+  async function handlePlay(rec) {
     if (playingId === rec.id) {
       audioRef.current?.pause()
       setPlayingId(null)
@@ -136,11 +151,22 @@ export default function VoiceMemoPage() {
     }
     if (audioRef.current) {
       audioRef.current.pause()
-      URL.revokeObjectURL(audioRef.current.src)
+      try { URL.revokeObjectURL(audioRef.current.src) } catch (e) {}
     }
-    const url = URL.createObjectURL(rec.blob)
+    let url = null
+    let isObjectUrl = false
+    if (rec.blob) {
+      url = URL.createObjectURL(rec.blob)
+      isObjectUrl = true
+    } else if (rec.storagePath) {
+      url = await getMediaUrl(rec.storagePath)
+    }
+    if (!url) { showToast(t('voice.toastSaveFail') || 'No audio'); return }
     const audio = new Audio(url)
-    audio.onended = () => { setPlayingId(null); URL.revokeObjectURL(url) }
+    audio.onended = () => {
+      setPlayingId(null)
+      if (isObjectUrl) { try { URL.revokeObjectURL(url) } catch (e) {} }
+    }
     audio.play()
     audioRef.current = audio
     setPlayingId(rec.id)
@@ -212,9 +238,38 @@ export default function VoiceMemoPage() {
   }
 
   async function handleDelete(id) {
-    if (!confirm(t('voice.confirmDelete'))) return
     if (playingId === id) audioRef.current?.pause()
     await deleteRecording(id)
+  }
+
+  const videoFileRef = useRef(null)
+  const videoGalleryRef = useRef(null)
+  const [importingVideo, setImportingVideo] = useState(false)
+
+  async function handlePickVideo(e) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    if (!customerId) { showToast(t('knowhow.errCustomer')); return }
+    // 트라이얼 쿼터 차감 (음성 메모와 동일하게 logs 카테고리)
+    try {
+      await consumeTrial('logs')
+    } catch (err) {
+      if (String(err?.message || err).includes('Trial limit')) {
+        setTrialBlocked('logs')
+        return
+      }
+    }
+    setImportingVideo(true)
+    try {
+      const { blob, durationSec } = await extractAudioFromVideo(file)
+      await saveRecording({ blob, mimeType: blob.type || 'audio/wav', durationSec })
+      showToast(t('voice.toastVideoImported'))
+    } catch (err) {
+      showToast(t('voice.toastVideoFail') + (err?.message ?? err))
+    } finally {
+      setImportingVideo(false)
+    }
   }
 
   return (
@@ -291,30 +346,70 @@ export default function VoiceMemoPage() {
         )}
       </div>
 
-      {/* 녹음 버튼 */}
-      <div className="flex flex-col items-center justify-center bg-gray-50 border border-gray-200 rounded-2xl p-8 mb-4">
+      {/* 음성녹음 / 영상촬영 — 2버튼 분리 */}
+      <input
+        ref={videoFileRef}
+        type="file"
+        accept="video/*"
+        capture="environment"
+        className="hidden"
+        onChange={handlePickVideo}
+      />
+      <div className="grid grid-cols-2 gap-2 mb-3">
         <button
           onClick={isRec ? handleStop : handleStart}
-          disabled={!customerId && !isRec}
-          className={`w-20 h-20 rounded-full flex items-center justify-center shadow-md text-white transition-colors disabled:bg-gray-400 disabled:opacity-60 ${
+          disabled={(!customerId && !isRec) || importingVideo}
+          className={`flex flex-col items-center justify-center gap-1.5 py-5 rounded-2xl shadow-md text-white font-bold transition-colors disabled:opacity-60 ${
             isRec ? 'bg-red-600 active:bg-red-700' : 'bg-blue-600 active:bg-blue-700'
           }`}
         >
-          {isRec ? <Square size={28} strokeWidth={2} fill="currentColor" /> : <Mic size={32} strokeWidth={1.8} />}
+          {isRec ? <Square size={28} strokeWidth={2} fill="currentColor" /> : <Mic size={28} strokeWidth={1.8} />}
+          <span className="text-sm">
+            {isRec ? t('voice.stopBtn', { time: fmtDuration(elapsed) }) : t('voice.recordAudioBtn')}
+          </span>
         </button>
-        <p className="mt-3 text-sm text-gray-600">
-          {!customerId && !isRec
+        <button
+          onClick={() => videoFileRef.current?.click()}
+          disabled={!customerId || isRec || importingVideo}
+          className="flex flex-col items-center justify-center gap-1.5 py-5 bg-violet-600 text-white font-bold rounded-2xl shadow-md active:bg-violet-700 disabled:opacity-60"
+        >
+          <Video size={28} strokeWidth={1.8} />
+          <span className="text-sm">{importingVideo ? t('voice.importingVideo') : t('voice.recordVideoBtn')}</span>
+        </button>
+      </div>
+      <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 mb-4">
+        <p className="text-xs text-gray-500 text-center">
+          {!customerId
             ? t('knowhow.errCustomer')
-            : (isRec ? t('voice.recording', { time: fmtDuration(elapsed) }) : t('voice.tapToStart'))}
-        </p>
-        <p className="mt-1 text-xs text-gray-400 text-center">
-          {online ? t('voice.autoProcess') : t('voice.offlineNote')}
+            : (isRec ? t('voice.recording', { time: fmtDuration(elapsed) }) : t('voice.recordHint'))}
         </p>
         <p className="mt-1 text-[11px] text-gray-400 text-center">
-          {t('voice.maxDurationNote')}
+          {online ? t('voice.autoProcess') : t('voice.offlineNote')}
         </p>
         <p className="mt-0.5 text-[11px] text-gray-400 text-center">
-          {t('voice.continueHint')}
+          {t('voice.maxDurationNote')} · {t('voice.continueHint')}
+        </p>
+      </div>
+
+      {/* 갤러리에서 기존 영상 불러오기 (보조 기능) */}
+      <div className="mb-4">
+        <input
+          ref={videoGalleryRef}
+          type="file"
+          accept="video/*"
+          className="hidden"
+          onChange={handlePickVideo}
+        />
+        <button
+          onClick={() => videoGalleryRef.current?.click()}
+          disabled={!customerId || importingVideo || isRec}
+          className="w-full flex items-center justify-center gap-2 py-3 bg-fuchsia-600 text-white text-sm font-bold rounded-xl shadow-sm active:bg-fuchsia-700 disabled:opacity-60"
+        >
+          <Video size={14} strokeWidth={2} />
+          {importingVideo ? t('voice.importingVideo') : t('voice.importVideoBtn')}
+        </button>
+        <p className="text-[11px] text-gray-400 mt-1.5 text-center">
+          {t('voice.importVideoHint')}
         </p>
       </div>
 
@@ -410,7 +505,7 @@ export default function VoiceMemoPage() {
                   )}
 
                   <button
-                    onClick={() => handleDelete(r.id)}
+                    onClick={() => setConfirmDeleteId(r.id)}
                     className="ml-auto p-1.5 text-gray-400 active:text-red-500"
                   >
                     <Trash2 size={13} strokeWidth={1.5} />
@@ -421,6 +516,18 @@ export default function VoiceMemoPage() {
           })}
         </div>
       )}
+      {confirmDeleteId !== null && (
+        <ConfirmModal
+          message={t('voice.confirmDelete')}
+          onCancel={() => setConfirmDeleteId(null)}
+          onConfirm={async () => {
+            const id = confirmDeleteId
+            setConfirmDeleteId(null)
+            await handleDelete(id)
+          }}
+        />
+      )}
+      {trialBlocked && <TrialLimitModal category={trialBlocked} onClose={() => setTrialBlocked(null)} />}
     </div>
   )
 }

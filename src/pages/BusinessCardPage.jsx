@@ -10,6 +10,10 @@ import { db } from '../db'
 import { loadSettings } from '../utils/settings'
 import { showToast } from '../utils/toast'
 import { scanBusinessCard } from '../utils/scanBusinessCard'
+import TrialLimitModal from '../components/TrialLimitModal'
+import { consumeTrial } from '../utils/trial'
+import { softDelete } from '../utils/cloudSync'
+import MediaImage from '../components/MediaImage'
 
 const EMPTY = {
   name: '', company: '', title: '', phone: '', mobile: '', email: '', address: '', memo: '',
@@ -34,11 +38,12 @@ export default function BusinessCardPage() {
   const [scanning, setScanning] = useState(false)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(null)
+  const [trialBlocked, setTrialBlocked] = useState(null)
 
   const cards = useLiveQuery(
-    () => db.business_cards.orderBy('createdAt').reverse().toArray(), []
+    () => db.business_cards.orderBy('createdAt').reverse().filter((r) => !r.deletedAt).toArray(), []
   )
-  const customers = useLiveQuery(() => db.customers.toArray(), [])
+  const customers = useLiveQuery(() => db.customers.filter((r) => !r.deletedAt).toArray(), [])
   const customerMap = Object.fromEntries((customers ?? []).map((c) => [c.id, c]))
 
   function setField(key, val) {
@@ -93,6 +98,15 @@ export default function BusinessCardPage() {
       if (existing) {
         customerId = existing.id
       } else {
+        try {
+          await consumeTrial('customers')
+        } catch (e) {
+          if (String(e?.message || e).includes('Trial limit')) {
+            setTrialBlocked('customers')
+            setSaving(false)
+            return
+          }
+        }
         customerId = await db.customers.add({
           name:    form.name.trim(),
           phone:   primaryPhone,
@@ -123,7 +137,7 @@ export default function BusinessCardPage() {
   }
 
   async function handleDelete(id) {
-    await db.business_cards.delete(id)
+    await softDelete('business_cards', id)
     setDeleting(null)
   }
 
@@ -287,9 +301,10 @@ export default function BusinessCardPage() {
                 className="bg-white border border-gray-300 rounded-xl p-3 shadow-sm active:bg-gray-50 cursor-pointer"
               >
                 <div className="flex items-start gap-3">
-                  {card.dataUrl ? (
-                    <img
-                      src={card.dataUrl}
+                  {(card.dataUrl || card.storagePath) ? (
+                    <MediaImage
+                      dataUrl={card.dataUrl}
+                      storagePath={card.storagePath}
                       alt={t('bc.title')}
                       className="w-16 h-10 object-cover rounded-lg border border-gray-300 shrink-0 bg-gray-50"
                     />
@@ -372,6 +387,7 @@ export default function BusinessCardPage() {
           </div>
         </div>
       )}
+      {trialBlocked && <TrialLimitModal category={trialBlocked} onClose={() => setTrialBlocked(null)} />}
     </div>
   )
 }

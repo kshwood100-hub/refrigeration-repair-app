@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
@@ -7,10 +7,14 @@ import {
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { db } from '../db'
+import { softDelete, softDeleteJobCascade } from '../utils/cloudSync'
 import { extractKnowhow } from '../utils/aiKnowhow'
 import { requestNotificationPermission } from '../utils/alarmManager'
 import { showToast } from '../utils/toast'
+import { compressImage } from '../utils/image'
 import KnowhowFormBody, { EMPTY_KNOWHOW } from '../components/KnowhowFormBody'
+import DateInput from '../components/DateInput'
+import MediaImage from '../components/MediaImage'
 
 const HOURS = Array.from({ length: 17 }, (_, i) => String(i + 6).padStart(2, '0'))
 const MINS  = ['00', '10', '20', '30', '40', '50']
@@ -27,23 +31,38 @@ export default function JobDetailPage() {
   const [editingAlarmId, setEditingAlarmId] = useState(null)
   const [knowhow, setKnowhowState] = useState(EMPTY_KNOWHOW)
   const [knowhowReady, setKnowhowReady] = useState(false)
+  const [savingAlarm, setSavingAlarm] = useState(false)
+  const [lightboxIndex, setLightboxIndex] = useState(null)
+  const [equipLightboxIdx, setEquipLightboxIdx] = useState(null)
   const fileRef = useRef()
 
-  const job      = useLiveQuery(() => db.service_jobs.get(Number(id)), [id])
+  const job      = useLiveQuery(async () => {
+    const j = await db.service_jobs.get(Number(id))
+    return j?.deletedAt ? null : j
+  }, [id])
   const customer = useLiveQuery(
     () => job?.customerId ? db.customers.get(job.customerId) : undefined,
     [job?.customerId]
   )
   const photos = useLiveQuery(
-    () => db.job_photos.where('jobId').equals(Number(id)).toArray(), [id]
+    () => db.job_photos.where('jobId').equals(Number(id)).filter((r) => !r.deletedAt).toArray(), [id]
+  )
+  // 삭제 모달용 — 영향 데이터 개수 미리보기
+  const jobExpenses = useLiveQuery(
+    () => db.expenses.where('jobId').equals(Number(id)).filter((r) => !r.deletedAt).toArray(), [id]
+  )
+  // knowhow는 cascade 대상 X (별도 자산으로 보존). 단 사용자에게 안내 위해 개수 미리보기.
+  const linkedKnowhow = useLiveQuery(
+    () => db.knowhow.filter((k) => k.sourceJobId === Number(id) && !k.deletedAt).toArray(), [id]
   )
   const jobAlarms = useLiveQuery(
-    () => db.user_alarms.filter(a => a.jobId === Number(id)).toArray(), [id]
+    () => db.user_alarms.filter(a => a.jobId === Number(id) && !a.deletedAt).toArray(), [id]
   )
 
-  if (!job) return <div className="p-4 text-gray-400 text-sm">{t('logs.loading')}</div>
-
-  if (job && !knowhowReady) {
+  // 렌더링 중 setState 안티패턴 방지 — useEffect로 분리
+  // (job이 useLiveQuery 비동기로 채워진 직후 1회 knowhow 초기화)
+  useEffect(() => {
+    if (!job || knowhowReady) return
     setKnowhowState({
       title:          job.title          ?? '',
       category:       job.category       ?? '기타',
@@ -60,9 +79,13 @@ export default function JobDetailPage() {
       solution:       job.solution       ?? job.workDone  ?? '',
       parts:          job.parts          ?? job.materials ?? '',
       notes:          job.notes          ?? '',
+      equipPhotos:    Array.isArray(job.equipPhotos) ? job.equipPhotos : [],
+      equipments:     Array.isArray(job.equipments)  ? job.equipments  : [],
     })
     setKnowhowReady(true)
-  }
+  }, [job?.id, knowhowReady])
+
+  if (!job) return <div className="p-4 text-gray-400 text-sm">{t('logs.loading')}</div>
 
   function setKnowhow(updater) {
     setKnowhowState((prev) => {
@@ -84,7 +107,7 @@ export default function JobDetailPage() {
 
   async function handleComplete() {
     try {
-      await patch({ status: 'completed' })
+      await patch({ status: 'completed', completedAt: new Date().toISOString() })
 
       const jid = Number(id)
       const all = await db.knowhow.toArray()
@@ -108,24 +131,6 @@ export default function JobDetailPage() {
     }
   }
 
-  function compressImage(file) {
-    return new Promise((resolve) => {
-      const img = new Image()
-      const url = URL.createObjectURL(file)
-      img.onload = () => {
-        const MAX = 1200
-        const scale = Math.min(1, MAX / Math.max(img.width, img.height))
-        const canvas = document.createElement('canvas')
-        canvas.width  = Math.round(img.width  * scale)
-        canvas.height = Math.round(img.height * scale)
-        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height)
-        URL.revokeObjectURL(url)
-        resolve(canvas.toDataURL('image/jpeg', 0.75))
-      }
-      img.src = url
-    })
-  }
-
   async function handlePhoto(e) {
     const files = Array.from(e.target.files)
     for (const file of files) {
@@ -136,7 +141,7 @@ export default function JobDetailPage() {
   }
 
   async function deletePhoto(photoId) {
-    await db.job_photos.delete(photoId)
+    await softDelete('job_photos', photoId)
   }
 
   async function handleExtract() {
@@ -163,35 +168,44 @@ export default function JobDetailPage() {
   }
 
   async function handleSaveAlarm() {
+    if (savingAlarm) return
     if (!alarmDate || !alarmTime) return showToast(t('userAlarm.dateTimeRequired'))
-    const granted = await requestNotificationPermission()
-    if (!granted) return showToast(t('userAlarm.permissionDenied'))
-    if (editingAlarmId) {
-      await db.user_alarms.update(editingAlarmId, { date: alarmDate, time: alarmTime, fired: 0 })
-    } else {
-      await db.user_alarms.add({
-        title: `${customer?.name ?? t('home.noCustomer')} - ${(job.symptoms ?? job.symptom) || t('job.sectionReceipt')}`,
-        date: alarmDate,
-        time: alarmTime,
-        note: job.visitDate ? `${t('job.visitPrefix')} ${job.visitDate}` : '',
-        jobId: Number(id),
-        fired: 0,
-        createdAt: new Date().toISOString(),
-      })
+    setSavingAlarm(true)
+    try {
+      const granted = await requestNotificationPermission()
+      if (!granted) {
+        showToast(t('userAlarm.permissionDenied'))
+        setSavingAlarm(false)
+        return
+      }
+      if (editingAlarmId) {
+        await db.user_alarms.update(editingAlarmId, { date: alarmDate, time: alarmTime, fired: 0 })
+      } else {
+        await db.user_alarms.add({
+          title: `${customer?.name ?? t('home.noCustomer')} - ${(job.symptoms ?? job.symptom) || t('job.sectionReceipt')}`,
+          date: alarmDate,
+          time: alarmTime,
+          note: job.visitDate ? `${t('job.visitPrefix')} ${job.visitDate}` : '',
+          jobId: Number(id),
+          customerId: job.customerId ?? null,
+          fired: 0,
+          createdAt: new Date().toISOString(),
+        })
+      }
+      setAlarmOpen(false)
+      setAlarmTime('')
+      setAlarmDate('')
+      setEditingAlarmId(null)
+      showToast(t('userAlarm.saved'))
+    } catch (e) {
+      console.error('Alarm save failed:', e)
+    } finally {
+      setSavingAlarm(false)
     }
-    setAlarmOpen(false)
-    setAlarmTime('')
-    setAlarmDate('')
-    setEditingAlarmId(null)
-    showToast(t('userAlarm.saved'))
   }
 
   async function handleDelete() {
-    const jid = Number(id)
-    await db.job_photos.where('jobId').equals(jid).delete()
-    await db.expenses.where('jobId').equals(jid).delete()
-    await db.user_alarms.filter((a) => a.jobId === jid).delete()
-    await db.service_jobs.delete(jid)
+    await softDeleteJobCascade(Number(id))
     navigate('/service', { replace: true })
   }
 
@@ -282,8 +296,13 @@ export default function JobDetailPage() {
           </div>
         ) : (
           <>
-            <div className="flex items-center justify-center py-2 bg-emerald-50 border border-emerald-100 rounded-xl">
+            <div className="flex items-center justify-center gap-2 py-2 bg-emerald-50 border border-emerald-100 rounded-xl">
               <span className="text-xs font-semibold text-emerald-600">{t('job.statusDone')}</span>
+              {job.completedAt && (
+                <span className="text-xs text-emerald-700">
+                  {new Date(job.completedAt).toISOString().slice(0, 10)}
+                </span>
+              )}
             </div>
             <button
               onClick={() => navigate(`/service/${id}/billing`)}
@@ -297,6 +316,25 @@ export default function JobDetailPage() {
           </>
         )}
 
+        {/* 결제 받음 토글 — cost > 0 일 때만 */}
+        {(job.cost || 0) > 0 && (
+          <button
+            onClick={() => patch({ paid: !job.paid })}
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-xl shadow-md text-white font-bold transition-colors ${
+              job.paid
+                ? 'bg-emerald-600 active:bg-emerald-700'
+                : 'bg-amber-500 active:bg-amber-600'
+            }`}
+          >
+            <span className="text-sm">
+              {job.paid ? t('job.paidYes') : t('job.paidNo')}
+            </span>
+            <span className="text-sm">
+              {(job.cost || 0).toLocaleString()}
+            </span>
+          </button>
+        )}
+
         {/* 접수 정보 */}
         <Section title={t('job.sectionReceipt')}>
           {(job.symptoms ?? job.symptom)
@@ -306,16 +344,12 @@ export default function JobDetailPage() {
           {job.notes && !isProgress && !isDone && <InfoRow label={t('job.labelNotes')} value={job.notes} />}
         </Section>
 
-        {/* 방문 예약 */}
+        {/* 방문 예약 — 접수 단계에서만 (진행/완료 시엔 이미 방문 다녀온 상태) */}
+        {!isProgress && !isDone && (
         <Section title={t('job.sectionReservation')}>
           <div>
             <label className="text-xs text-gray-400 block mb-1">{t('job.labelVisitDate')}</label>
-            <input
-              type="date"
-              defaultValue={job.visitDate ?? ''}
-              onBlur={(e) => patch({ visitDate: e.target.value })}
-              className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-400"
-            />
+            <DateInput value={job.visitDate ?? ''} onChange={(v) => patch({ visitDate: v })} />
           </div>
           <div>
             <label className="text-xs text-gray-400 block mb-1">{t('job.labelVisitTime')} <span className="text-gray-300">{t('job.labelOptional')}</span></label>
@@ -345,6 +379,7 @@ export default function JobDetailPage() {
             </div>
           </div>
         </Section>
+        )}
 
         {/* 알람 설정 (접수 단계에서만) */}
         {!isProgress && !isDone && (
@@ -371,7 +406,7 @@ export default function JobDetailPage() {
                       {a.fired ? <span className="text-xs font-medium text-yellow-500">({t('userAlarm.fired')})</span> : null}
                     </button>
                     <button
-                      onClick={async () => { await db.user_alarms.delete(a.id); }}
+                      onClick={async () => { await softDelete('user_alarms', a.id); }}
                       className="text-gray-400 active:text-red-400 p-1"
                     >
                       <Trash2 size={16} strokeWidth={1.5} />
@@ -386,9 +421,9 @@ export default function JobDetailPage() {
         {/* 진행 단계 내용 */}
         {(isProgress || isDone) && (
           <>
-            {/* 입력 모드: 통합 폼 (KnowhowFormBody) */}
-            {!isDone && (
-              <KnowhowFormBody form={knowhow} setForm={setKnowhow} />
+            {/* 입력 모드: 통합 폼 (KnowhowFormBody) — knowhow 초기화 완료 후만 렌더 */}
+            {!isDone && knowhowReady && (
+              <KnowhowFormBody form={knowhow} setForm={setKnowhow} hideCustomer />
             )}
 
             {/* 완료 모드: 읽기 전용 */}
@@ -403,6 +438,44 @@ export default function JobDetailPage() {
                 <Section title={t('job.sectionWorkDone')}>
                   <p className="text-sm text-gray-800 whitespace-pre-wrap">{(job.solution ?? job.workDone) || t('job.notEntered')}</p>
                 </Section>
+                {/* 장비 정보 — equipments 우선, 없으면 옛 equipPhotos만 표시 */}
+                {((job.equipments ?? []).length > 0 || (job.equipPhotos ?? []).length > 0) && (
+                  <Section title={t('knowhow.equipPhotos')}>
+                    {(job.equipments ?? []).length > 0 ? (
+                      <div className="space-y-3">
+                        {job.equipments.map((eq, i) => (
+                          <div key={i} className="relative w-full bg-white border-2 border-gray-300 rounded-xl p-2 shadow-sm">
+                            <div className="grid grid-cols-[96px_1fr] gap-2">
+                              <button
+                                onClick={() => setEquipLightboxIdx(i)}
+                                className="w-24 h-24 bg-gray-100 border border-gray-300 rounded-md overflow-hidden block"
+                              >
+                                {eq.photo && <img src={eq.photo} alt="" className="w-full h-full object-cover" />}
+                              </button>
+                              <div className="bg-gray-50 border border-gray-200 rounded-md p-2 text-[11px] leading-tight grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5 content-start overflow-hidden">
+                                {eq.kind && (<><span className="text-gray-400 shrink-0">{t('scan.kind')}</span><span className="text-gray-900 font-medium truncate">{eq.kind}</span></>)}
+                                {eq.brand && (<><span className="text-gray-400 shrink-0">{t('scan.brand')}</span><span className="text-gray-900 font-medium truncate">{eq.brand}</span></>)}
+                                {eq.model && (<><span className="text-gray-400 shrink-0">{t('scan.model')}</span><span className="text-gray-900 font-medium truncate">{eq.model}</span></>)}
+                                {eq.serial && (<><span className="text-gray-400 shrink-0">{t('scan.serial')}</span><span className="text-gray-900 font-medium truncate">{eq.serial}</span></>)}
+                                {eq.capacity && (<><span className="text-gray-400 shrink-0">{t('scan.capacity')}</span><span className="text-gray-900 font-medium truncate">{eq.capacity}</span></>)}
+                                {eq.refrigerant && (<><span className="text-gray-400 shrink-0">{t('scan.refrigerant')}</span><span className="text-gray-900 font-medium truncate">{eq.refrigerant}</span></>)}
+                                {!eq.kind && !eq.brand && !eq.model && (
+                                  <span className="col-span-2 text-gray-400">{t('knowhow.equipNoData')}</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex gap-2 flex-wrap">
+                        {job.equipPhotos.map((url, i) => (
+                          <img key={i} src={url} alt="" className="w-20 h-20 object-cover rounded-lg border border-gray-200" />
+                        ))}
+                      </div>
+                    )}
+                  </Section>
+                )}
               </>
             )}
 
@@ -410,9 +483,11 @@ export default function JobDetailPage() {
             <Section title={t('job.sectionPhotos')}>
               <input ref={fileRef} type="file" accept="image/*" capture="environment" multiple className="hidden" onChange={handlePhoto} />
               <div className="flex gap-2 flex-wrap">
-                {(photos ?? []).map((p) => (
+                {(photos ?? []).map((p, idx) => (
                   <div key={p.id} className="relative w-24 h-24">
-                    <img src={p.dataUrl} alt="" className="w-full h-full object-cover rounded-xl" />
+                    <button onClick={() => setLightboxIndex(idx)} className="block w-full h-full">
+                      <MediaImage dataUrl={p.dataUrl} storagePath={p.storagePath} alt="" className="w-full h-full object-cover rounded-xl" />
+                    </button>
                     {!isDone && (
                       <button onClick={() => deletePhoto(p.id)}
                         className="absolute -top-1 -right-1 w-5 h-5 bg-gray-800 text-white rounded-full flex items-center justify-center">
@@ -465,15 +540,106 @@ export default function JobDetailPage() {
 
       </div>
 
-      {/* 삭제 확인 모달 */}
+      {/* 사진 라이트박스 모달 — 큰 화면 보기 + 좌우 네비게이션 */}
+      {lightboxIndex != null && photos?.[lightboxIndex] && (
+        <div
+          className="fixed inset-0 bg-black/90 z-[70] flex items-center justify-center"
+          onClick={() => setLightboxIndex(null)}
+        >
+          <button
+            onClick={(e) => { e.stopPropagation(); setLightboxIndex(null) }}
+            className="absolute top-4 right-4 w-10 h-10 bg-white/20 text-white rounded-full flex items-center justify-center"
+          >
+            <X size={20} strokeWidth={2} />
+          </button>
+          {lightboxIndex > 0 && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setLightboxIndex(lightboxIndex - 1) }}
+              className="absolute left-2 w-10 h-10 bg-white/20 text-white rounded-full flex items-center justify-center"
+            >
+              <ChevronLeft size={24} strokeWidth={2} />
+            </button>
+          )}
+          {lightboxIndex < photos.length - 1 && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setLightboxIndex(lightboxIndex + 1) }}
+              className="absolute right-2 w-10 h-10 bg-white/20 text-white rounded-full flex items-center justify-center"
+            >
+              <ChevronLeft size={24} strokeWidth={2} className="rotate-180" />
+            </button>
+          )}
+          <MediaImage
+            dataUrl={photos[lightboxIndex].dataUrl}
+            storagePath={photos[lightboxIndex].storagePath}
+            alt=""
+            className="max-w-full max-h-full object-contain"
+          />
+          <div className="absolute bottom-4 text-white/70 text-xs">
+            {lightboxIndex + 1} / {photos.length}
+          </div>
+        </div>
+      )}
+
+      {/* 장비 사진 라이트박스 (완료 모드) */}
+      {equipLightboxIdx != null && (job.equipments ?? [])[equipLightboxIdx]?.photo && (
+        <div
+          className="fixed inset-0 bg-black/90 z-[70] flex items-center justify-center"
+          onClick={() => setEquipLightboxIdx(null)}
+        >
+          <button
+            onClick={(e) => { e.stopPropagation(); setEquipLightboxIdx(null) }}
+            className="absolute top-4 right-4 w-10 h-10 bg-white/20 text-white rounded-full flex items-center justify-center"
+          >
+            <X size={20} strokeWidth={2} />
+          </button>
+          {equipLightboxIdx > 0 && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setEquipLightboxIdx(equipLightboxIdx - 1) }}
+              className="absolute left-2 w-10 h-10 bg-white/20 text-white rounded-full flex items-center justify-center text-2xl"
+            >
+              ‹
+            </button>
+          )}
+          {equipLightboxIdx < (job.equipments ?? []).length - 1 && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setEquipLightboxIdx(equipLightboxIdx + 1) }}
+              className="absolute right-2 w-10 h-10 bg-white/20 text-white rounded-full flex items-center justify-center text-2xl"
+            >
+              ›
+            </button>
+          )}
+          <img
+            src={(job.equipments ?? [])[equipLightboxIdx]?.photo}
+            alt=""
+            className="max-w-full max-h-full object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <div className="absolute bottom-4 text-white/70 text-xs">
+            {equipLightboxIdx + 1} / {(job.equipments ?? []).length}
+          </div>
+        </div>
+      )}
+
+      {/* 삭제 확인 모달 — cascade 영향 데이터 개수 표시 */}
       {showDelete && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-6">
           <div className="bg-white rounded-2xl p-5 w-full max-w-sm">
-            <p className="font-semibold text-gray-900 mb-1">{t('job.deleteTitle')}</p>
-            <p className="text-sm text-gray-400 mb-5">{t('job.deleteDesc')}</p>
+            <p className="font-semibold text-gray-900 mb-2">{t('job.deleteTitle')}</p>
+            <p className="text-sm text-gray-600 mb-3">{t('customer.deleteCascadeWarning')}</p>
+            <ul className="text-xs text-gray-700 bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3 space-y-0.5">
+              <li>• {t('job.cascadePhotos')}: <span className="font-bold">{(photos ?? []).length}{t('customer.cascadeUnit')}</span></li>
+              <li>• {t('job.cascadeExpenses')}: <span className="font-bold">{(jobExpenses ?? []).length}{t('customer.cascadeUnit')}</span></li>
+              <li>• {t('job.cascadeAlarms')}: <span className="font-bold">{(jobAlarms ?? []).length}{t('customer.cascadeUnit')}</span></li>
+            </ul>
+            {(linkedKnowhow ?? []).length > 0 && (
+              <p className="text-[11px] text-blue-700 bg-blue-50 border border-blue-200 rounded-lg p-2 mb-3">
+                ℹ️ {t('job.knowhowPreserved', { count: linkedKnowhow.length })}
+              </p>
+            )}
+            <p className="text-xs text-red-600 font-semibold mb-4 leading-relaxed">⚠️ {t('job.deleteIrreversibleDetail')}</p>
             <div className="flex gap-2">
               <button onClick={() => setShowDelete(false)} className="flex-1 py-2.5 text-sm font-medium border border-gray-300 rounded-xl text-gray-600">{t('job.cancel')}</button>
-              <button onClick={handleDelete} className="flex-1 py-2.5 text-sm font-medium bg-red-500 text-white rounded-xl">{t('job.delete')}</button>
+              <button onClick={handleDelete} className="flex-1 py-2.5 text-sm font-bold bg-red-600 text-white rounded-xl active:bg-red-700">{t('job.delete')}</button>
             </div>
           </div>
         </div>
@@ -493,12 +659,7 @@ export default function JobDetailPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-medium text-gray-500 block mb-1">{t('userAlarm.date')}</label>
-                <input
-                  type="date"
-                  value={alarmDate}
-                  onChange={e => setAlarmDate(e.target.value)}
-                  className="w-full text-sm text-gray-800 border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-blue-400"
-                />
+                <DateInput value={alarmDate} onChange={setAlarmDate} />
               </div>
               <div>
                 <label className="text-xs font-medium text-gray-500 block mb-1">{t('userAlarm.alarmTime')}</label>
