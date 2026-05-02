@@ -5,11 +5,12 @@ import { ChevronLeft, Save, Camera, X, Sparkles, Plus, Trash2 } from 'lucide-rea
 import { db } from '../db'
 import { scanInvoice } from '../utils/scanInvoice'
 import DateInput from '../components/DateInput'
+import { todayLocal } from '../utils/date'
 
 const EMPTY_ROW = { name: '', qty: '', price: '' }
 
 const EMPTY = {
-  date: new Date().toISOString().slice(0, 10),
+  date: todayLocal(),
   items: [],
   subtotal: '',
   tax: '',

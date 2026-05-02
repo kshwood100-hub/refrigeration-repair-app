@@ -7,8 +7,9 @@ import { db } from '../db'
 import DateInput from '../components/DateInput'
 import TrialLimitModal from '../components/TrialLimitModal'
 import { consumeTrial } from '../utils/trial'
+import { todayLocal } from '../utils/date'
 
-const today = () => new Date().toISOString().slice(0, 10)
+const today = todayLocal
 
 function formatAmount(val) {
   if (val === '' || val == null) return ''

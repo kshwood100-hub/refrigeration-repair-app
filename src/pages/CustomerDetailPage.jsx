@@ -13,6 +13,7 @@ import MediaImage from '../components/MediaImage'
 import { requestNotificationPermission } from '../utils/alarmManager'
 import { showToast } from '../utils/toast'
 import { compressImage } from '../utils/image'
+import { toLocalISO } from '../utils/date'
 
 const INTERVAL_OPTIONS = [1, 2, 3, 6, 12]
 
@@ -86,7 +87,7 @@ export default function CustomerDetailPage() {
   function calcNextDue(intervalMonths) {
     const d = new Date()
     d.setMonth(d.getMonth() + intervalMonths)
-    return d.toISOString().slice(0, 10)
+    return toLocalISO(d)
   }
 
   async function handleAddEquipment() {
@@ -134,7 +135,7 @@ export default function CustomerDetailPage() {
   async function handleCheckDone(equip) {
     const nextDueDate = calcNextDue(equip.intervalMonths)
     await db.equipment_maintenance.update(equip.id, {
-      lastCheckedDate: new Date().toISOString().slice(0, 10),
+      lastCheckedDate: toLocalISO(new Date()),
       nextDueDate,
     })
   }

@@ -5,6 +5,7 @@ import { Plus, ChevronRight, ChevronLeft, Calendar, MapPin, Search, X, User, Cam
 import { useTranslation } from 'react-i18next'
 import { db } from '../db'
 import { softDeleteCustomerCascade } from '../utils/cloudSync'
+import { toLocalISO } from '../utils/date'
 
 export default function ServicePage() {
   const { t } = useTranslation()
@@ -268,7 +269,7 @@ export default function ServicePage() {
                         {tab === 'completed' && job.completedAt && (
                           <span className="flex items-center gap-1 text-emerald-600">
                             <Check size={10} strokeWidth={1.5} />
-                            {new Date(job.completedAt).toISOString().slice(0, 10)}
+                            {toLocalISO(new Date(job.completedAt))}
                           </span>
                         )}
                         {job.cost > 0 && (

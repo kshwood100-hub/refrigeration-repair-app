@@ -11,8 +11,9 @@ import DateInput from '../components/DateInput'
 import TrialLimitModal from '../components/TrialLimitModal'
 import CustomerPickerModal from '../components/CustomerPickerModal'
 import { consumeTrial } from '../utils/trial'
+import { todayLocal } from '../utils/date'
 
-const today = () => new Date().toISOString().slice(0, 10)
+const today = todayLocal
 
 const EMPTY_JOB = {
   status: 'received',

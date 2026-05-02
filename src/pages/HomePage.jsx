@@ -8,6 +8,7 @@ import { db } from '../db'
 import { getTomorrowSchedule, getTodayMaintenances } from '../utils/alarmManager'
 import { loadSettings } from '../utils/settings'
 import { useAuth } from '../hooks/useAuth.jsx'
+import { todayLocal } from '../utils/date'
 
 // 개발자/관리자 이메일 — 자동 정식 등급
 const DEV_EMAILS = ['kshwood100@gmail.com', 'gshwood11@gmail.com', 'kkswood@gmail.com', 'kkswood386@gmail.com']
@@ -19,7 +20,7 @@ const TIER_COLOR = {
   group: { color: '#b08968', shadow: 'rgba(176,137,104,0.5)' },  // 연한 갈색 (그룹 키입력)
 }
 
-const todayStr = () => new Date().toISOString().slice(0, 10)
+const todayStr = todayLocal
 
 export default function HomePage() {
   const navigate = useNavigate()

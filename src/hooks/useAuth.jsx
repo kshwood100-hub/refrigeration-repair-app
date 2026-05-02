@@ -5,6 +5,7 @@ import { auth, googleProvider, firestore } from '../firebase'
 import { clearTrialCache } from '../utils/trial'
 import { startAutoSync, stopAutoSync, syncAll } from '../utils/cloudSync'
 import i18n from '../i18n'
+import { toLocalISO } from '../utils/date'
 
 const AuthContext = createContext(null)
 
@@ -127,7 +128,7 @@ export function AuthProvider({ children }) {
       try { await signOut(auth) } catch (e) { console.warn('Reject signOut failed:', e?.message) }
       if (access.reason === 'cancelled') {
         const dateStr = access.purgeAt
-          ? new Date(access.purgeAt).toISOString().slice(0, 10)
+          ? toLocalISO(new Date(access.purgeAt))
           : ''
         throw new Error(i18n.t('error.subscriptionCancelled', { date: dateStr }))
       }

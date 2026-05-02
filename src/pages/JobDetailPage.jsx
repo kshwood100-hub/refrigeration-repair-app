@@ -12,6 +12,7 @@ import { extractKnowhow } from '../utils/aiKnowhow'
 import { requestNotificationPermission } from '../utils/alarmManager'
 import { showToast } from '../utils/toast'
 import { compressImage } from '../utils/image'
+import { todayLocal, toLocalISO } from '../utils/date'
 import KnowhowFormBody, { EMPTY_KNOWHOW } from '../components/KnowhowFormBody'
 import DateInput from '../components/DateInput'
 import MediaImage from '../components/MediaImage'
@@ -301,7 +302,7 @@ export default function JobDetailPage() {
               <span className="text-xs font-semibold text-emerald-600">{t('job.statusDone')}</span>
               {job.completedAt && (
                 <span className="text-xs text-emerald-700">
-                  {new Date(job.completedAt).toISOString().slice(0, 10)}
+                  {toLocalISO(new Date(job.completedAt))}
                 </span>
               )}
             </div>
@@ -386,7 +387,7 @@ export default function JobDetailPage() {
         {!isProgress && !isDone && (
           <>
             <button
-              onClick={() => { setEditingAlarmId(null); setAlarmDate(job.visitDate || new Date().toISOString().slice(0, 10)); setAlarmTime(''); setAlarmOpen(true) }}
+              onClick={() => { setEditingAlarmId(null); setAlarmDate(job.visitDate || todayLocal()); setAlarmTime(''); setAlarmOpen(true) }}
               className="w-full flex items-center justify-center gap-2 py-3 bg-amber-50 border border-amber-200 rounded-xl text-sm font-medium text-amber-700 active:bg-amber-100"
             >
               <Bell size={15} strokeWidth={1.5} />

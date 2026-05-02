@@ -1,14 +1,11 @@
 import { db } from '../db'
 import i18n from '../i18n'
+import { todayLocal, tomorrowLocal } from './date'
 
 const t = (key, opts) => i18n.t(key, opts)
 
-const today = () => new Date().toISOString().slice(0, 10)
-const tomorrow = () => {
-  const d = new Date()
-  d.setDate(d.getDate() + 1)
-  return d.toISOString().slice(0, 10)
-}
+const today = todayLocal
+const tomorrow = tomorrowLocal
 
 // 알람 권한 요청
 export async function requestNotificationPermission() {

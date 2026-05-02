@@ -4,13 +4,14 @@ import { useTranslation } from 'react-i18next'
 import { ChevronLeft, Save } from 'lucide-react'
 import { db } from '../db'
 import DateInput from '../components/DateInput'
+import { todayLocal } from '../utils/date'
 
 export default function SupplierPaymentFormPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { id } = useParams()
   const supplierId = Number(id)
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10))
+  const [date, setDate] = useState(todayLocal())
   const [amount, setAmount] = useState('')
   const [memo, setMemo] = useState('')
   const [saving, setSaving] = useState(false)

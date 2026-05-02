@@ -1,6 +1,7 @@
 import { db } from '../db'
 import i18n from '../i18n'
 import { showToast } from './toast'
+import { todayLocal } from './date'
 
 const t = (key, opts) => i18n.t(key, opts)
 
@@ -166,7 +167,7 @@ export async function exportAllData() {
     ...data,
   }, null, 2)
 
-  const fileName = `rpro_backup_${new Date().toISOString().slice(0, 10)}.json`
+  const fileName = `rpro_backup_${todayLocal()}.json`
   const blob = new Blob([payload], { type: 'text/plain' })
   const file = new File([blob], fileName, { type: 'text/plain' })
 
@@ -175,7 +176,7 @@ export async function exportAllData() {
     try {
       await navigator.share({
         title: t('backup.shareTitle'),
-        text: t('backup.shareText', { date: new Date().toISOString().slice(0, 10) }),
+        text: t('backup.shareText', { date: todayLocal() }),
         files: [file],
       })
       return

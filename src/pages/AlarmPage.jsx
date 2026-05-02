@@ -8,6 +8,7 @@ import { softDelete } from '../utils/cloudSync'
 import { requestNotificationPermission } from '../utils/alarmManager'
 import { showToast } from '../utils/toast'
 import DateInput from '../components/DateInput'
+import { todayLocal } from '../utils/date'
 
 export default function AlarmPage() {
   const navigate = useNavigate()
@@ -35,7 +36,7 @@ export default function AlarmPage() {
     }
   }, [highlightId, alarms])
 
-  const todayStr = new Date().toISOString().slice(0, 10)
+  const todayStr = todayLocal()
 
   async function handleAdd() {
     if (!date || !time) return showToast(t('userAlarm.dateTimeRequired'))

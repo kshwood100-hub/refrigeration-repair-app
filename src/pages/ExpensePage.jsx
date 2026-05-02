@@ -5,9 +5,10 @@ import { useTranslation } from 'react-i18next'
 import { Plus, ChevronRight, Calendar, ChevronLeft } from 'lucide-react'
 import { db } from '../db'
 import { softDelete } from '../utils/cloudSync'
+import { toLocalISO } from '../utils/date'
 
 // ── 날짜 유틸 ──────────────────────────────────────────
-function toISO(d) { return d.toISOString().slice(0, 10) }
+const toISO = toLocalISO
 function startOfWeek(d) {
   const r = new Date(d); r.setDate(d.getDate() - d.getDay()); return r
 }
