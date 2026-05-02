@@ -265,6 +265,19 @@ export default function CustomerFormPage() {
           </div>
         </div>
       </div>
+
+      {/* 하단 저장 버튼 (긴 폼 스크롤 후 접근성용) */}
+      <button
+        onClick={handleSave}
+        disabled={saving || !form.name.trim()}
+        className={`w-full mt-6 py-4 text-white text-base font-semibold rounded-xl border-2 shadow-md ${
+          saving || !form.name.trim()
+            ? 'bg-gray-400 border-gray-300 cursor-not-allowed'
+            : 'bg-emerald-600 border-emerald-400 active:bg-emerald-700'
+        }`}
+      >
+        {saving ? t('common.saving') : t('customerForm.save')}
+      </button>
     </div>
   )
 }
