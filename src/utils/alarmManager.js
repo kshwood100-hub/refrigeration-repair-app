@@ -126,13 +126,14 @@ async function scheduleMaintenanceAlarms() {
 }
 
 // 사용자가 직접 만든 알람 스케줄링 (이미 울린 것은 제외)
+// - 미래 알람: setTimeout 예약 (페이지 살아있는 동안 발화)
+// - 과거 알람 (ms<=0): 앱 열 때 즉시 표시 → 사용자가 늦게 앱 열어도 누락 방지
 async function scheduleUserAlarms() {
-  const alarms = await db.user_alarms.where('fired').equals(0).toArray()
+  const alarms = await db.user_alarms.filter((a) => !a.fired && !a.deletedAt).toArray()
 
   for (const alarm of alarms) {
     const ms = msUntilDateTime(alarm.date, alarm.time)
-    if (ms <= 0) continue
-    scheduleOnce(`user-alarm-${alarm.id}`, ms, async () => {
+    const fire = async () => {
       showNotification(
         alarm.title || t('userAlarm.defaultTitle'),
         alarm.note || '',
@@ -140,7 +141,13 @@ async function scheduleUserAlarms() {
         `user-alarm-${alarm.id}`
       )
       await db.user_alarms.update(alarm.id, { fired: 1 })
-    })
+    }
+    if (ms <= 0) {
+      // 이미 시각 지난 알람 → 즉시 표시
+      fire()
+    } else {
+      scheduleOnce(`user-alarm-${alarm.id}`, ms, fire)
+    }
   }
 }
 

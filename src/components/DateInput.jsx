@@ -14,6 +14,7 @@ function parseISO(s) {
 export default function DateInput({ value, onChange, placeholder, className }) {
   const { t, i18n } = useTranslation()
   const [open, setOpen] = useState(false)
+  const [dropUp, setDropUp] = useState(false)
   const wrapRef = useRef(null)
   const today = new Date()
   const selected = parseISO(value)
@@ -40,6 +41,14 @@ export default function DateInput({ value, onChange, placeholder, className }) {
     } else {
       setViewYear(today.getFullYear())
       setViewMonth(today.getMonth())
+    }
+    // 캘린더 높이(약 280px) 기준 — 아래 공간 부족하면 위로 펼침 (모달 안 bottom-sheet 대응)
+    if (wrapRef.current) {
+      const rect = wrapRef.current.getBoundingClientRect()
+      const spaceBelow = window.innerHeight - rect.bottom
+      const spaceAbove = rect.top
+      const CAL_HEIGHT = 280
+      setDropUp(spaceBelow < CAL_HEIGHT && spaceAbove > spaceBelow)
     }
     setOpen(true)
   }
@@ -116,7 +125,7 @@ export default function DateInput({ value, onChange, placeholder, className }) {
       </button>
 
       {open && (
-        <div className="absolute z-50 mt-1 left-0 bg-white border border-gray-300 rounded-xl shadow-xl p-2" style={{ width: 240 }}>
+        <div className={`absolute z-50 left-0 bg-white border border-gray-300 rounded-xl shadow-xl p-2 ${dropUp ? 'bottom-full mb-1' : 'top-full mt-1'}`} style={{ width: 240 }}>
           <div className="flex items-center justify-between mb-1.5">
             <button type="button" onClick={prevMonth} className="p-1 text-gray-500 active:text-gray-800 rounded active:bg-gray-100">
               <ChevronLeft size={14} strokeWidth={2} />
