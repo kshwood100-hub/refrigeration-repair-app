@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Plus, ChevronRight, ChevronLeft, Calendar, MapPin, Search, X, User, Camera, Trash2, Check } from 'lucide-react'
+import { Plus, ChevronRight, Calendar, MapPin, Search, X, User, Camera, Trash2, Check } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { db } from '../db'
-import { softDeleteCustomerCascade } from '../utils/cloudSync'
+import { softDelete, softDeleteCustomerCascade, pushCollection } from '../utils/cloudSync'
 import { toLocalISO } from '../utils/date'
 
 export default function ServicePage() {
@@ -14,8 +14,19 @@ export default function ServicePage() {
   const [tab, setTab] = useState(location.state?.tab ?? 'customers')
   const [search, setSearch] = useState('')
   const [deleteTarget, setDeleteTarget] = useState(null)
-  const aiExtractMode = location.state?.aiExtractMode === true
   const revenueAddMode = location.state?.revenueAddMode === true
+
+  // label 패턴 — 자식 input.click()을 브라우저가 표준으로 보장. 분기·ref·환경 의존 0.
+  function onScanFile(e) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      navigate('/business-cards', { state: { scanDataUrl: ev.target?.result } })
+    }
+    reader.readAsDataURL(file)
+  }
 
   async function handleDeleteCustomer() {
     if (!deleteTarget) return
@@ -84,41 +95,28 @@ export default function ServicePage() {
     <div className="p-4 pb-4">
       {/* 헤더 */}
       <div className="mb-4 flex items-center gap-2">
-        {aiExtractMode && (
-          <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-gray-500" aria-label="back">
-            <ChevronLeft size={18} strokeWidth={1.5} />
-          </button>
-        )}
-        <h2 className="text-base font-semibold text-gray-900">
-          {aiExtractMode ? t('service.aiExtractTitle') : t('service.title')}
-        </h2>
+        <h2 className="text-base font-semibold text-gray-900">{t('service.title')}</h2>
       </div>
 
-      {/* 검색 (AI 추출 모드에선 숨김 — 완료 의뢰 단순 선택만) */}
-      {!aiExtractMode && (
-        <div className="relative mb-3">
-          <Search size={14} strokeWidth={1.5} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={t('service.searchPlaceholder')}
-            className="w-full pl-8 pr-8 py-2 text-sm bg-white border border-gray-300 rounded-xl outline-none focus:border-gray-400"
-          />
-          {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-              <X size={14} strokeWidth={1.5} />
-            </button>
-          )}
-        </div>
-      )}
+      {/* 검색 */}
+      <div className="relative mb-3">
+        <Search size={14} strokeWidth={1.5} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder={t('service.searchPlaceholder')}
+          className="w-full pl-8 pr-8 py-2 text-sm bg-white border border-gray-300 rounded-xl outline-none focus:border-gray-400"
+        />
+        {search && (
+          <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+            <X size={14} strokeWidth={1.5} />
+          </button>
+        )}
+      </div>
 
-      {/* 탭 (AI 추출 / 매출 등록 모드일 때는 탭 숨김 + 안내) */}
-      {aiExtractMode ? (
-        <div className="mb-3 px-3 py-2.5 bg-violet-50 border border-violet-200 rounded-xl text-xs text-violet-800">
-          {t('service.aiExtractHint')}
-        </div>
-      ) : revenueAddMode ? (
+      {/* 탭 (매출 등록 모드일 때는 탭 숨김 + 안내) */}
+      {revenueAddMode ? (
         <div className="mb-3 px-3 py-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800">
           {t('service.revenueAddHint')}
         </div>
@@ -151,27 +149,31 @@ export default function ServicePage() {
 
       {/* 고객현황 탭 — 명함등록 + 고객등록 + 명함조회 버튼 */}
       {tab === 'customers' && (
-        <div className="flex gap-2 mb-3">
-          <button
-            onClick={() => navigate('/business-cards?scan=1')}
-            className="flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-bold bg-violet-600 text-white rounded-xl shadow-md active:bg-violet-700"
-          >
-            <Camera size={16} strokeWidth={2.5} />
-            {t('service.businessCards')}
-          </button>
+        <div className="grid grid-cols-3 gap-2 mb-3">
+          {/* label 패턴 — label 클릭이 자식 input.click()을 브라우저가 표준으로 보장. PC user activation 차단 우회 */}
+          <label className="flex flex-col items-center justify-center gap-1.5 py-3 px-1 min-h-[76px] text-xs font-bold bg-violet-600 text-white rounded-xl shadow-md active:bg-violet-700 cursor-pointer">
+            <Camera size={18} strokeWidth={2.5} />
+            <span className="text-center leading-tight break-keep">{t('service.businessCards')}</span>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={onScanFile}
+              className="hidden"
+            />
+          </label>
           <button
             onClick={() => navigate('/customers/new')}
-            className="flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-bold bg-emerald-600 text-white rounded-xl shadow-md active:bg-emerald-700"
+            className="flex flex-col items-center justify-center gap-1.5 py-3 px-1 min-h-[76px] text-xs font-bold bg-emerald-600 text-white rounded-xl shadow-md active:bg-emerald-700"
           >
-            <Plus size={16} strokeWidth={2.5} />
-            {t('service.newRequest')}
+            <Plus size={18} strokeWidth={2.5} />
+            <span className="text-center leading-tight break-keep">{t('service.newRequest')}</span>
           </button>
           <button
             onClick={() => navigate('/business-cards')}
-            className="flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-bold bg-blue-600 text-white rounded-xl shadow-md active:bg-blue-700"
+            className="flex flex-col items-center justify-center gap-1.5 py-3 px-1 min-h-[76px] text-xs font-bold bg-blue-600 text-white rounded-xl shadow-md active:bg-blue-700"
           >
-            <User size={16} strokeWidth={2.5} />
-            {t('service.businessCardsList')}
+            <User size={18} strokeWidth={2.5} />
+            <span className="text-center leading-tight break-keep">{t('service.businessCardsList')}</span>
           </button>
         </div>
       )}
@@ -190,7 +192,13 @@ export default function ServicePage() {
                 className="w-full bg-white border border-gray-300 rounded-lg flex items-center gap-1 shadow-sm overflow-hidden"
               >
                 <button
-                  onClick={() => navigate(`/customers/${c.id}`)}
+                  onClick={() => {
+                    if (revenueAddMode) {
+                      navigate('/service/new', { state: { customerId: c.id } })
+                    } else {
+                      navigate(`/customers/${c.id}`)
+                    }
+                  }}
                   className="flex-1 min-w-0 flex items-center gap-2 px-3 py-1.5 text-left active:bg-gray-50"
                 >
                   <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
@@ -219,7 +227,7 @@ export default function ServicePage() {
       {tab !== 'customers' && (
         displayedJobs.length === 0 ? (
           <div className="text-center py-20 text-gray-400">
-            <div className="text-sm">{aiExtractMode ? t('service.completedEmpty') : t('service.empty')}</div>
+            <div className="text-sm">{t('service.empty')}</div>
           </div>
         ) : (
           <div className="space-y-1.5">
@@ -289,12 +297,26 @@ export default function ServicePage() {
                   </div>
                   </button>
                   {isStale && (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); navigate(`/service/${job.id}/edit`) }}
-                      className="w-full px-3 py-2 border-t border-red-200 bg-red-50 text-red-700 text-[11px] font-bold active:bg-red-100 rounded-b-lg"
-                    >
-                      {t('service.fixCustomerBtn')} →
-                    </button>
+                    <div className="grid grid-cols-2 border-t border-red-200 rounded-b-lg overflow-hidden">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); navigate(`/service/${job.id}/edit`) }}
+                        className="px-3 py-2 bg-red-50 text-red-700 text-[11px] font-bold active:bg-red-100 border-r border-red-200"
+                      >
+                        {t('service.fixCustomerBtn')} →
+                      </button>
+                      <button
+                        onClick={async (e) => {
+                          e.stopPropagation()
+                          if (!confirm(t('service.staleDeleteConfirm'))) return
+                          await softDelete('service_jobs', job.id)
+                          pushCollection('service_jobs').catch(() => {})
+                        }}
+                        className="px-3 py-2 bg-red-600 text-white text-[11px] font-bold active:bg-red-700 flex items-center justify-center gap-1"
+                      >
+                        <Trash2 size={11} strokeWidth={2} />
+                        {t('service.staleDeleteBtn')}
+                      </button>
+                    </div>
                   )}
                 </div>
               )

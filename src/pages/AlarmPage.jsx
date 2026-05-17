@@ -8,6 +8,7 @@ import { softDelete } from '../utils/cloudSync'
 import { requestNotificationPermission } from '../utils/alarmManager'
 import { showToast } from '../utils/toast'
 import DateInput from '../components/DateInput'
+import TimeInput from '../components/TimeInput'
 import { todayLocal } from '../utils/date'
 
 export default function AlarmPage() {
@@ -68,11 +69,16 @@ export default function AlarmPage() {
 
   return (
     <div className="p-4 pb-8">
+      {/* 뒤로가기 */}
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center justify-center gap-2 w-full py-3 mb-2 bg-gray-100 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 active:bg-gray-200"
+      >
+        <ChevronLeft size={18} strokeWidth={2} />
+        {t('common.back')}
+      </button>
       {/* 헤더 */}
       <div className="flex items-center gap-3 mb-5">
-        <button onClick={() => navigate(-1)} className="p-1">
-          <ChevronLeft size={20} strokeWidth={2} />
-        </button>
         <h2 className="text-lg font-bold flex-1">{t('userAlarm.title')}</h2>
         <button
           onClick={() => setShowForm(true)}
@@ -169,12 +175,7 @@ export default function AlarmPage() {
                 </div>
                 <div>
                   <label className="text-xs font-medium text-gray-500 block mb-1">{t('userAlarm.time')}</label>
-                  <input
-                    type="time"
-                    value={time}
-                    onChange={e => setTime(e.target.value)}
-                    className="w-full text-sm text-gray-800 border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-blue-400"
-                  />
+                  <TimeInput value={time} onChange={setTime} />
                 </div>
               </div>
               <div>

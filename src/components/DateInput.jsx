@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
@@ -15,7 +16,10 @@ export default function DateInput({ value, onChange, placeholder, className }) {
   const { t, i18n } = useTranslation()
   const [open, setOpen] = useState(false)
   const [dropUp, setDropUp] = useState(false)
+  // 모달과 stacking context 충돌 회피 위해 캘린더를 createPortal로 document.body에 마운트
+  const [anchor, setAnchor] = useState({ top: 0, left: 0, width: 0 })
   const wrapRef = useRef(null)
+  const panelRef = useRef(null)
   const today = new Date()
   const selected = parseISO(value)
   const [viewYear, setViewYear] = useState((selected ?? today).getFullYear())
@@ -24,7 +28,9 @@ export default function DateInput({ value, onChange, placeholder, className }) {
   useEffect(() => {
     if (!open) return
     function onClick(e) {
-      if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false)
+      const inAnchor = wrapRef.current && wrapRef.current.contains(e.target)
+      const inPanel = panelRef.current && panelRef.current.contains(e.target)
+      if (!inAnchor && !inPanel) setOpen(false)
     }
     document.addEventListener('mousedown', onClick)
     document.addEventListener('touchstart', onClick)
@@ -48,7 +54,9 @@ export default function DateInput({ value, onChange, placeholder, className }) {
       const spaceBelow = window.innerHeight - rect.bottom
       const spaceAbove = rect.top
       const CAL_HEIGHT = 280
-      setDropUp(spaceBelow < CAL_HEIGHT && spaceAbove > spaceBelow)
+      const up = spaceBelow < CAL_HEIGHT && spaceAbove > spaceBelow
+      setDropUp(up)
+      setAnchor({ top: up ? rect.top : rect.bottom, left: rect.left, width: rect.width })
     }
     setOpen(true)
   }
@@ -124,8 +132,17 @@ export default function DateInput({ value, onChange, placeholder, className }) {
         <Calendar size={14} strokeWidth={1.5} className="text-gray-400 shrink-0" />
       </button>
 
-      {open && (
-        <div className={`absolute z-50 left-0 bg-white border border-gray-300 rounded-xl shadow-xl p-2 ${dropUp ? 'bottom-full mb-1' : 'top-full mt-1'}`} style={{ width: 240 }}>
+      {open && createPortal(
+        <div
+          ref={panelRef}
+          className="fixed bg-white border border-gray-300 rounded-xl shadow-xl p-2"
+          style={{
+            zIndex: 9999,
+            width: 240,
+            left: anchor.left,
+            top: dropUp ? undefined : anchor.top + 4,
+            bottom: dropUp ? window.innerHeight - anchor.top + 4 : undefined,
+          }}>
           <div className="flex items-center justify-between mb-1.5">
             <button type="button" onClick={prevMonth} className="p-1 text-gray-500 active:text-gray-800 rounded active:bg-gray-100">
               <ChevronLeft size={14} strokeWidth={2} />
@@ -175,7 +192,8 @@ export default function DateInput({ value, onChange, placeholder, className }) {
               {t('common.today')}
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

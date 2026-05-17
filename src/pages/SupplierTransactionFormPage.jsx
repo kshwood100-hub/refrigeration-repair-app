@@ -6,6 +6,9 @@ import { db } from '../db'
 import { scanInvoice } from '../utils/scanInvoice'
 import DateInput from '../components/DateInput'
 import { todayLocal } from '../utils/date'
+import { consumeTrial } from '../utils/trial'
+import { showToast } from '../utils/toast'
+import { captureAttr } from '../utils/deviceCapture'
 
 const EMPTY_ROW = { name: '', qty: '', price: '' }
 
@@ -71,6 +74,16 @@ export default function SupplierTransactionFormPage() {
     if (saving) return
     setSaving(true)
     try {
+      // 트라이얼 cap — 매입거래는 회계(finance) 카테고리에 통합
+      try {
+        await consumeTrial('finance')
+      } catch (e) {
+        if (String(e?.message || e).includes('Trial limit')) {
+          showToast(t('trial.limitTitle'))
+          setSaving(false)
+          return
+        }
+      }
       const now = new Date().toISOString()
       // items가 있으면 합계 자동 계산. 사용자가 직접 입력한 값(form.subtotal/tax/total)이 우선.
       const itemsSum = form.items.reduce(
@@ -105,6 +118,9 @@ export default function SupplierTransactionFormPage() {
     setScanLoading(true)
     try {
       const dataUrl = await compressImage(file)
+      // 1단계: 사진 즉시 박기 (사용자가 미리보기 보면서 AI 분석 대기)
+      set('invoicePhoto', dataUrl)
+      // 2단계: AI 분석 (백그라운드)
       const result = await scanInvoice(dataUrl)
       const items = (result.items ?? []).map((it) => ({
         name:  it.name ?? '',
@@ -113,7 +129,6 @@ export default function SupplierTransactionFormPage() {
       }))
       setForm((p) => ({
         ...p,
-        invoicePhoto: dataUrl,
         date:         result.date  || p.date,
         items:        items.length ? items : p.items,
         subtotal:     num(result.subtotal),
@@ -161,10 +176,10 @@ export default function SupplierTransactionFormPage() {
     <div className="p-4 pb-20">
       <button
         onClick={() => navigate(-1)}
-        className="flex items-center gap-2 mb-4 text-gray-600"
+        className="flex items-center justify-center gap-2 w-full py-3 mb-4 bg-gray-100 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 active:bg-gray-200"
       >
         <ChevronLeft size={18} strokeWidth={2} />
-        <span className="text-sm">{t('supplier.back')}</span>
+        {t('supplier.back')}
       </button>
 
       <h1 className="text-xl font-bold mb-4 text-gray-900">{t('tx.addTitle')}</h1>
@@ -174,7 +189,7 @@ export default function SupplierTransactionFormPage() {
           ref={fileRef}
           type="file"
           accept="image/*"
-          capture="environment"
+          {...captureAttr()}
           className="hidden"
           onChange={handleScan}
         />
@@ -182,7 +197,7 @@ export default function SupplierTransactionFormPage() {
           ref={appendFileRef}
           type="file"
           accept="image/*"
-          capture="environment"
+          {...captureAttr()}
           className="hidden"
           onChange={handleScanAppend}
         />
@@ -252,9 +267,13 @@ export default function SupplierTransactionFormPage() {
           </div>
 
           {form.items.length === 0 ? (
-            <p className="text-xs text-gray-400 text-center py-4 bg-gray-50 border border-gray-200 rounded-xl">
-              {t('tx.field.itemsEmpty')}
-            </p>
+            <button
+              onClick={addRow}
+              className="w-full flex items-center justify-center gap-2 py-3.5 bg-violet-600 text-white text-sm font-bold rounded-xl active:bg-violet-700 shadow-md"
+            >
+              <Plus size={14} strokeWidth={2.5} />
+              {t('tx.field.manualAdd')}
+            </button>
           ) : (
             <div className="space-y-2">
               {form.items.map((it, i) => (

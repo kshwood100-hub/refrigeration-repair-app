@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ChevronLeft, Save, Camera, Sparkles, Trash2 } from 'lucide-react'
+import { ChevronLeft, Save, Camera, Sparkles, Trash2, UserPlus } from 'lucide-react'
 import { db } from '../db'
 import { showToast } from '../utils/toast'
 import { scanBusinessCard } from '../utils/scanBusinessCard'
 import { consumeTrial } from '../utils/trial'
+import { captureAttr } from '../utils/deviceCapture'
 
 function compressImage(file) {
   return new Promise((resolve) => {
@@ -42,8 +43,13 @@ export default function CustomerFormPage() {
   const [saving, setSaving] = useState(false)
   const [scanLoading, setScanLoading] = useState(false)
   const [scanError, setScanError] = useState('')
+  const [contactsSupported, setContactsSupported] = useState(false)
   const fileRef = useRef(null)
   const siteFileRef = useRef(null)
+
+  useEffect(() => {
+    setContactsSupported(typeof navigator !== 'undefined' && !!navigator.contacts?.select)
+  }, [])
 
   useEffect(() => {
     if (!isEdit) return
@@ -61,6 +67,42 @@ export default function CustomerFormPage() {
   }, [id, isEdit])
 
   const set = (k, v) => setForm((p) => ({ ...p, [k]: v }))
+
+  function formatContactAddress(a) {
+    if (!a) return ''
+    const parts = [
+      Array.isArray(a.addressLine) ? a.addressLine.join(' ') : a.addressLine,
+      a.city,
+      a.region,
+      a.country,
+    ].filter(Boolean)
+    return parts.join(', ')
+  }
+
+  async function handlePickContact() {
+    if (!navigator.contacts?.select) return
+    try {
+      const contacts = await navigator.contacts.select(
+        ['name', 'tel', 'email', 'address'],
+        { multiple: false }
+      )
+      if (!contacts || contacts.length === 0) return
+      const c = contacts[0]
+      setForm((p) => ({
+        ...p,
+        name:    c.name?.[0]    || p.name,
+        phone:   c.tel?.[0]     || p.phone,
+        email:   c.email?.[0]   || p.email,
+        address: formatContactAddress(c.address?.[0]) || p.address,
+      }))
+      showToast(t('customerForm.contactPicked'))
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        console.warn('Contact picker failed:', err?.message)
+        showToast(t('customerForm.contactsError'))
+      }
+    }
+  }
 
   async function handleScan(e) {
     const file = e.target.files?.[0]
@@ -159,11 +201,15 @@ export default function CustomerFormPage() {
 
   return (
     <div className="p-4 pb-20">
+      {/* 뒤로가기 */}
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center justify-center gap-2 w-full py-3 mb-2 bg-gray-100 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 active:bg-gray-200"
+      >
+        <ChevronLeft size={18} strokeWidth={2} />
+        {t('customerForm.back')}
+      </button>
       <div className="flex items-center justify-between mb-5">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-gray-500">
-          <ChevronLeft size={18} strokeWidth={1.5} />
-          <span className="text-sm">{t('customerForm.back')}</span>
-        </button>
         <h2 className="text-base font-semibold text-gray-900">
           {isEdit ? t('customerForm.editTitle') : t('customerForm.title')}
         </h2>
@@ -186,24 +232,37 @@ export default function CustomerFormPage() {
           ref={fileRef}
           type="file"
           accept="image/*"
-          capture="environment"
+          {...captureAttr()}
           className="hidden"
           onChange={handleScan}
         />
-        <button
-          onClick={() => fileRef.current?.click()}
-          disabled={scanLoading}
-          className="w-full flex items-center justify-center gap-2 py-3 bg-violet-600 text-white text-sm font-bold rounded-xl active:bg-violet-700 disabled:opacity-60 shadow-sm"
-        >
-          {scanLoading ? (
-            <><Sparkles size={16} strokeWidth={2} className="animate-pulse" /> {t('customerForm.aiAnalyzing')}</>
-          ) : (
-            <><Camera size={16} strokeWidth={2} /> {t('customerForm.scanCardBtn')}</>
+        <div className={contactsSupported ? "grid grid-cols-2 gap-2" : ""}>
+          <button
+            onClick={() => fileRef.current?.click()}
+            disabled={scanLoading}
+            className="flex items-center justify-center gap-1.5 py-3 bg-violet-600 text-white text-sm font-bold rounded-xl active:bg-violet-700 disabled:opacity-60 shadow-sm"
+          >
+            {scanLoading ? (
+              <><Sparkles size={16} strokeWidth={2} className="animate-pulse" /> {t('customerForm.aiAnalyzing')}</>
+            ) : (
+              <><Camera size={16} strokeWidth={2} /> {t('customerForm.scanCardBtn')}</>
+            )}
+          </button>
+          {contactsSupported && (
+            <button
+              onClick={handlePickContact}
+              type="button"
+              className="flex items-center justify-center gap-1.5 py-3 bg-sky-600 text-white text-sm font-bold rounded-xl active:bg-sky-700 shadow-sm"
+            >
+              <UserPlus size={16} strokeWidth={2} /> {t('customerForm.contactsBtn')}
+            </button>
           )}
-        </button>
+        </div>
         {scanError && <p className="text-xs text-red-500 mt-2">{scanError}</p>}
         {!scanLoading && !scanError && (
-          <p className="text-[11px] text-gray-400 mt-1.5 text-center">{t('customerForm.scanCardHint')}</p>
+          <p className="text-[11px] text-gray-400 mt-1.5 text-center">
+            {contactsSupported ? t('customerForm.scanOrContactsHint') : t('customerForm.scanCardHint')}
+          </p>
         )}
       </div>
 
@@ -236,7 +295,7 @@ export default function CustomerFormPage() {
             ref={siteFileRef}
             type="file"
             accept="image/*"
-            capture="environment"
+            {...captureAttr()}
             className="hidden"
             onChange={handleSitePhoto}
           />

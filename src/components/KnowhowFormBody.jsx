@@ -11,6 +11,7 @@ import {
 import { showToast } from '../utils/toast'
 import { scanEquipment } from '../utils/scanEquipment'
 import { apiFetch } from '../utils/apiClient'
+import { captureAttr } from '../utils/deviceCapture'
 
 // 한국어 DB값 → i18n 키 매핑 (표시용)
 const CATEGORY_KEY = {
@@ -93,9 +94,20 @@ export const EMPTY_KNOWHOW = {
   equipments:    [],    // 신규: 사진 + 분석 결과 통합 (최대 5개)
 }
 
-export default function KnowhowFormBody({ form, setForm, hideCustomer = false }) {
+// 단계별 폼 필드 매핑 (stage 1 = 도착 직후, stage 2 = 점검 후)
+const STAGE_FIELDS = {
+  1: ['title', 'symptoms', 'category', 'location'],            // 1차: 제목·증상 + 자동 분류
+  2: ['cause', 'checkSteps', 'solution', 'parts', 'notes'],    // 2차: 원인·조치
+}
+
+export default function KnowhowFormBody({ form, setForm, hideCustomer = false, stage = null }) {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
+  // 단계별 장비 필터 + 원본 인덱스 보존 (삭제·라이트박스에서 사용)
+  const stageEquipments = (form.equipments ?? [])
+    .map((eq, realIdx) => ({ ...eq, realIdx }))
+    .filter((eq) => stage == null || eq.stage === stage)
+  const stageEquipCount = stageEquipments.length
 
   // 거래처 목록 (id, name)
   const customers = useLiveQuery(
@@ -108,6 +120,7 @@ export default function KnowhowFormBody({ form, setForm, hideCustomer = false })
   const [transcript, setTranscript] = useState('')
   const [aiLoading, setAiLoading] = useState(false)
   const [equipLoading, setEquipLoading] = useState(false)
+  const [scanningIdxs, setScanningIdxs] = useState(() => new Set())
   const [equipLightboxIdx, setEquipLightboxIdx] = useState(null)
   const recognitionRef = useRef(null)
   const equipFileRef = useRef(null)
@@ -192,8 +205,7 @@ export default function KnowhowFormBody({ form, setForm, hideCustomer = false })
   }, [])
 
   function triggerEquipScan() {
-    const count = (form.equipments ?? []).length
-    if (count >= MAX_EQUIPMENTS) {
+    if (stageEquipCount >= MAX_EQUIPMENTS) {
       showToast(t('knowhow.equipMaxReached', { max: MAX_EQUIPMENTS }))
       return
     }
@@ -205,48 +217,66 @@ export default function KnowhowFormBody({ form, setForm, hideCustomer = false })
     e.target.value = ''
     if (!file) return
 
-    // 5개 cap 재검사 (triggerEquipScan에서도 막지만 race 방지)
-    const count = (form.equipments ?? []).length
-    if (count >= MAX_EQUIPMENTS) {
+    if (stageEquipCount >= MAX_EQUIPMENTS) {
       showToast(t('knowhow.equipMaxReached', { max: MAX_EQUIPMENTS }))
       return
     }
 
+    // 사진만 박고 즉시 종료 — AI 분석은 카드별 [스캔] 버튼으로 사용자가 직접 트리거
     setEquipLoading(true)
     try {
       const dataUrl = await compressImage(file)
-
-      // 분석 시도 — 실패해도 사진은 저장 (사용자 손실 방지)
-      let analyzed = { ...EMPTY_EQUIPMENT, photo: dataUrl }
-      try {
-        const r = await scanEquipment(dataUrl)
-        analyzed = {
-          photo:       dataUrl,
-          kind:        r.kind        || '',
-          brand:       r.brand       || '',
-          model:       r.model       || '',
-          serial:      r.serial      || '',
-          capacity:    r.capacity    || '',
-          refrigerant: r.refrigerant || '',
-          tempClass:   r.tempClass   || '',
-          stage:       r.stage       || '',
-          confidence:  r.confidence  || '',
-          notes:       r.notes       || '',
-        }
-      } catch (err) {
-        showToast(t('knowhow.errAi') + (err.message || ''))
-      }
-
       setForm((p) => ({
         ...p,
-        equipments:  [...(p.equipments  ?? []), analyzed],
-        equipPhotos: [...(p.equipPhotos ?? []), dataUrl],  // 옛 코드 호환 동기화
+        equipments:  [...(p.equipments  ?? []), { ...EMPTY_EQUIPMENT, photo: dataUrl, stage: stage }],
+        equipPhotos: [...(p.equipPhotos ?? []), dataUrl],
       }))
-      // 위쪽 단일 미리보기 카드는 제거 — 아래 누적 카드 그리드에서 확인 가능
     } catch (err) {
       showToast(t('knowhow.errAi') + (err.message || ''))
     } finally {
       setEquipLoading(false)
+    }
+  }
+
+  async function handleScanOne(realIdx) {
+    const target = (form.equipments ?? [])[realIdx]
+    if (!target?.photo) return
+    if (scanningIdxs.has(realIdx)) return
+    setScanningIdxs((prev) => {
+      const next = new Set(prev)
+      next.add(realIdx)
+      return next
+    })
+    try {
+      const r = await scanEquipment(target.photo)
+      setForm((p) => ({
+        ...p,
+        equipments: (p.equipments ?? []).map((eq, i) =>
+          i === realIdx
+            ? {
+                ...eq,
+                kind:        r.kind        || '',
+                brand:       r.brand       || '',
+                model:       r.model       || '',
+                serial:      r.serial      || '',
+                capacity:    r.capacity    || '',
+                refrigerant: r.refrigerant || '',
+                tempClass:   r.tempClass   || '',
+                compStage:   r.stage       || '',
+                confidence:  r.confidence  || '',
+                notes:       r.notes       || '',
+              }
+            : eq
+        ),
+      }))
+    } catch (err) {
+      showToast(t('knowhow.errAi') + (err.message || ''))
+    } finally {
+      setScanningIdxs((prev) => {
+        const next = new Set(prev)
+        next.delete(realIdx)
+        return next
+      })
     }
   }
 
@@ -288,18 +318,22 @@ export default function KnowhowFormBody({ form, setForm, hideCustomer = false })
       const match = text.match(/\{[\s\S]*\}/)
       if (match) {
         const r = JSON.parse(match[0])
-        setForm((p) => ({
-          ...p,
-          title:      r.title      || p.title,
-          category:   KNOWHOW_CATEGORIES.includes(r.category) ? r.category : p.category,
-          location:   LOCATION_DB_VALUES.includes(r.location)  ? r.location  : p.location,
-          symptoms:   r.symptoms   || p.symptoms,
-          cause:      r.cause      || p.cause,
-          checkSteps: r.checkSteps || p.checkSteps,
-          solution:   r.solution   || p.solution,
-          parts:      r.parts      || p.parts,
-          notes:      r.notes      || p.notes,
-        }))
+        // 단계별 setForm — stage=1: 제목·증상 + 자동 분류 / stage=2: 원인·조치 / stage=null: 통합
+        setForm((p) => {
+          const next = { ...p }
+          const allow = stage ? STAGE_FIELDS[stage] : null
+          const apply = (key, val) => { if (!allow || allow.includes(key)) next[key] = val }
+          if (r.title)      apply('title',      r.title)
+          if (r.symptoms)   apply('symptoms',   r.symptoms)
+          if (r.cause)      apply('cause',      r.cause)
+          if (r.checkSteps) apply('checkSteps', r.checkSteps)
+          if (r.solution)   apply('solution',   r.solution)
+          if (r.parts)      apply('parts',      r.parts)
+          if (r.notes)      apply('notes',      r.notes)
+          if (KNOWHOW_CATEGORIES.includes(r.category)) apply('category', r.category)
+          if (LOCATION_DB_VALUES.includes(r.location)) apply('location', r.location)
+          return next
+        })
         setTranscript('')
       }
     } catch (e) {
@@ -378,14 +412,23 @@ export default function KnowhowFormBody({ form, setForm, hideCustomer = false })
       <Section title={t('knowhow.voiceInput')}>
         <p className="text-xs text-gray-400">{t('knowhow.voiceDesc')}</p>
         <div className="grid grid-cols-2 gap-2">
-          <button
-            onClick={triggerEquipScan}
-            disabled={equipLoading}
-            className="py-3 rounded-xl text-sm font-medium flex flex-col items-center justify-center gap-1 bg-emerald-600 text-white disabled:opacity-60 active:bg-emerald-700 text-center leading-tight"
+          {/* 장비 분석 = label + 내장 input 패턴 (button.click() 우회 X — chromium 시뮬 모드·신버전 차단 정책 회피).
+              MAX_EQUIPMENTS 체크는 handleEquipFile 시작 시 박혀있어 안전. */}
+          <label
+            className={`py-3 rounded-xl text-sm font-medium flex flex-col items-center justify-center gap-1 bg-emerald-600 text-white text-center leading-tight ${
+              equipLoading ? 'opacity-60 pointer-events-none' : 'cursor-pointer active:bg-emerald-700'
+            }`}
           >
             <Camera size={18} strokeWidth={1.8} />
             <span>{equipLoading ? t('scan.analyzing') : t('camera.equipment')}</span>
-          </button>
+            <input
+              type="file"
+              accept="image/*"
+              {...captureAttr()}
+              onChange={handleEquipFile}
+              className="hidden"
+            />
+          </label>
           <button
             onClick={isRecording ? stopRecording : startRecording}
             className={`py-3 rounded-xl text-sm font-medium flex flex-col items-center justify-center gap-1 text-center leading-tight ${
@@ -398,55 +441,76 @@ export default function KnowhowFormBody({ form, setForm, hideCustomer = false })
             }
           </button>
         </div>
-        <input
-          ref={equipFileRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          onChange={handleEquipFile}
-          className="hidden"
-        />
-        {(form.equipments ?? []).length > 0 && (
+        <p className="text-[11px] text-gray-400 text-center leading-snug">
+          {t('knowhow.perRecordLimitNote')}
+        </p>
+        {stageEquipCount > 0 && (
           <div className="space-y-2">
             <p className="text-xs text-gray-400">
-              {t('knowhow.equipCount', { current: (form.equipments ?? []).length, max: MAX_EQUIPMENTS })}
+              {t('knowhow.equipCount', { current: stageEquipCount, max: MAX_EQUIPMENTS })}
             </p>
-            {(form.equipments ?? []).map((eq, i) => (
-              <div key={i} className="relative w-full bg-white border-2 border-gray-300 rounded-xl p-2 shadow-sm">
-                <button
-                  onClick={() => removeEquipPhoto(i)}
-                  className="absolute -top-2 -right-2 w-7 h-7 bg-white border-2 border-gray-300 text-gray-600 rounded-full flex items-center justify-center shadow-sm z-10"
-                  aria-label="remove"
-                >
-                  <Trash2 size={12} strokeWidth={2} />
-                </button>
-                <div className="grid grid-cols-[96px_1fr] gap-2">
-                  {/* 좌: 사진 */}
+            {stageEquipments.map((eq) => {
+              const isScanning = scanningIdxs.has(eq.realIdx)
+              const isAnalyzed = !!(eq.kind || eq.brand || eq.model)
+              return (
+                <div key={eq.realIdx} className="relative w-full bg-white border-2 border-gray-300 rounded-xl p-2 shadow-sm">
                   <button
-                    onClick={() => setEquipLightboxIdx(i)}
-                    className="w-24 h-24 bg-gray-100 border border-gray-300 rounded-md overflow-hidden block"
+                    onClick={() => removeEquipPhoto(eq.realIdx)}
+                    className="absolute -top-2 -right-2 w-7 h-7 bg-white border-2 border-gray-300 text-gray-600 rounded-full flex items-center justify-center shadow-sm z-10"
+                    aria-label="remove"
                   >
-                    <img
-                      src={eq.photo}
-                      alt=""
-                      className="w-full h-full object-cover"
-                    />
+                    <Trash2 size={12} strokeWidth={2} />
                   </button>
-                  {/* 우: 스펙 */}
-                  <div className="bg-gray-50 border border-gray-200 rounded-md p-2 text-[11px] leading-tight grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5 content-start overflow-hidden">
-                    {eq.kind && (<><span className="text-gray-400 shrink-0">{t('scan.kind')}</span><span className="text-gray-900 font-medium truncate">{eq.kind}</span></>)}
-                    {eq.brand && (<><span className="text-gray-400 shrink-0">{t('scan.brand')}</span><span className="text-gray-900 font-medium truncate">{eq.brand}</span></>)}
-                    {eq.model && (<><span className="text-gray-400 shrink-0">{t('scan.model')}</span><span className="text-gray-900 font-medium truncate">{eq.model}</span></>)}
-                    {eq.serial && (<><span className="text-gray-400 shrink-0">{t('scan.serial')}</span><span className="text-gray-900 font-medium truncate">{eq.serial}</span></>)}
-                    {eq.capacity && (<><span className="text-gray-400 shrink-0">{t('scan.capacity')}</span><span className="text-gray-900 font-medium truncate">{eq.capacity}</span></>)}
-                    {eq.refrigerant && (<><span className="text-gray-400 shrink-0">{t('scan.refrigerant')}</span><span className="text-gray-900 font-medium truncate">{eq.refrigerant}</span></>)}
-                    {!eq.kind && !eq.brand && !eq.model && (
-                      <span className="col-span-2 text-gray-400">{t('knowhow.equipNoData')}</span>
-                    )}
+                  <div className="grid grid-cols-[96px_1fr] gap-2">
+                    {/* 좌: 사진 */}
+                    <button
+                      onClick={() => setEquipLightboxIdx(eq.realIdx)}
+                      className="w-24 h-24 bg-gray-100 border border-gray-300 rounded-md overflow-hidden block"
+                    >
+                      <img
+                        src={eq.photo}
+                        alt=""
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                    {/* 우: 스펙 + 스캔 버튼 (분석 안된 카드만) */}
+                    <div className="bg-gray-50 border border-gray-200 rounded-md p-2 text-[11px] leading-tight overflow-hidden flex flex-col justify-center">
+                      {isAnalyzed ? (
+                        <>
+                          <div className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5 content-start">
+                            {eq.kind && (<><span className="text-gray-400 shrink-0">{t('scan.kind')}</span><span className="text-gray-900 font-medium truncate">{eq.kind}</span></>)}
+                            {eq.brand && (<><span className="text-gray-400 shrink-0">{t('scan.brand')}</span><span className="text-gray-900 font-medium truncate">{eq.brand}</span></>)}
+                            {eq.model && (<><span className="text-gray-400 shrink-0">{t('scan.model')}</span><span className="text-gray-900 font-medium truncate">{eq.model}</span></>)}
+                            {eq.serial && (<><span className="text-gray-400 shrink-0">{t('scan.serial')}</span><span className="text-gray-900 font-medium truncate">{eq.serial}</span></>)}
+                            {eq.capacity && (<><span className="text-gray-400 shrink-0">{t('scan.capacity')}</span><span className="text-gray-900 font-medium truncate">{eq.capacity}</span></>)}
+                            {eq.refrigerant && (<><span className="text-gray-400 shrink-0">{t('scan.refrigerant')}</span><span className="text-gray-900 font-medium truncate">{eq.refrigerant}</span></>)}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleScanOne(eq.realIdx)}
+                            disabled={isScanning}
+                            className="mt-1.5 self-end py-1 px-2 text-[10px] font-semibold text-blue-700 bg-blue-50 border border-blue-300 rounded active:bg-blue-100 disabled:opacity-60 flex items-center gap-1"
+                          >
+                            <Sparkles size={10} strokeWidth={2} />
+                            {isScanning ? t('scan.analyzing') : t('knowhow.rescanBtn')}
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleScanOne(eq.realIdx)}
+                          disabled={isScanning}
+                          className="w-full py-2 px-2 bg-emerald-600 text-white text-xs font-semibold rounded-lg active:bg-emerald-700 disabled:opacity-60 flex items-center justify-center gap-1.5"
+                        >
+                          <Sparkles size={12} strokeWidth={2} />
+                          {isScanning ? t('scan.analyzing') : t('knowhow.scanBtn')}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
         {transcript && (
@@ -468,7 +532,8 @@ export default function KnowhowFormBody({ form, setForm, hideCustomer = false })
         )}
       </Section>
 
-      {/* 제목 */}
+      {/* 제목 — 1차/통합에서만 노출 */}
+      {(stage == null || stage === 1) && (
       <Section title={t('knowhow.sectionTitle')}>
         <input
           type="text"
@@ -478,6 +543,7 @@ export default function KnowhowFormBody({ form, setForm, hideCustomer = false })
           className="w-full text-sm text-gray-900 outline-none"
         />
       </Section>
+      )}
 
       {/* 분류 — UI 숨김 (카메라 분석 결과로 자동 입력 예정) */}
       {SHOW_CHIP_INPUTS && (
@@ -524,112 +590,142 @@ export default function KnowhowFormBody({ form, setForm, hideCustomer = false })
         </Section>
       )}
 
-      {/* 증상 키워드 */}
+      {/* 증상 키워드 — 1차/통합에서만, 1차는 textarea로 넉넉히 */}
+      {(stage == null || stage === 1) && (
       <Section title={t('knowhow.sectionSymptoms')}>
         <p className="text-xs text-gray-400 mb-1.5">{t('knowhow.symptomsDesc')}</p>
-        <input
-          type="text"
-          value={form.symptoms}
-          onChange={(e) => set('symptoms', e.target.value)}
-          placeholder={t('knowhow.phSymptoms')}
-          className="w-full text-sm text-gray-900 outline-none"
-        />
+        {stage === 1 ? (
+          <textarea
+            value={form.symptoms}
+            onChange={(e) => set('symptoms', e.target.value)}
+            placeholder={t('knowhow.phSymptoms')}
+            rows={5}
+            className="w-full text-sm text-gray-900 outline-none resize-y min-h-[6rem] [field-sizing:content]"
+          />
+        ) : (
+          <input
+            type="text"
+            value={form.symptoms}
+            onChange={(e) => set('symptoms', e.target.value)}
+            placeholder={t('knowhow.phSymptoms')}
+            className="w-full text-sm text-gray-900 outline-none"
+          />
+        )}
       </Section>
+      )}
 
-      {/* 원인 */}
+      {/* 원인 — 2차/통합에서만 */}
+      {(stage == null || stage === 2) && (
       <Section title={t('knowhow.sectionCause')}>
         <textarea
           value={form.cause}
           onChange={(e) => set('cause', e.target.value)}
           placeholder={t('knowhow.phCause')}
-          rows={2}
-          className="w-full text-sm text-gray-900 outline-none resize-none"
+          rows={4}
+          className="w-full text-sm text-gray-900 outline-none resize-y min-h-[5rem] [field-sizing:content]"
         />
       </Section>
+      )}
 
-      {/* 점검 순서 */}
+      {/* 점검 순서 — 2차/통합에서만 */}
+      {(stage == null || stage === 2) && (
       <Section title={t('knowhow.sectionCheckSteps')}>
         <textarea
           value={form.checkSteps}
           onChange={(e) => set('checkSteps', e.target.value)}
           placeholder={t('knowhow.phCheckSteps')}
-          rows={4}
-          className="w-full text-sm text-gray-900 outline-none resize-none"
+          rows={6}
+          className="w-full text-sm text-gray-900 outline-none resize-y min-h-[8rem] [field-sizing:content]"
         />
       </Section>
+      )}
 
-      {/* 해결책 */}
+      {/* 해결책 — 2차/통합에서만 */}
+      {(stage == null || stage === 2) && (
       <Section title={t('knowhow.sectionSolution')}>
         <textarea
           value={form.solution}
           onChange={(e) => set('solution', e.target.value)}
           placeholder={t('knowhow.phSolution')}
-          rows={2}
-          className="w-full text-sm text-gray-900 outline-none resize-none"
+          rows={4}
+          className="w-full text-sm text-gray-900 outline-none resize-y min-h-[5rem] [field-sizing:content]"
         />
       </Section>
+      )}
 
-      {/* 교체 부품 */}
+      {/* 교체 부품 — 2차/통합에서만 (여러 부품·모델명·규격 박을 수 있게 textarea) */}
+      {(stage == null || stage === 2) && (
       <Section title={t('knowhow.sectionParts')}>
-        <input
-          type="text"
+        <textarea
           value={form.parts}
           onChange={(e) => set('parts', e.target.value)}
           placeholder={t('knowhow.phParts')}
-          className="w-full text-sm text-gray-900 outline-none"
+          rows={3}
+          className="w-full text-sm text-gray-900 outline-none resize-y min-h-[4rem] [field-sizing:content]"
         />
       </Section>
+      )}
 
-      {/* 메모 */}
+      {/* 메모 — 2차/통합에서만 */}
+      {(stage == null || stage === 2) && (
       <Section title={t('knowhow.sectionNotes')}>
         <textarea
           value={form.notes}
           onChange={(e) => set('notes', e.target.value)}
           placeholder={t('knowhow.phNotes')}
-          rows={2}
-          className="w-full text-sm text-gray-900 outline-none resize-none"
+          rows={4}
+          className="w-full text-sm text-gray-900 outline-none resize-y min-h-[5rem] [field-sizing:content]"
         />
       </Section>
-
-      {/* 장비 사진 라이트박스 */}
-      {equipLightboxIdx != null && (form.equipments ?? [])[equipLightboxIdx]?.photo && (
-        <div
-          className="fixed inset-0 bg-black/90 z-[70] flex items-center justify-center"
-          onClick={() => setEquipLightboxIdx(null)}
-        >
-          <button
-            onClick={(e) => { e.stopPropagation(); setEquipLightboxIdx(null) }}
-            className="absolute top-4 right-4 w-10 h-10 bg-white/20 text-white rounded-full flex items-center justify-center"
-          >
-            <X size={20} strokeWidth={2} />
-          </button>
-          {equipLightboxIdx > 0 && (
-            <button
-              onClick={(e) => { e.stopPropagation(); setEquipLightboxIdx(equipLightboxIdx - 1) }}
-              className="absolute left-2 w-10 h-10 bg-white/20 text-white rounded-full flex items-center justify-center text-white text-2xl"
-            >
-              ‹
-            </button>
-          )}
-          {equipLightboxIdx < (form.equipments ?? []).length - 1 && (
-            <button
-              onClick={(e) => { e.stopPropagation(); setEquipLightboxIdx(equipLightboxIdx + 1) }}
-              className="absolute right-2 w-10 h-10 bg-white/20 text-white rounded-full flex items-center justify-center text-white text-2xl"
-            >
-              ›
-            </button>
-          )}
-          <img
-            src={(form.equipments ?? [])[equipLightboxIdx]?.photo}
-            alt=""
-            className="max-w-full max-h-full object-contain"
-            onClick={(e) => e.stopPropagation()}
-          />
-          <div className="absolute bottom-4 text-white/70 text-xs">
-            {equipLightboxIdx + 1} / {(form.equipments ?? []).length}
-          </div>
-        </div>
       )}
+
+      {/* 장비 사진 라이트박스 — 단계별 항목 내에서만 좌우 이동 */}
+      {(() => {
+        if (equipLightboxIdx == null) return null
+        const cursor = stageEquipments.findIndex((eq) => eq.realIdx === equipLightboxIdx)
+        if (cursor < 0) return null
+        const cur = stageEquipments[cursor]
+        const prev = stageEquipments[cursor - 1]
+        const next = stageEquipments[cursor + 1]
+        return (
+          <div
+            className="fixed inset-0 bg-black/90 z-[70] flex items-center justify-center"
+            onClick={() => setEquipLightboxIdx(null)}
+          >
+            <button
+              onClick={(e) => { e.stopPropagation(); setEquipLightboxIdx(null) }}
+              className="absolute top-4 right-4 w-10 h-10 bg-white/20 text-white rounded-full flex items-center justify-center"
+            >
+              <X size={20} strokeWidth={2} />
+            </button>
+            {prev && (
+              <button
+                onClick={(e) => { e.stopPropagation(); setEquipLightboxIdx(prev.realIdx) }}
+                className="absolute left-2 w-10 h-10 bg-white/20 text-white rounded-full flex items-center justify-center text-white text-2xl"
+              >
+                ‹
+              </button>
+            )}
+            {next && (
+              <button
+                onClick={(e) => { e.stopPropagation(); setEquipLightboxIdx(next.realIdx) }}
+                className="absolute right-2 w-10 h-10 bg-white/20 text-white rounded-full flex items-center justify-center text-white text-2xl"
+              >
+                ›
+              </button>
+            )}
+            <img
+              src={cur.photo}
+              alt=""
+              className="max-w-full max-h-full object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <div className="absolute bottom-4 text-white/70 text-xs">
+              {cursor + 1} / {stageEquipments.length}
+            </div>
+          </div>
+        )
+      })()}
 
     </div>
   )

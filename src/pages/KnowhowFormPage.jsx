@@ -24,15 +24,18 @@ export default function KnowhowFormPage() {
   const [showDelete, setShowDelete] = useState(false)
   const [saving, setSaving] = useState(false)
 
-  // 음성 메모에서 진입 — 거래처/본문 미리 채우기
+  // 음성 메모/AS 완료에서 진입 — 거래처·본문·AS 데이터 미리 채우기
   useEffect(() => {
     if (!isNew) return
     const st = location.state
     if (!st) return
     setForm((p) => ({
       ...p,
+      ...(st.prefilledFromJob || {}),
       customerId: st.customerId ?? p.customerId,
-      notes: st.prefilledNotes ? (p.notes ? `${p.notes}\n\n${st.prefilledNotes}` : st.prefilledNotes) : p.notes,
+      notes: st.prefilledNotes
+        ? (p.notes ? `${p.notes}\n\n${st.prefilledNotes}` : st.prefilledNotes)
+        : (st.prefilledFromJob?.notes ?? p.notes),
     }))
   }, [isNew, location.state])
 
@@ -54,6 +57,8 @@ export default function KnowhowFormPage() {
       solution:       existing.solution       ?? '',
       parts:          existing.parts          ?? '',
       notes:          existing.notes          ?? '',
+      equipPhotos:    Array.isArray(existing.equipPhotos) ? existing.equipPhotos.filter((p) => typeof p === 'string') : [],
+      equipments:     Array.isArray(existing.equipments)  ? existing.equipments.filter((eq) => eq && typeof eq === 'object')  : [],
     })
     setInitialized(true)
   }
@@ -85,12 +90,16 @@ export default function KnowhowFormPage() {
 
   return (
     <div className="p-4 pb-10">
+      {/* 뒤로가기 */}
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center justify-center gap-2 w-full py-3 mb-2 bg-gray-100 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 active:bg-gray-200"
+      >
+        <ChevronLeft size={18} strokeWidth={2} />
+        {t('knowhow.back')}
+      </button>
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-5">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-gray-500">
-          <ChevronLeft size={18} strokeWidth={1.5} />
-          <span className="text-sm">{t('knowhow.back')}</span>
-        </button>
         <h2 className="text-base font-semibold text-gray-900">{isNew ? t('knowhow.newTitle') : t('knowhow.editTitle')}</h2>
         <button
           onClick={handleSave}

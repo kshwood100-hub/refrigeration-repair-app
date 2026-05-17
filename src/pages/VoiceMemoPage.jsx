@@ -12,6 +12,7 @@ import ConfirmModal from '../components/ConfirmModal'
 import TrialLimitModal from '../components/TrialLimitModal'
 import { consumeTrial } from '../utils/trial'
 import { softDelete, getMediaUrl } from '../utils/cloudSync'
+import { captureAttr } from '../utils/deviceCapture'
 
 function fmtDuration(sec) {
   const m = Math.floor(sec / 60)
@@ -56,7 +57,7 @@ const STATUS_KEY = {
 
 export default function VoiceMemoPage() {
   const navigate = useNavigate()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [isRec, setIsRec] = useState(false)
   const [elapsed, setElapsed] = useState(0)
   const [online, setOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true)
@@ -81,6 +82,24 @@ export default function VoiceMemoPage() {
     if (expired.length === 0) return
     ;(async () => {
       for (const r of expired) await softDelete('voice_recordings', r.id)
+    })()
+  }, [recordings])
+
+  // stuck 자동 복구 — 5분 이상 transcribing/classifying인 레코드를 pending으로 되돌림.
+  // 시나리오: 사용자가 변환 중 폰 종료/탭 닫힘/새로고침 → 다음 접속 시 영원히 진행 중 표시되는 결함 차단.
+  useEffect(() => {
+    if (!recordings) return
+    const STUCK_MS = 5 * 60 * 1000
+    const cutoff = Date.now() - STUCK_MS
+    const stuck = recordings.filter((r) =>
+      (r.status === 'transcribing' || r.status === 'classifying') &&
+      (r.statusUpdatedAt ?? r.createdAt ?? 0) < cutoff
+    )
+    if (stuck.length === 0) return
+    ;(async () => {
+      for (const r of stuck) {
+        await db.voice_recordings.update(r.id, { status: 'pending', statusUpdatedAt: Date.now() })
+      }
     })()
   }, [recordings])
 
@@ -175,7 +194,7 @@ export default function VoiceMemoPage() {
   async function handleProcess(id) {
     setBusyId(id)
     try {
-      await processRecording(id)
+      await processRecording(id, i18n.language)
       showToast(t('voice.toastProcessDone'))
     } catch (err) {
       showToast(t('voice.toastProcessFail') + (err.message ?? err))
@@ -194,7 +213,7 @@ export default function VoiceMemoPage() {
       let failCount = 0
       await processPendingAll(({ phase, error }) => {
         if (phase === 'fail') failCount += 1
-      })
+      }, i18n.language)
       if (failCount > 0) {
         showToast(t('voice.toastAutoFail') + `${failCount}`)
         return
@@ -227,7 +246,7 @@ export default function VoiceMemoPage() {
       if (fromState === 'transcribed') {
         await classifyRecording(id)
       } else {
-        await processRecording(id)
+        await processRecording(id, i18n.language)
       }
       showToast(t('voice.toastRetryDone'))
     } catch (err) {
@@ -274,11 +293,16 @@ export default function VoiceMemoPage() {
 
   return (
     <div className="p-4 pb-6">
+      {/* 뒤로가기 */}
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center justify-center gap-2 w-full py-3 mb-2 bg-gray-100 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 active:bg-gray-200"
+      >
+        <ChevronLeft size={18} strokeWidth={2} />
+        {t('voice.back')}
+      </button>
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-4">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-sm text-gray-600">
-          <ChevronLeft size={16} strokeWidth={1.5} /> {t('voice.back')}
-        </button>
         <h2 className="text-base font-semibold text-gray-900">{t('voice.title')}</h2>
         <div className={`flex items-center gap-1 text-xs ${online ? 'text-green-600' : 'text-orange-500'}`}>
           {online ? <Wifi size={13} strokeWidth={1.5} /> : <WifiOff size={13} strokeWidth={1.5} />}
@@ -351,7 +375,7 @@ export default function VoiceMemoPage() {
         ref={videoFileRef}
         type="file"
         accept="video/*"
-        capture="environment"
+        {...captureAttr()}
         className="hidden"
         onChange={handlePickVideo}
       />

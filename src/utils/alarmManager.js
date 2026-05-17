@@ -77,7 +77,7 @@ async function scheduleJobAlarms() {
   const todayStr = today()
   const jobs = await db.service_jobs
     .where('visitDate').equals(todayStr)
-    .filter(j => j.status !== 'completed')
+    .filter(j => j.status !== 'completed' && !j.deletedAt)
     .toArray()
 
   if (jobs.length === 0) return
@@ -107,6 +107,7 @@ async function scheduleMaintenanceAlarms() {
   const todayStr = today()
   const items = await db.equipment_maintenance
     .where('nextDueDate').equals(todayStr)
+    .filter(m => !m.deletedAt)
     .toArray()
 
   if (items.length === 0) return
@@ -152,16 +153,18 @@ async function scheduleUserAlarms() {
 }
 
 // 내일 일정 조회 (홈페이지 배너용)
+// 라이브 검증 (2026-05-05): deletedAt 필터 누락으로 삭제된 row까지 카운트되던 결함 발견 → 박음
 export async function getTomorrowSchedule() {
   const tmr = tomorrow()
 
   const jobs = await db.service_jobs
     .where('visitDate').equals(tmr)
-    .filter(j => j.status !== 'completed')
+    .filter(j => j.status !== 'completed' && !j.deletedAt)
     .toArray()
 
   const maintenances = await db.equipment_maintenance
     .where('nextDueDate').equals(tmr)
+    .filter(m => !m.deletedAt)
     .toArray()
 
   return { jobs, maintenances }
@@ -171,6 +174,7 @@ export async function getTomorrowSchedule() {
 export async function getTodayMaintenances() {
   return db.equipment_maintenance
     .where('nextDueDate').equals(today())
+    .filter(m => !m.deletedAt)
     .toArray()
 }
 

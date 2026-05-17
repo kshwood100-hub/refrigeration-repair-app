@@ -11,7 +11,8 @@ const DEFAULTS = {
   bizAddress: '',
   bizRegNo: '',
   userTier: 'free', // free | paid | group
-  shareConsent: false, // v2 가동 시까지 비활성, UI는 잠금 상태로 표시
+  shareConsent: false, // 결제 후 ShareConsentModal에서 동의 시 true. 설정에서 언제든 변경 가능.
+  taxRate: 0, // 매출 등록 시 세금 자동 계산용 세율 (%) — 사용자가 자기 나라 세율 직접 입력
 }
 
 export function loadSettings() {

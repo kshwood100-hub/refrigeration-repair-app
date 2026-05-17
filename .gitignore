@@ -15,6 +15,7 @@ translate_*.cjs
 translate_*.js
 generate_*.cjs
 *.bak
+*.bak-*
 
 # 도구 캐시·생성 파일
 .firebase/
@@ -44,3 +45,27 @@ kakao*.pdf
 994.JPG
 995
 112/
+
+# TWA 키스토어 + 빌드 결과 (영구 보관, git 제외)
+_keystore_safe/
+twa-build/
+
+# 출시 작업용 스크린샷·마케팅 자료 (루트만 — public/ 정적 자산은 그대로 추적)
+/*.png
+/*.JPG
+/*.PDF
+/*.pdf
+marketing-assets/
+screenshots-ko/
+play-store-assets/
+translation_audit/
+
+# 임시 백업·작업 데이터
+*.backup-*
+src/data/*.backup-*
+cases-additions-*.json
+.tmp_*
+
+# 일회용 운영 스크립트 (form 본인만 사용, 깃 제외)
+functions/firestore_check*.js
+functions/reset_trial.js

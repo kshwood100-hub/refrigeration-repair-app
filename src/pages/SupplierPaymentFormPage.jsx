@@ -5,6 +5,8 @@ import { ChevronLeft, Save } from 'lucide-react'
 import { db } from '../db'
 import DateInput from '../components/DateInput'
 import { todayLocal } from '../utils/date'
+import { consumeTrial } from '../utils/trial'
+import { showToast } from '../utils/toast'
 
 export default function SupplierPaymentFormPage() {
   const { t } = useTranslation()
@@ -20,6 +22,16 @@ export default function SupplierPaymentFormPage() {
     if (saving) return
     setSaving(true)
     try {
+      // 트라이얼 cap — 결제내역도 회계(finance) 카테고리에 통합
+      try {
+        await consumeTrial('finance')
+      } catch (e) {
+        if (String(e?.message || e).includes('Trial limit')) {
+          showToast(t('trial.limitTitle'))
+          setSaving(false)
+          return
+        }
+      }
       await db.supplier_transactions.add({
         supplierId,
         type: 'payment',
@@ -41,10 +53,10 @@ export default function SupplierPaymentFormPage() {
     <div className="p-4 pb-20">
       <button
         onClick={() => navigate(-1)}
-        className="flex items-center gap-2 mb-4 text-gray-600"
+        className="flex items-center justify-center gap-2 w-full py-3 mb-4 bg-gray-100 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 active:bg-gray-200"
       >
         <ChevronLeft size={18} strokeWidth={2} />
-        <span className="text-sm">{t('supplier.back')}</span>
+        {t('supplier.back')}
       </button>
 
       <h1 className="text-xl font-bold mb-4 text-gray-900">{t('payment.addTitle')}</h1>

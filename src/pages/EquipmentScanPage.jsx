@@ -1,9 +1,12 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useLiveQuery } from 'dexie-react-hooks'
 import { useTranslation } from 'react-i18next'
-import { ChevronLeft, Camera, Loader, RotateCw, AlertCircle } from 'lucide-react'
+import { ChevronLeft, Camera, Loader, RotateCw, AlertCircle, Save, Building2 } from 'lucide-react'
 import { scanEquipment } from '../utils/scanEquipment'
 import { showToast } from '../utils/toast'
+import { db } from '../db'
+import { captureAttr } from '../utils/deviceCapture'
 
 const TEMP_KEYS = {
   low_temp: 'scan.tempLow',
@@ -39,19 +42,23 @@ export default function EquipmentScanPage() {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const fileRef = useRef()
-  const autoOpenedRef = useRef(false)
 
   const [photoUrl, setPhotoUrl] = useState('')
   const [scanning, setScanning] = useState(false)
   const [result, setResult] = useState(null)
   const [errMsg, setErrMsg] = useState('')
+  const [saving, setSaving] = useState(false)
 
-  useEffect(() => {
-    if (!autoOpenedRef.current) {
-      autoOpenedRef.current = true
-      setTimeout(() => fileRef.current?.click(), 150)
-    }
-  }, [])
+  // 거래처 선택 (필수) — knowhow / 음성메모 패턴과 통일.
+  // AI 비용 발생 전에 거래처 결정 + 분석 후 저장 흐름 명확화.
+  const [customerId, setCustomerId] = useState(null)
+  const [showCustomerList, setShowCustomerList] = useState(false)
+  const [customerSearch, setCustomerSearch] = useState('')
+
+  const customers = useLiveQuery(
+    () => db.customers.orderBy('name').filter((r) => !r.deletedAt).toArray(),
+    []
+  )
 
   async function handleCapture(e) {
     const file = e.target.files?.[0]
@@ -85,6 +92,39 @@ export default function EquipmentScanPage() {
     fileRef.current?.click()
   }
 
+  // 거래처에 저장 — 진입 시점에 이미 customerId 박혀있어 모달 X
+  async function handleSave() {
+    if (!result || !customerId || saving) return
+    const customer = customers?.find((c) => c.id === customerId)
+    if (!customer) return
+    setSaving(true)
+    try {
+      const equipName = [result.brand, result.model].filter(Boolean).join(' ') || t('scan.kindOther')
+      await db.equipment_maintenance.add({
+        customerId: customer.id,
+        name: equipName,
+        photoUrl: photoUrl,
+        intervalMonths: null,
+        lastCheckedDate: null,
+        nextDueDate: null,
+        kind: result.kind ?? null,
+        brand: result.brand ?? null,
+        model: result.model ?? null,
+        serial: result.serial ?? null,
+        capacity: result.capacity ?? null,
+        refrigerant: result.refrigerant ?? null,
+        tempClass: result.tempClass ?? null,
+        stage: result.stage ?? null,
+        notes: result.notes ?? null,
+      })
+      showToast(t('scan.savedToast', { name: customer.name }))
+      navigate(`/customers/${customer.id}`)
+    } catch (e) {
+      showToast(t('scan.err') + (e?.message || ''))
+      setSaving(false)
+    }
+  }
+
   const rows = result ? [
     { label: t('scan.kind'),        value: t(KIND_KEYS[result.kind] ?? 'scan.kindOther') },
     { label: t('scan.tempClass'),   value: t(TEMP_KEYS[result.tempClass] ?? 'scan.tempUnknown'), highlight: true },
@@ -99,18 +139,83 @@ export default function EquipmentScanPage() {
 
   return (
     <div className="p-4 pb-10">
+      {/* 뒤로가기 */}
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center justify-center gap-2 w-full py-3 mb-2 bg-gray-100 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 active:bg-gray-200"
+      >
+        <ChevronLeft size={18} strokeWidth={2} />
+        {t('common.back')}
+      </button>
       <div className="flex items-center gap-3 mb-4">
-        <button onClick={() => navigate(-1)} className="text-gray-500">
-          <ChevronLeft size={22} strokeWidth={1.5} />
-        </button>
         <h2 className="text-base font-semibold text-gray-900">{t('scan.title')}</h2>
+      </div>
+
+      {/* 거래처 선택 (필수) */}
+      <div className="mb-3">
+        <p className="text-xs font-semibold text-gray-500 mb-1.5 px-1">{t('knowhow.customerLabel')}</p>
+        {customers && customers.length === 0 ? (
+          <button
+            onClick={() => navigate('/service')}
+            className="w-full flex items-center justify-center gap-2 py-3 bg-amber-100 border-2 border-amber-400 text-amber-900 text-xs font-semibold rounded-xl active:bg-amber-200"
+          >
+            <Building2 size={14} strokeWidth={2} />
+            {t('knowhow.customerNoneAdd')}
+          </button>
+        ) : (
+          <div>
+            <button
+              type="button"
+              onClick={() => setShowCustomerList((v) => !v)}
+              className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm bg-white border-2 rounded-lg outline-none text-left ${customerId ? 'border-blue-400 text-gray-900 font-medium' : 'border-white text-gray-500'}`}
+            >
+              <Building2 size={16} strokeWidth={2} className={customerId ? 'text-blue-600' : 'text-gray-400'} />
+              <span className="flex-1 truncate">
+                {customerId
+                  ? (customers?.find((c) => c.id === customerId)?.name ?? t('knowhow.customerSelect'))
+                  : t('knowhow.customerSelect')}
+              </span>
+              <span className="text-gray-400 text-xs">{showCustomerList ? '▲' : '▼'}</span>
+            </button>
+
+            {showCustomerList && (
+              <div className="mt-1 border border-gray-300 rounded-lg overflow-hidden bg-white">
+                <input
+                  type="text"
+                  value={customerSearch}
+                  onChange={(e) => setCustomerSearch(e.target.value)}
+                  placeholder={t('knowhow.customerSelect')}
+                  className="w-full px-3 py-2.5 text-sm border-b border-gray-200 outline-none"
+                />
+                <div className="max-h-48 overflow-y-auto">
+                  {customers
+                    ?.filter((c) => !customerSearch || c.name?.toLowerCase().includes(customerSearch.toLowerCase()))
+                    .map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => {
+                          setCustomerId(c.id)
+                          setShowCustomerList(false)
+                          setCustomerSearch('')
+                        }}
+                        className={`w-full text-left px-3 py-2.5 text-sm border-b border-gray-100 last:border-b-0 active:bg-blue-50 ${customerId === c.id ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700'}`}
+                      >
+                        {c.name}
+                      </button>
+                    ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <input
         ref={fileRef}
         type="file"
         accept="image/*"
-        capture="environment"
+        {...captureAttr()}
         className="hidden"
         onChange={handleCapture}
       />
@@ -167,14 +272,17 @@ export default function EquipmentScanPage() {
         </>
       )}
 
-      {/* 빈 상태 — 자동 트리거 실패 시 */}
+      {/* 빈 상태 — 거래처 선택해야 [사진 찍기] 버튼 활성 */}
       {!photoUrl && !scanning && (
         <div className="flex flex-col items-center justify-center py-16 text-gray-400">
           <Camera size={52} strokeWidth={1} className="mb-4 opacity-30" />
-          <p className="text-sm mb-4 text-center px-6">{t('scan.emptyDesc')}</p>
+          <p className="text-sm mb-4 text-center px-6">
+            {customerId ? t('scan.emptyDesc') : t('knowhow.errCustomer')}
+          </p>
           <button
             onClick={() => fileRef.current?.click()}
-            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white text-base font-semibold rounded-xl active:bg-blue-700"
+            disabled={!customerId}
+            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white text-base font-semibold rounded-xl active:bg-blue-700 disabled:opacity-50"
           >
             <Camera size={16} strokeWidth={2} />
             {t('scan.takePhoto')}
@@ -184,21 +292,33 @@ export default function EquipmentScanPage() {
 
       {/* 액션 */}
       {(result || errMsg) && !scanning && (
-        <div className="flex gap-2 mt-2">
-          <button
-            onClick={retry}
-            className="flex-1 py-3 text-sm font-medium border border-gray-300 rounded-xl text-gray-700 flex items-center justify-center gap-1.5 bg-white"
-          >
-            <RotateCw size={14} strokeWidth={2} />
-            {t('scan.retry')}
-          </button>
-          <button
-            onClick={() => navigate(-1)}
-            className="flex-1 py-3 text-sm font-medium bg-gray-900 text-white rounded-xl"
-          >
-            {t('scan.close')}
-          </button>
-        </div>
+        <>
+          {result && (
+            <button
+              onClick={handleSave}
+              disabled={saving || !customerId}
+              className="w-full py-3 mb-2 text-sm font-bold bg-blue-600 text-white rounded-xl flex items-center justify-center gap-1.5 active:bg-blue-700 disabled:opacity-50"
+            >
+              <Save size={15} strokeWidth={2} />
+              {t('scan.saveToCustomer')}
+            </button>
+          )}
+          <div className="flex gap-2">
+            <button
+              onClick={retry}
+              className="flex-1 py-3 text-sm font-medium border border-gray-300 rounded-xl text-gray-700 flex items-center justify-center gap-1.5 bg-white"
+            >
+              <RotateCw size={14} strokeWidth={2} />
+              {t('scan.retry')}
+            </button>
+            <button
+              onClick={() => navigate(-1)}
+              className="flex-1 py-3 text-sm font-medium bg-gray-900 text-white rounded-xl"
+            >
+              {t('scan.close')}
+            </button>
+          </div>
+        </>
       )}
     </div>
   )

@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "app.rpro",
+        "sha256_cert_fingerprints": ["2E:2F:F1:CD:B2:CD:67:33:7E:14:B0:B9:69:81:D3:6D:90:A1:AF:0C:60:96:93:B8:D0:48:4E:6C:96:83:18:C4"]
+      }
+    }]

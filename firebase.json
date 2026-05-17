@@ -35,7 +35,7 @@
           { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
           { "key": "Cross-Origin-Opener-Policy", "value": "same-origin-allow-popups" },
           { "key": "Permissions-Policy", "value": "camera=(self), microphone=(self), geolocation=(), payment=(self)" },
-          { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' https://apis.google.com https://www.gstatic.com https://*.firebaseapp.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://www.gstatic.com https://*.googleusercontent.com https://firebasestorage.googleapis.com https://*.firebasestorage.app; font-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.cloudfunctions.net https://*.run.app https://*.sentry.io https://firebasestorage.googleapis.com https://*.firebasestorage.app wss://*.firebaseio.com; frame-src https://*.firebaseapp.com https://accounts.google.com; media-src 'self' blob: https://firebasestorage.googleapis.com https://*.firebasestorage.app; object-src 'none'; base-uri 'self'; form-action 'self'" }
+          { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'sha256-WPrWc1yuqSXL/N3OqPkIDYhUfU2QiVE8U/vE1sESIak=' https://apis.google.com https://www.gstatic.com https://*.firebaseapp.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://www.gstatic.com https://*.googleusercontent.com https://firebasestorage.googleapis.com https://*.firebasestorage.app; font-src 'self' data:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.cloudfunctions.net https://*.run.app https://*.sentry.io https://firebasestorage.googleapis.com https://*.firebasestorage.app wss://*.firebaseio.com; frame-src https://*.firebaseapp.com https://accounts.google.com; media-src 'self' blob: https://firebasestorage.googleapis.com https://*.firebasestorage.app; object-src 'none'; base-uri 'self'; form-action 'self'" }
         ]
       }
     ],
@@ -51,10 +51,6 @@
       {
         "source": "/api/classify",
         "function": "classify"
-      },
-      {
-        "source": "/api/extract-knowhow",
-        "function": "extractKnowhow"
       },
       {
         "source": "/api/whisper",
@@ -79,6 +75,18 @@
       {
         "source": "/api/fastspring-webhook",
         "function": "fastspringWebhook"
+      },
+      {
+        "source": "/api/notify-share-consent",
+        "function": "notifyShareConsent"
+      },
+      {
+        "source": "/api/quickDiag",
+        "function": "quickDiag"
+      },
+      {
+        "source": "/api/admin-reset-trial",
+        "function": "adminResetTrial"
       },
       {
         "source": "**",

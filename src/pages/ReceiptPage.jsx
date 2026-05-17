@@ -27,14 +27,24 @@ export default function ReceiptPage() {
   if (!job) return <div className="p-4 text-gray-400 text-sm">{t('logs.loading')}</div>
 
   const settings = loadSettings()
+  // 13종 비용 항목 (BillingPage와 동일 순서)
+  // discount는 음수로 합산, taxAmount는 자동 계산 결과를 그대로 합산
   const COST_FIELDS = [
-    { key: 'partsCost',  label: t('billing.partsCost') },
-    { key: 'laborCost',  label: t('billing.laborCost') },
-    { key: 'travelCost', label: t('billing.travelCost') },
-    { key: 'taxAmount',  label: t('billing.taxAmount') },
-    { key: 'otherCost',  label: t('billing.otherCost') },
+    { key: 'generalRevenue',  label: t('billing.generalRevenue'),  sign: 1 },
+    { key: 'diagnosisFee',    label: t('billing.diagnosisFee'),    sign: 1 },
+    { key: 'emergencyFee',    label: t('billing.emergencyFee'),    sign: 1 },
+    { key: 'maintenanceFee',  label: t('billing.maintenanceFee'),  sign: 1 },
+    { key: 'demolitionFee',   label: t('billing.demolitionFee'),   sign: 1 },
+    { key: 'rentalFee',       label: t('billing.rentalFee'),       sign: 1 },
+    { key: 'deliveryFee',     label: t('billing.deliveryFee'),     sign: 1 },
+    { key: 'partsCost',       label: t('billing.partsCost'),       sign: 1 },
+    { key: 'laborCost',       label: t('billing.laborCost'),       sign: 1 },
+    { key: 'travelCost',      label: t('billing.travelCost'),      sign: 1 },
+    { key: 'discount',        label: t('billing.discount'),        sign: -1 },
+    { key: 'taxAmount',       label: t('billing.taxAmount'),       sign: 1 },
+    { key: 'otherCost',       label: t('billing.otherCost'),       sign: 1 },
   ]
-  const totalCost = COST_FIELDS.reduce((sum, f) => sum + (Number(job[f.key]) || 0), 0)
+  const totalCost = COST_FIELDS.reduce((sum, f) => sum + (Number(job[f.key]) || 0) * f.sign, 0)
   const today = new Date().toLocaleDateString(i18n.language, { year: 'numeric', month: '2-digit', day: '2-digit' })
   const receiptNo = `R-${job.id}-${Date.now().toString().slice(-4)}`
 
@@ -173,11 +183,11 @@ export default function ReceiptPage() {
               <div className="space-y-1">
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{t('receipt.sectionCost')}</p>
                 <div className="space-y-1 text-sm">
-                  {COST_FIELDS.map(({ key, label }) =>
+                  {COST_FIELDS.map(({ key, label, sign }) =>
                     job[key] > 0 ? (
                       <div key={key} className="flex justify-between text-gray-600">
                         <span>{label}</span>
-                        <span>{Number(job[key]).toLocaleString()} {t('common.currencyUnit')}</span>
+                        <span>{sign < 0 ? '-' : ''}{Number(job[key]).toLocaleString()} {t('common.currencyUnit')}</span>
                       </div>
                     ) : null
                   )}

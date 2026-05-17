@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useTranslation } from 'react-i18next'
 import {
@@ -13,6 +13,7 @@ import { scanBusinessCard } from '../utils/scanBusinessCard'
 import TrialLimitModal from '../components/TrialLimitModal'
 import { consumeTrial } from '../utils/trial'
 import { softDelete } from '../utils/cloudSync'
+import { captureAttr, isMobile } from '../utils/deviceCapture'
 import MediaImage from '../components/MediaImage'
 
 const EMPTY = {
@@ -24,13 +25,7 @@ export default function BusinessCardPage() {
   const { t } = useTranslation()
   const fileRef = useRef()
   const [searchParams, setSearchParams] = useSearchParams()
-
-  useEffect(() => {
-    if (searchParams.get('scan') === '1') {
-      fileRef.current?.click()
-      setSearchParams({}, { replace: true })
-    }
-  }, [searchParams, setSearchParams])
+  const location = useLocation()
 
   const [mode, setMode] = useState('list')   // 'list' | 'confirm'
   const [photoUrl, setPhotoUrl] = useState('')
@@ -39,6 +34,22 @@ export default function BusinessCardPage() {
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(null)
   const [trialBlocked, setTrialBlocked] = useState(null)
+
+  useEffect(() => {
+    // PC 흐름: ServicePage 명함스캔에서 이미 사진 골라 state로 들고 옴 → 확인 뷰 직행
+    const incoming = location.state?.scanDataUrl
+    if (incoming) {
+      navigate(location.pathname, { replace: true, state: null })
+      handleDataUrl(incoming)
+      return
+    }
+    if (searchParams.get('scan') === '1') {
+      // 모바일만 자동 카메라 호출. PC는 user activation 필요해서 차단됨.
+      if (isMobile()) fileRef.current?.click()
+      setSearchParams({}, { replace: true })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const cards = useLiveQuery(
     () => db.business_cards.orderBy('createdAt').reverse().filter((r) => !r.deletedAt).toArray(), []
@@ -50,37 +61,38 @@ export default function BusinessCardPage() {
     setForm((p) => ({ ...p, [key]: val }))
   }
 
+  async function handleDataUrl(dataUrl) {
+    setPhotoUrl(dataUrl)
+    setForm(EMPTY)
+    setMode('confirm')
+
+    setScanning(true)
+    try {
+      const result = await scanBusinessCard(dataUrl)
+      setForm({
+        name:    result.name    ?? '',
+        company: result.company ?? '',
+        title:   result.title   ?? '',
+        phone:   result.phone   ?? '',
+        mobile:  result.mobile  ?? '',
+        email:   result.email   ?? '',
+        address: result.address ?? '',
+        memo:    result.memo    ?? '',
+      })
+    } catch (err) {
+      showToast(t('bc.errScan') + err.message)
+    } finally {
+      setScanning(false)
+    }
+  }
+
   async function handleCapture(e) {
     const file = e.target.files?.[0]
     if (!file) return
     e.target.value = ''
 
     const reader = new FileReader()
-    reader.onload = async (ev) => {
-      const dataUrl = ev.target.result
-      setPhotoUrl(dataUrl)
-      setForm(EMPTY)
-      setMode('confirm')
-
-      setScanning(true)
-      try {
-        const result = await scanBusinessCard(dataUrl)
-        setForm({
-          name:    result.name    ?? '',
-          company: result.company ?? '',
-          title:   result.title   ?? '',
-          phone:   result.phone   ?? '',
-          mobile:  result.mobile  ?? '',
-          email:   result.email   ?? '',
-          address: result.address ?? '',
-          memo:    result.memo    ?? '',
-        })
-      } catch (err) {
-        showToast(t('bc.errScan') + err.message)
-      } finally {
-        setScanning(false)
-      }
-    }
+    reader.onload = (ev) => handleDataUrl(ev.target.result)
     reader.readAsDataURL(file)
   }
 
@@ -239,7 +251,7 @@ export default function BusinessCardPage() {
           <button
             onClick={handleSave}
             disabled={!form.name.trim() || scanning || saving}
-            className="flex-2 px-6 py-3 text-sm font-medium bg-gray-900 text-white rounded-xl disabled:opacity-40 flex items-center justify-center gap-1.5"
+            className="flex-2 px-6 py-3 text-sm font-bold bg-emerald-600 text-white rounded-xl shadow-md active:bg-emerald-700 disabled:opacity-40 flex items-center justify-center gap-1.5"
           >
             {saving
               ? <Loader size={14} className="animate-spin" />
@@ -254,11 +266,16 @@ export default function BusinessCardPage() {
   /* ── LIST VIEW ──────────────────────────────────────────── */
   return (
     <div className="p-4 pb-10">
+      {/* 뒤로가기 */}
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center justify-center gap-2 w-full py-3 mb-2 bg-gray-100 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 active:bg-gray-200"
+      >
+        <ChevronLeft size={18} strokeWidth={2} />
+        {t('common.back')}
+      </button>
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
-          <button onClick={() => navigate(-1)} className="text-gray-500">
-            <ChevronLeft size={22} strokeWidth={1.5} />
-          </button>
           <h2 className="text-base font-semibold text-gray-900">{t('bc.title')}</h2>
           {cards && cards.length > 0 && (
             <span className="text-xs text-gray-400">{t('bc.cardCount', { count: cards.length })}</span>
@@ -270,7 +287,7 @@ export default function BusinessCardPage() {
         ref={fileRef}
         type="file"
         accept="image/*"
-        capture="environment"
+        {...captureAttr()}
         className="hidden"
         onChange={handleCapture}
       />

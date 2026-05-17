@@ -8,6 +8,7 @@ import DateInput from '../components/DateInput'
 import TrialLimitModal from '../components/TrialLimitModal'
 import { consumeTrial } from '../utils/trial'
 import { todayLocal } from '../utils/date'
+import { captureAttr } from '../utils/deviceCapture'
 
 const today = todayLocal
 
@@ -176,11 +177,15 @@ export default function ExpenseFormPage() {
 
   return (
     <div className="p-4 pb-10">
+      {/* 뒤로가기 */}
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center justify-center gap-2 w-full py-3 mb-2 bg-gray-100 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 active:bg-gray-200"
+      >
+        <ChevronLeft size={18} strokeWidth={2} />
+        {t('expense.back')}
+      </button>
       <div className="flex items-center justify-between mb-5">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-gray-500">
-          <ChevronLeft size={18} strokeWidth={1.5} />
-          <span className="text-sm">{t('expense.back')}</span>
-        </button>
         <h2 className="text-base font-semibold text-gray-900">{isNew ? t('expense.newTitle') : t('expense.editTitle')}</h2>
         {!isNew && (
           <button
@@ -377,7 +382,7 @@ export default function ExpenseFormPage() {
         {/* 영수증 사진 */}
         <div className="bg-white rounded-xl border border-gray-300 p-4">
           <p className="text-xs font-semibold text-gray-500 mb-3">{t('expense.receipt')}</p>
-          <input ref={fileRef} type="file" accept="image/*" capture="environment" multiple className="hidden" onChange={handlePhoto} />
+          <input ref={fileRef} type="file" accept="image/*" {...captureAttr()} multiple className="hidden" onChange={handlePhoto} />
           <div className="flex gap-2 flex-wrap">
             {photos.map((dataUrl, i) => (
               <div key={i} className="relative w-24 h-24">

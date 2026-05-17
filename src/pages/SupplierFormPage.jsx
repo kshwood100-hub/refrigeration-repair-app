@@ -4,6 +4,9 @@ import { useTranslation } from 'react-i18next'
 import { ChevronLeft, Save, Camera, X, Sparkles } from 'lucide-react'
 import { db } from '../db'
 import { scanBusinessCard } from '../utils/scanBusinessCard'
+import { consumeTrial } from '../utils/trial'
+import { showToast } from '../utils/toast'
+import { captureAttr } from '../utils/deviceCapture'
 
 const EMPTY = {
   items: '',
@@ -65,6 +68,16 @@ export default function SupplierFormPage() {
         await db.suppliers.update(Number(id), { ...form, updatedAt: now })
         navigate(`/suppliers/${id}`)
       } else {
+        // 트라이얼 cap — 거래처(customers) 카테고리에 통합 (project_pricing_confirmed.md 정책)
+        try {
+          await consumeTrial('customers')
+        } catch (e) {
+          if (String(e?.message || e).includes('Trial limit')) {
+            showToast(t('trial.limitTitle'))
+            setSaving(false)
+            return
+          }
+        }
         const newId = await db.suppliers.add({ ...form, createdAt: now, updatedAt: now })
         navigate(`/suppliers/${newId}`)
       }
@@ -106,10 +119,10 @@ export default function SupplierFormPage() {
     <div className="p-4 pb-20">
       <button
         onClick={() => navigate(-1)}
-        className="flex items-center gap-2 mb-4 text-gray-600"
+        className="flex items-center justify-center gap-2 w-full py-3 mb-4 bg-gray-100 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 active:bg-gray-200"
       >
         <ChevronLeft size={18} strokeWidth={2} />
-        <span className="text-sm">{t('supplier.back')}</span>
+        {t('supplier.back')}
       </button>
 
       <h1 className="text-xl font-bold mb-4 text-gray-900">{isEdit ? t('supplier.editTitle') : t('supplier.addTitle')}</h1>
@@ -119,7 +132,7 @@ export default function SupplierFormPage() {
           ref={fileRef}
           type="file"
           accept="image/*"
-          capture="environment"
+          {...captureAttr()}
           className="hidden"
           onChange={handleScan}
         />

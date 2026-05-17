@@ -37,6 +37,18 @@ function dataHashPlugin() {
   }
 }
 
+// 빌드마다 새 ID 발급 → index.html의 __BUILD_ID__ 자리표시자 교체.
+// 옛 chunk 캐시·옛 SW로 인한 새 빌드 미반영 결함을 클라이언트 측에서 즉시 회복시키는 메커니즘.
+function buildIdPlugin() {
+  return {
+    name: 'build-id',
+    transformIndexHtml(html) {
+      const id = Date.now().toString(36)
+      return html.replace('__BUILD_ID__', id)
+    },
+  }
+}
+
 export default defineConfig({
-  plugins: [react(), swVersionPlugin(), dataHashPlugin()],
+  plugins: [react(), swVersionPlugin(), dataHashPlugin(), buildIdPlugin()],
 })

@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "lint:cases": "node scripts/lint-cases.cjs",
+    "build": "node scripts/lint-cases.cjs && vite build",
     "preview": "vite preview"
   },
   "dependencies": {

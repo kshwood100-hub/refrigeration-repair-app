@@ -125,8 +125,13 @@ export default function ExpensePage({ hideTitle = false }) {
   )
   const jobs = useLiveQuery(() => db.service_jobs.filter((r) => !r.deletedAt).toArray(), [])
   const customers = useLiveQuery(() => db.customers.filter((r) => !r.deletedAt).toArray(), [])
+  // 매입 거래내역 — 회계 순이익 계산에 포함 (매입은 매입처에서 사 온 부품·자재 비용)
+  // type === 'payment'는 지급(이미 매입으로 잡힌 돈을 갚음) → 비용 아님 → 제외
+  const purchases = useLiveQuery(
+    () => db.supplier_transactions.filter((r) => !r.deletedAt && r.type !== 'payment').toArray(), []
+  )
 
-  if (!expenses || !jobs || !customers) {
+  if (!expenses || !jobs || !customers || !purchases) {
     return <div className="p-4 text-gray-400 text-sm">{t('expense.loading')}</div>
   }
 
@@ -145,7 +150,11 @@ export default function ExpensePage({ hideTitle = false }) {
   const rangeTotal = rangeExpenses.reduce((s, e) => s + (e.items ?? []).reduce((ss, i) => ss + (Number(i.amount) || 0), 0), 0)
   const rangeJobs = jobs.filter((j) => (j.cost || 0) > 0 && j.receiptDate >= rangeStart && j.receiptDate <= rangeEnd)
   const rangeRevenue = rangeJobs.reduce((s, j) => s + (j.cost || 0), 0)
-  const rangeNet = rangeRevenue - rangeTotal
+  // 매입 합계 — 기간 내 매입(부품 사 옴) 거래의 total 합산
+  const rangePurchases = purchases.filter((p) => p.date >= rangeStart && p.date <= rangeEnd)
+  const rangePurchaseTotal = rangePurchases.reduce((s, p) => s + (Number(p.total) || 0), 0)
+  // 순이익 = 매출 − (경비 + 매입). 매입은 부품 원가, 경비는 운영 잡비 — 둘 다 지출로 차감
+  const rangeNet = rangeRevenue - rangeTotal - rangePurchaseTotal
 
   const PERIOD_TABS = [
     { key: 'week',    label: t('expense.periodWeek') },
@@ -212,7 +221,7 @@ export default function ExpensePage({ hideTitle = false }) {
               <div className="text-center py-20 text-gray-400">
                 <div className="text-sm mb-4">{t('expense.revenueEmpty')}</div>
                 <button
-                  onClick={() => navigate('/service', { state: { tab: 'customers', revenueAddMode: true } })}
+                  onClick={() => navigate('/billing/new')}
                   className="inline-flex items-center gap-1 px-4 py-2 bg-emerald-600 text-white text-sm font-bold rounded-lg active:bg-emerald-700"
                 >
                   <Plus size={14} strokeWidth={2.5} />
@@ -223,6 +232,13 @@ export default function ExpensePage({ hideTitle = false }) {
           }
           return (
             <div className="space-y-1.5">
+              <button
+                onClick={() => navigate('/billing/new')}
+                className="w-full flex items-center justify-center gap-1.5 py-2.5 mb-2 bg-emerald-600 text-white text-sm font-bold rounded-xl active:bg-emerald-700 shadow-md"
+              >
+                <Plus size={14} strokeWidth={2.5} />
+                {t('expense.revenueAddBtn')}
+              </button>
               <div className="flex items-center justify-between px-3 py-2.5 bg-emerald-600 rounded-xl mb-2">
                 <span className="text-xs text-white font-medium">{t('expense.revenueTotal')}</span>
                 <span className="text-sm font-bold text-white">{totalRevenue.toLocaleString()}{t('expense.wonUnit')}</span>
@@ -354,6 +370,10 @@ export default function ExpensePage({ hideTitle = false }) {
                     <div className="flex items-center justify-between px-3 py-2.5 bg-red-600 rounded-xl">
                       <span className="text-xs text-white font-medium">{t('expense.expenseTotal')}</span>
                       <span className="text-sm font-bold text-white">−{rangeTotal.toLocaleString()}{t('expense.wonUnit')}</span>
+                    </div>
+                    <div className="flex items-center justify-between px-3 py-2.5 bg-amber-600 rounded-xl">
+                      <span className="text-xs text-white font-medium">{t('expense.purchaseTotal')}</span>
+                      <span className="text-sm font-bold text-white">−{rangePurchaseTotal.toLocaleString()}{t('expense.wonUnit')}</span>
                     </div>
                     <div className={`flex items-center justify-between px-3 py-2.5 rounded-xl ${rangeNet >= 0 ? 'bg-blue-600' : 'bg-gray-700'}`}>
                       <span className="text-xs text-white font-medium">{t('expense.netProfit')}</span>

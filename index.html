@@ -14,6 +14,34 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="R-Pro" />
+    <meta name="build-id" content="__BUILD_ID__" />
+    <script>
+      // 빌드 ID 비교 + 강제 캐시 정리 (SW 우회)
+      // 옛 chunk 캐시·옛 PWA SW 때문에 새 빌드가 사용자 화면에 안 보이는 결함 차단.
+      // chunk import 전 동기 실행 — mismatch 시 location.reload로 새 chunk fetch.
+      (function() {
+        try {
+          var id = document.querySelector('meta[name="build-id"]').content;
+          if (!id || id === '__BUILD_ID__') return; // dev 환경
+          var last = localStorage.getItem('rpro_build_id');
+          if (last && last !== id) {
+            if ('caches' in window) {
+              caches.keys().then(function(keys) {
+                return Promise.all(keys.map(function(k) { return caches.delete(k); }));
+              }).then(function() {
+                localStorage.setItem('rpro_build_id', id);
+                location.reload();
+              });
+            } else {
+              localStorage.setItem('rpro_build_id', id);
+              location.reload();
+            }
+            return;
+          }
+          localStorage.setItem('rpro_build_id', id);
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

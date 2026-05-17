@@ -1,8 +1,13 @@
 import { useState, useRef, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { UNITS } from '../data/refrigerantsData'
 import { loadSettings, saveSettings } from '../utils/settings'
 import { createBackup, listBackups, downloadBackup, restoreBackup, formatSize, importAllData } from '../utils/backup'
-import { Download, RotateCcw, Upload, QrCode, ScanLine, Lock, CreditCard, CheckCircle2 } from 'lucide-react'
+import { Download, RotateCcw, Upload, QrCode, ScanLine, Lock, CreditCard, CheckCircle2, LogOut } from 'lucide-react'
+import { doc, updateDoc } from 'firebase/firestore'
+import { firestore } from '../firebase'
+import { apiFetch } from '../utils/apiClient'
+import { useAuth } from '../hooks/useAuth'
 import QRExportModal from '../components/QRExportModal'
 import QRImportModal from '../components/QRImportModal'
 import { useTranslation } from 'react-i18next'
@@ -26,6 +31,8 @@ const LANGUAGES = [
 
 export default function SettingsPage() {
   const { t, i18n } = useTranslation()
+  const navigate = useNavigate()
+  const { user, logout } = useAuth()
   const [settings, setSettings] = useState(loadSettings)
   const [backups, setBackups] = useState([])
   const [backupLoading, setBackupLoading] = useState(false)
@@ -37,6 +44,14 @@ export default function SettingsPage() {
   const [confirmMsg, setConfirmMsg] = useState('')
   const [trialState, setTrialState] = useState(null)
   const [showManageInfo, setShowManageInfo] = useState(false)
+  const [bizLocked, setBizLocked] = useState(() => {
+    const s = loadSettings()
+    return !!(s.bizName || s.bizOwner || s.bizPhone || s.bizAddress || s.bizRegNo)
+  })
+  const [taxLocked, setTaxLocked] = useState(() => {
+    const s = loadSettings()
+    return Number(s.taxRate) > 0
+  })
 
   useEffect(() => {
     // force=true — 결제 직후 진입하는 경우 캐시 무시하고 fresh 조회
@@ -47,6 +62,28 @@ export default function SettingsPage() {
     const next = { ...settings, ...patch }
     setSettings(next)
     saveSettings(next)
+  }
+
+  function toggleShareConsent() {
+    const next = !settings.shareConsent
+    setConfirmMsg(next
+      ? t('settings.shareConsentConfirmEnable')
+      : t('settings.shareConsentConfirmDisable'))
+    setConfirmAction(() => async () => {
+      update({ shareConsent: next })
+      if (!user?.email) return
+      try {
+        const ref = doc(firestore, 'allowed_users', user.email)
+        await updateDoc(ref, { shareConsent: next })
+      } catch (e) {
+        console.warn('Share consent sync failed:', e?.message)
+      }
+      try {
+        await apiFetch('/api/notify-share-consent', { enabled: next })
+      } catch (e) {
+        console.warn('Share consent notify failed:', e?.message)
+      }
+    })
   }
 
   async function openBackup() {
@@ -299,9 +336,18 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      {/* 영수증 발급 정보 */}
+      {/* 사용자 정보 (영수증 발행) */}
       <section className="mb-4">
-        <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">{t('settings.bizSection')}</div>
+        <div className="flex items-center justify-between mb-1.5">
+          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('settings.bizSection')}</div>
+          <button
+            type="button"
+            onClick={() => setBizLocked(prev => !prev)}
+            className={`px-3 py-1 text-xs font-semibold rounded-md text-white shadow-md ${bizLocked ? 'bg-emerald-600' : 'bg-blue-600'}`}
+          >
+            {bizLocked ? t('settings.bizEdit') : t('settings.bizSave')}
+          </button>
+        </div>
         <div className="bg-white border border-gray-300 rounded-lg px-3 py-2.5 space-y-2">
           {[
             { key: 'bizName',    label: t('settings.bizName'),    ph: t('settings.bizNamePh') },
@@ -317,34 +363,76 @@ export default function SettingsPage() {
                 value={settings[key] ?? ''}
                 onChange={(e) => update({ [key]: e.target.value })}
                 placeholder={ph}
-                className="w-full text-xs text-gray-800 border border-gray-200 rounded-md px-2.5 py-1.5 outline-none focus:border-blue-400"
+                disabled={bizLocked}
+                className={`w-full text-xs border border-gray-200 rounded-md px-2.5 py-1.5 outline-none ${bizLocked ? 'opacity-50 cursor-default' : 'text-gray-800 focus:border-blue-400'}`}
               />
             </div>
           ))}
         </div>
       </section>
 
-      {/* 설비기록 공유 (v2 가동 예정 — 비활성) */}
+      {/* 세율 (매출 등록 시 세금 자동 계산용) */}
       <section className="mb-4">
-        <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
-          <Lock size={11} strokeWidth={2} className="text-gray-400" />
-          <span>{t('settings.shareSection')}</span>
+        <div className="flex items-center justify-between mb-1.5">
+          <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{t('settings.taxSection')}</div>
+          <button
+            type="button"
+            onClick={() => setTaxLocked(prev => !prev)}
+            className={`px-3 py-1 text-xs font-semibold rounded-md text-white shadow-md ${taxLocked ? 'bg-emerald-600' : 'bg-blue-600'}`}
+          >
+            {taxLocked ? t('settings.taxEdit') : t('settings.taxApply')}
+          </button>
         </div>
-        <div className="bg-white border border-gray-300 rounded-lg overflow-hidden opacity-60">
+        <div className="bg-white border border-gray-300 rounded-lg px-3 py-2.5">
+          <label className="text-[11px] font-medium text-gray-500 block mb-0.5">{t('settings.taxRate')}</label>
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              inputMode="decimal"
+              min="0"
+              max="100"
+              step="0.1"
+              value={settings.taxRate || ''}
+              onChange={(e) => {
+                const v = e.target.value
+                if (v === '') {
+                  update({ taxRate: 0 })
+                } else {
+                  const n = Number(v)
+                  if (!isNaN(n) && n >= 0 && n <= 100) update({ taxRate: n })
+                }
+              }}
+              placeholder="0"
+              disabled={taxLocked}
+              className={`flex-1 text-xs border border-gray-200 rounded-md px-2.5 py-1.5 outline-none ${taxLocked ? 'opacity-50 cursor-default text-gray-500' : 'text-gray-800 focus:border-blue-400'}`}
+            />
+            <span className="text-xs text-gray-500">%</span>
+          </div>
+          <p className="text-[10px] text-gray-400 mt-1">{t('settings.taxRateDesc')}</p>
+        </div>
+      </section>
+
+      {/* 설비기록 공유 */}
+      <section className="mb-4">
+        <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+          {t('settings.shareSection')}
+        </div>
+        <div className="bg-white border border-gray-300 rounded-lg overflow-hidden">
           <div className="px-3 py-2.5 border-b border-gray-200">
             <div className="flex items-start gap-2">
               <div className="flex-1">
                 <p className="font-medium text-gray-800 text-xs">{t('settings.shareToggle')}</p>
                 <p className="text-[11px] text-gray-500 mt-0.5">{t('settings.shareDesc')}</p>
                 <p className="text-[11px] text-blue-600 font-medium mt-1">{t('settings.shareDiscount')}</p>
+                <p className="text-[10px] text-amber-700 mt-1">{t('settings.shareApplyNote')}</p>
               </div>
               <button
                 type="button"
-                disabled
-                aria-disabled="true"
-                className="relative w-9 h-5 bg-gray-200 rounded-full shrink-0 cursor-not-allowed"
+                onClick={toggleShareConsent}
+                aria-pressed={!!settings.shareConsent}
+                className={`relative w-9 h-5 rounded-full shrink-0 transition-colors ${settings.shareConsent ? 'bg-blue-600' : 'bg-gray-300'}`}
               >
-                <span className="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow" />
+                <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${settings.shareConsent ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
               </button>
             </div>
           </div>
@@ -353,9 +441,6 @@ export default function SettingsPage() {
             <div><span className="font-semibold text-gray-700">{t('settings.shareWhy')}:</span> {t('settings.shareWhyDesc')}</div>
             <div><span className="font-semibold text-gray-700">{t('settings.shareKeep')}:</span> {t('settings.shareKeepDesc')}</div>
             <div><span className="font-semibold text-gray-700">{t('settings.shareWithdraw')}:</span> {t('settings.shareWithdrawDesc')}</div>
-          </div>
-          <div className="px-3 py-1.5 bg-amber-50 border-t border-amber-200 text-[10px] text-amber-700 font-medium text-center">
-            {t('settings.shareComingSoon')}
           </div>
         </div>
       </section>
@@ -502,6 +587,19 @@ export default function SettingsPage() {
         </div>
       )}
 
+      {/* 회사 정보·약관 (마케팅 사이트 외부 링크는 페이지 안에서 처리) */}
+      <section className="mb-4">
+        <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">{t('settings.companySection')}</div>
+        <button
+          type="button"
+          onClick={() => navigate('/company-info')}
+          className="w-full bg-white border border-gray-300 rounded-lg px-3 py-3 flex items-center justify-between active:bg-gray-50"
+        >
+          <span className="text-sm font-medium text-gray-800">{t('settings.companyMenu')}</span>
+          <span className="text-gray-400">›</span>
+        </button>
+      </section>
+
       {/* 앱 정보 */}
       <section className="mt-6">
         <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">{t('settings.appInfo')}</div>
@@ -522,6 +620,34 @@ export default function SettingsPage() {
             <span className="text-gray-600">{t('settings.ptData')}</span>
             <span className="font-medium text-gray-800">NIST WebBook</span>
           </div>
+        </div>
+      </section>
+
+      <section className="mb-6">
+        <h2 className="text-sm font-bold text-gray-700 mb-2 px-1">{t('settings.account')}</h2>
+        <div className="bg-white border border-gray-300 rounded-lg p-3">
+          {user?.email && (
+            <div className="text-xs text-gray-600 mb-3 px-1 break-all">
+              {user.email}
+            </div>
+          )}
+          <button
+            onClick={() => {
+              setConfirmMsg(t('settings.logoutConfirm'))
+              setConfirmAction(() => async () => {
+                try {
+                  await logout()
+                  navigate('/login', { replace: true })
+                } catch (e) {
+                  showToast(e?.message || 'Logout failed')
+                }
+              })
+            }}
+            className="w-full flex items-center justify-center gap-2 py-2.5 bg-gray-700 text-white text-sm font-bold rounded-lg active:bg-gray-800"
+          >
+            <LogOut size={16} strokeWidth={2} />
+            {t('settings.logout')}
+          </button>
         </div>
       </section>
 

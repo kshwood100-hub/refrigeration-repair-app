@@ -49,6 +49,37 @@ service cloud.firestore {
                           && exists(/databases/$(database)/documents/allowed_users/$(email));
     }
 
+    // community_cases: AI 진단 [도움됨] + 공유 동의 사용자 데이터.
+    // 본인만 read/write. 운영자(kshwood100@gmail.com)는 모든 사용자 데이터 read·검수.
+    match /users/{email}/community_cases/{caseId} {
+      allow read, write: if request.auth != null
+                          && request.auth.token.email_verified == true
+                          && request.auth.token.email == email
+                          && exists(/databases/$(database)/documents/allowed_users/$(email));
+      allow read: if request.auth != null
+                  && request.auth.token.email_verified == true
+                  && request.auth.token.email == 'kshwood100@gmail.com';
+    }
+
+    // beta_signups: 마케팅 사이트 베타 신청 폼 → 이메일 수집.
+    // 익명 create 허용 (이메일 형식 + 필드 화이트리스트 검증). read는 admin만.
+    match /beta_signups/{docId} {
+      allow read, update, delete: if false;
+      allow create: if
+        request.resource.data.keys().hasOnly(['email', 'createdAt', 'source', 'lang']) &&
+        request.resource.data.email is string &&
+        request.resource.data.email.size() > 5 &&
+        request.resource.data.email.size() < 100 &&
+        request.resource.data.email.matches('[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}') &&
+        request.resource.data.createdAt == request.time;
+    }
+
+    // partners: 마케팅 사이트 파트너 신청 → Cloud Function (admin SDK)만 write.
+    // 클라이언트는 partnersApply HTTPS endpoint 호출, Firestore 직접 접근 차단.
+    match /partners/{docId} {
+      allow read, update, delete, create: if false;
+    }
+
     // 그 외 모든 컬렉션 차단 (필요 시 명시적으로 추가)
     match /{document=**} {
       allow read, write: if false;
