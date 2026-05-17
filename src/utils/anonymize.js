@@ -38,6 +38,21 @@ export function anonymizeServiceJob(job) {
   }
 }
 
+// AI 진단 결과 한 건 → 익명 페이로드 (사진은 별도)
+// 진단 영역 격리 — 다른 collection·테이블과 데이터 흐름 없음
+export function anonymizeAiDiagnosis(item) {
+  if (!item) return null
+  return {
+    schema: 'ai_diagnosis.v1',
+    userText: stripPII(item.userText),
+    rawResponse: stripPII(item.rawResponse),
+    userMemo: stripPII(item.userMemo),
+    language: item.language ?? 'ko',
+    feedback: item.feedback ?? null,
+    // 의도적 제외: photoData (= 별도 Storage 검수 통과 시만 영구), id, cloudId, 거래처 정보 등
+  }
+}
+
 // knowhow 한 건 → 익명 페이로드
 export function anonymizeKnowhow(kh) {
   if (!kh) return null

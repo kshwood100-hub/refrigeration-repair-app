@@ -105,6 +105,7 @@ import ServicePage from './pages/ServicePage'
 import JobFormPage from './pages/JobFormPage'
 import JobDetailPage from './pages/JobDetailPage'
 import KnowhowPage from './pages/KnowhowPage'
+import KnowhowListPage from './pages/KnowhowListPage'
 import KnowhowDetailPage from './pages/KnowhowDetailPage'
 import KnowhowFormPage from './pages/KnowhowFormPage'
 import RefrigerationBasicsPage from './pages/RefrigerationBasicsPage'
@@ -120,12 +121,16 @@ import BillingPage from './pages/BillingPage'
 import AlarmPage from './pages/AlarmPage'
 import VoiceMemoPage from './pages/VoiceMemoPage'
 import EquipmentScanPage from './pages/EquipmentScanPage'
+import CompanyInfoPage from './pages/CompanyInfoPage'
 import FinancePage from './pages/FinancePage'
 import SupplierFormPage from './pages/SupplierFormPage'
 import SupplierDetailPage from './pages/SupplierDetailPage'
 import SupplierTransactionFormPage from './pages/SupplierTransactionFormPage'
 import SupplierTransactionDetailPage from './pages/SupplierTransactionDetailPage'
 import SupplierPaymentFormPage from './pages/SupplierPaymentFormPage'
+import QuickDiagPage from './pages/QuickDiagPage'
+import AiDiagnosisListPage from './pages/AiDiagnosisListPage'
+import AdminCurationPage from './pages/AdminCurationPage'
 
 export default function App() {
   const { user } = useAuth()
@@ -202,8 +207,10 @@ function AppLayout() {
           <Route path="/service/:id" element={<JobDetailPage />} />
           <Route path="/service/:id/edit" element={<JobFormPage />} />
           <Route path="/service/:id/billing" element={<BillingPage />} />
+          <Route path="/billing/new" element={<BillingPage />} />
           <Route path="/service/:id/receipt" element={<ReceiptPage />} />
           <Route path="/knowhow" element={<KnowhowPage />} />
+          <Route path="/knowhow/list" element={<KnowhowListPage />} />
           <Route path="/knowhow/new" element={<KnowhowFormPage />} />
           <Route path="/knowhow/:id" element={<KnowhowDetailPage />} />
           <Route path="/knowhow/:id/edit" element={<KnowhowFormPage />} />
@@ -226,6 +233,10 @@ function AppLayout() {
           <Route path="/alarms" element={<AlarmPage />} />
           <Route path="/voice-memo" element={<VoiceMemoPage />} />
           <Route path="/scan/equipment" element={<EquipmentScanPage />} />
+          <Route path="/company-info" element={<CompanyInfoPage />} />
+          <Route path="/diagnosis/ai" element={<QuickDiagPage />} />
+          <Route path="/knowhow/ai-list" element={<AiDiagnosisListPage />} />
+          <Route path="/admin/curation" element={<AdminCurationPage />} />
           <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>
       </main>

@@ -7,15 +7,42 @@ import {
   Calendar, CreditCard, Trash2, Wrench, CheckCircle2, X, Bell, Camera, Mail,
 } from 'lucide-react'
 import DateInput from '../components/DateInput'
+import TimeInput from '../components/TimeInput'
 import { db } from '../db'
-import { softDelete, softDeleteCustomerCascade } from '../utils/cloudSync'
+import { softDelete, softDeleteCustomerCascade, safeSyncAll } from '../utils/cloudSync'
 import MediaImage from '../components/MediaImage'
 import { requestNotificationPermission } from '../utils/alarmManager'
 import { showToast } from '../utils/toast'
+import { captureAttr } from '../utils/deviceCapture'
 import { compressImage } from '../utils/image'
 import { toLocalISO } from '../utils/date'
 
 const INTERVAL_OPTIONS = [1, 2, 3, 6, 12]
+
+const KIND_KEYS = {
+  compressor: 'scan.kindCompressor',
+  condenser: 'scan.kindCondenser',
+  evaporator: 'scan.kindEvaporator',
+  chiller: 'scan.kindChiller',
+  freezer: 'scan.kindFreezer',
+  AHU: 'scan.kindAHU',
+  pump: 'scan.kindPump',
+  motor: 'scan.kindMotor',
+  control_panel: 'scan.kindControlPanel',
+  piping: 'scan.kindPiping',
+  other: 'scan.kindOther',
+}
+const TEMP_KEYS = {
+  low_temp: 'scan.tempLow',
+  medium_temp: 'scan.tempMedium',
+  high_temp: 'scan.tempHigh',
+  unknown: 'scan.tempUnknown',
+}
+const STAGE_KEYS = {
+  single: 'scan.stageSingle',
+  two_stage: 'scan.stageTwo',
+  unknown: 'scan.stageUnknown',
+}
 
 export default function CustomerDetailPage() {
   const navigate = useNavigate()
@@ -225,6 +252,7 @@ export default function CustomerDetailPage() {
 
   async function handleDeleteCustomer() {
     await softDeleteCustomerCascade(Number(id))
+    safeSyncAll().catch(() => {})
     navigate('/service', { replace: true })
   }
 
@@ -234,8 +262,15 @@ export default function CustomerDetailPage() {
         <ChevronLeft size={18} strokeWidth={2} />
         {t('customer.back')}
       </button>
-      {/* 헤더 */}
-      <div className="flex items-center justify-end mb-5">
+      {/* 헤더 — 좌측 [+ AS 추가] 박음 (거래처 prefill 박힌 채 진입) / 우측 삭제 */}
+      <div className="flex items-center justify-between mb-5">
+        <button
+          onClick={() => navigate('/service/new', { state: { customerId: customer.id } })}
+          className="flex items-center gap-1.5 px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-bold shadow-md active:bg-emerald-700"
+        >
+          <Plus size={16} strokeWidth={2.5} />
+          {t('service.addFirst')}
+        </button>
         <button
           onClick={() => setShowDelete(true)}
           className="p-2 text-gray-400"
@@ -340,43 +375,6 @@ export default function CustomerDetailPage() {
           </div>
         )}
 
-        {/* 1.8 — 분석된 장비 통합 (AS + 설비기록) */}
-        {(analyzedEquipments ?? []).length > 0 && (
-          <div className="bg-white border border-gray-200 rounded-xl p-3">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
-              {t('customer.analyzedEquipments', { count: analyzedEquipments.length })}
-            </p>
-            <div className="space-y-2">
-              {analyzedEquipments.map((eq, i) => (
-                <div key={i} className="relative w-full bg-white border-2 border-gray-300 rounded-xl p-2 shadow-sm">
-                  <span className="absolute -top-2 left-2 px-1.5 py-0.5 bg-blue-600 text-white text-[10px] font-bold rounded">
-                    {eq.sourceType === 'job' ? t('customer.fromJob') : t('customer.fromKnowhow')}
-                  </span>
-                  <div className="grid grid-cols-[96px_1fr] gap-2">
-                    <button
-                      onClick={() => setAnalyzedLightboxIdx(i)}
-                      className="w-24 h-24 bg-gray-100 border border-gray-300 rounded-md overflow-hidden block"
-                    >
-                      {eq.photo && <img src={eq.photo} alt="" className="w-full h-full object-cover" />}
-                    </button>
-                    <div className="bg-gray-50 border border-gray-200 rounded-md p-2 text-[11px] leading-tight grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5 content-start overflow-hidden">
-                      {eq.kind && (<><span className="text-gray-400 shrink-0">{t('scan.kind')}</span><span className="text-gray-900 font-medium truncate">{eq.kind}</span></>)}
-                      {eq.brand && (<><span className="text-gray-400 shrink-0">{t('scan.brand')}</span><span className="text-gray-900 font-medium truncate">{eq.brand}</span></>)}
-                      {eq.model && (<><span className="text-gray-400 shrink-0">{t('scan.model')}</span><span className="text-gray-900 font-medium truncate">{eq.model}</span></>)}
-                      {eq.serial && (<><span className="text-gray-400 shrink-0">{t('scan.serial')}</span><span className="text-gray-900 font-medium truncate">{eq.serial}</span></>)}
-                      {eq.capacity && (<><span className="text-gray-400 shrink-0">{t('scan.capacity')}</span><span className="text-gray-900 font-medium truncate">{eq.capacity}</span></>)}
-                      {eq.refrigerant && (<><span className="text-gray-400 shrink-0">{t('scan.refrigerant')}</span><span className="text-gray-900 font-medium truncate">{eq.refrigerant}</span></>)}
-                      {!eq.kind && !eq.brand && !eq.model && (
-                        <span className="col-span-2 text-gray-400">{t('knowhow.equipNoData')}</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* 2. AS 이력 */}
         <div>
           <div className="flex items-center justify-between mb-1.5 px-1">
@@ -427,14 +425,17 @@ export default function CustomerDetailPage() {
           )}
         </div>
 
-        {/* 3. 점검일 내역 (장비별) */}
+        {/* 3. 점검일 내역 (장비별) — 파랑 시각 구분 (Calendar 아이콘) */}
         <div>
           <div className="flex items-center justify-between mb-2 px-1">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{t('customer.maintenance')}</p>
+            <p className="text-xs font-semibold text-blue-500 uppercase tracking-wide flex items-center gap-1.5">
+              <Calendar size={12} strokeWidth={2} />
+              {t('customer.maintenance')}
+            </p>
             {!showEquipForm && (
               <button
                 onClick={() => setShowEquipForm(true)}
-                className="flex items-center gap-1 px-2 py-1 text-xs text-gray-500 border border-gray-300 rounded-lg active:bg-gray-50"
+                className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-white bg-blue-600 rounded-lg shadow-md active:bg-blue-700"
               >
                 <Plus size={11} strokeWidth={2} />
                 {t('customer.addEquipment')}
@@ -448,7 +449,7 @@ export default function CustomerDetailPage() {
                 ref={equipFileRef}
                 type="file"
                 accept="image/*"
-                capture="environment"
+                {...captureAttr()}
                 className="hidden"
                 onChange={handleEquipCapture}
               />
@@ -582,12 +583,15 @@ export default function CustomerDetailPage() {
           )}
         </div>
 
-        {/* 4. 미결제 내역 */}
+        {/* 4. 미결제 내역 — 노랑 시각 구분 (CreditCard 아이콘). 형 룰: 빨강·경고 톤 X */}
         <div>
           <div className="flex items-center justify-between mb-1.5 px-1">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{t('customer.unpaid')}</p>
+            <p className="text-xs font-semibold text-yellow-500 uppercase tracking-wide flex items-center gap-1.5">
+              <CreditCard size={12} strokeWidth={2} />
+              {t('customer.unpaid')}
+            </p>
             {unpaidTotal > 0 && (
-              <span className="text-xs font-semibold text-red-600">{unpaidTotal.toLocaleString()}</span>
+              <span className="text-xs font-semibold text-yellow-600">{unpaidTotal.toLocaleString()}</span>
             )}
           </div>
           {unpaidJobs.length === 0 ? (
@@ -637,12 +641,15 @@ export default function CustomerDetailPage() {
           )}
         </div>
 
-        {/* 5. 알람 내역 */}
+        {/* 5. 알람 내역 — amber 시각 구분 (Bell 아이콘) */}
         <div>
           <div className="flex items-center justify-between mb-1.5 px-1">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{t('customer.alarms')}</p>
+            <p className="text-xs font-semibold text-amber-500 uppercase tracking-wide flex items-center gap-1.5">
+              <Bell size={12} strokeWidth={2} />
+              {t('customer.alarms')}
+            </p>
             {alarms && alarms.length > 0 && (
-              <span className="text-xs text-gray-400">{t('customer.historyCount', { count: alarms.length })}</span>
+              <span className="text-xs text-amber-500">{t('customer.historyCount', { count: alarms.length })}</span>
             )}
           </div>
           {(!alarms || alarms.length === 0) ? (
@@ -705,26 +712,80 @@ export default function CustomerDetailPage() {
 
       </div>
 
-      {/* 설비 사진 확대 보기 */}
-      {previewEquip && (
-        <div
-          onClick={() => setPreviewEquip(null)}
-          className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
-        >
-          <img
-            src={previewEquip.photoUrl}
-            alt="equipment"
-            className="max-w-full max-h-full object-contain rounded-lg"
-            onClick={(e) => e.stopPropagation()}
-          />
-          <button
+      {/* 설비 명판 상세 보기 — 사진 + AI 분석 정보 */}
+      {previewEquip && (() => {
+        const infoRows = [
+          ['scan.kind', previewEquip.kind ? t(KIND_KEYS[previewEquip.kind] ?? 'scan.kindOther') : null, false],
+          ['scan.tempClass', previewEquip.tempClass ? t(TEMP_KEYS[previewEquip.tempClass] ?? 'scan.tempUnknown') : null, true],
+          ['scan.stage', previewEquip.stage ? t(STAGE_KEYS[previewEquip.stage] ?? 'scan.stageUnknown') : null, true],
+          ['scan.brand', previewEquip.brand, false],
+          ['scan.model', previewEquip.model, false],
+          ['scan.serial', previewEquip.serial, false],
+          ['scan.capacity', previewEquip.capacity, false],
+          ['scan.refrigerant', previewEquip.refrigerant, false],
+        ].filter(([, v]) => v)
+        const hasAnyInfo = infoRows.length > 0 || previewEquip.notes
+        return (
+          <div
             onClick={() => setPreviewEquip(null)}
-            className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center bg-white/20 rounded-full text-white"
+            className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center"
           >
-            <X size={20} strokeWidth={2} />
-          </button>
-        </div>
-      )}
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl"
+            >
+              <div className="sticky top-0 bg-white flex items-center justify-between px-4 py-3 border-b border-gray-200">
+                <p className="font-semibold text-gray-900">{t('customer.equipmentDetail')}</p>
+                <button
+                  onClick={() => setPreviewEquip(null)}
+                  className="w-8 h-8 flex items-center justify-center text-gray-400 active:text-gray-600"
+                >
+                  <X size={20} strokeWidth={2} />
+                </button>
+              </div>
+              <div className="p-4 space-y-3">
+                {previewEquip.photoUrl && (
+                  <img
+                    src={previewEquip.photoUrl}
+                    alt="equipment"
+                    className="w-full rounded-xl border border-gray-200 object-contain max-h-[40vh] bg-gray-50"
+                  />
+                )}
+                {previewEquip.name && (
+                  <p className="text-base font-semibold text-gray-900 px-1">{previewEquip.name}</p>
+                )}
+                {infoRows.length > 0 && (
+                  <div className="bg-white border border-gray-300 rounded-xl p-4 shadow-sm">
+                    <div className="space-y-2.5">
+                      {infoRows.map(([k, v, highlight]) => (
+                        <div key={k} className="flex items-start justify-between gap-3">
+                          <span className="text-xs text-gray-400 shrink-0">{t(k)}</span>
+                          <span className={`text-sm text-right ${
+                            highlight
+                              ? 'font-bold text-blue-700'
+                              : 'font-medium text-gray-900'
+                          }`}>
+                            {v}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {previewEquip.notes && (
+                  <div className="bg-amber-600 rounded-xl p-4 shadow-md">
+                    <p className="text-xs font-bold text-white uppercase tracking-wide mb-1">{t('scan.notes')}</p>
+                    <p className="text-sm text-white leading-relaxed whitespace-pre-wrap">{previewEquip.notes}</p>
+                  </div>
+                )}
+                {!hasAnyInfo && (
+                  <p className="text-xs text-gray-400 text-center py-3">{t('knowhow.equipNoData')}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* 명함 상세 보기 */}
       {previewCard && (
@@ -878,12 +939,7 @@ export default function CustomerDetailPage() {
               </div>
               <div>
                 <label className="text-xs font-medium text-gray-500 block mb-1">{t('userAlarm.time')}</label>
-                <input
-                  type="time"
-                  value={alarmTime}
-                  onChange={e => setAlarmTime(e.target.value)}
-                  className="w-full text-sm text-gray-800 border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-blue-400"
-                />
+                <TimeInput value={alarmTime} onChange={setAlarmTime} />
               </div>
             </div>
             <button

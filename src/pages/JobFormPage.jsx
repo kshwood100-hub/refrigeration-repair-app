@@ -6,12 +6,15 @@ import { useTranslation } from 'react-i18next'
 import { db } from '../db'
 import { showToast } from '../utils/toast'
 import { requestNotificationPermission } from '../utils/alarmManager'
+import { pushCollection } from '../utils/cloudSync'
 import KnowhowFormBody, { EMPTY_KNOWHOW } from '../components/KnowhowFormBody'
 import DateInput from '../components/DateInput'
+import TimeInput from '../components/TimeInput'
 import TrialLimitModal from '../components/TrialLimitModal'
 import CustomerPickerModal from '../components/CustomerPickerModal'
 import { consumeTrial } from '../utils/trial'
 import { todayLocal } from '../utils/date'
+import { captureAttr } from '../utils/deviceCapture'
 
 const today = todayLocal
 
@@ -104,6 +107,8 @@ export default function JobFormPage() {
       solution:       existingJob.solution       ?? existingJob.workDone  ?? '',
       parts:          existingJob.parts          ?? existingJob.materials ?? '',
       notes:          existingJob.notes          ?? '',
+      equipPhotos:    Array.isArray(existingJob.equipPhotos) ? existingJob.equipPhotos.filter((p) => typeof p === 'string') : [],
+      equipments:     Array.isArray(existingJob.equipments)  ? existingJob.equipments.filter((eq) => eq && typeof eq === 'object')  : [],
     })
     if (existingCustomer) {
       setCustomer({
@@ -248,10 +253,12 @@ export default function JobFormPage() {
       await db.service_jobs.update(Number(id), jobData)
       jobId = Number(id)
     }
+    pushCollection('service_jobs').catch(() => {})
 
     for (const photo of photos) {
       await db.job_photos.add({ jobId, dataUrl: photo.dataUrl, caption: photo.caption, takenAt: new Date().toISOString() })
     }
+    if (photos.length) pushCollection('job_photos').catch(() => {})
 
     if (alarmDate && alarmTime) {
       const granted = await requestNotificationPermission()
@@ -280,18 +287,21 @@ export default function JobFormPage() {
 
   return (
     <div className="p-4 pb-10">
+      {/* 뒤로가기 */}
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center justify-center gap-2 w-full py-3 mb-2 bg-gray-100 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 active:bg-gray-200"
+      >
+        <ChevronLeft size={18} strokeWidth={2} />
+        {t('job.back')}
+      </button>
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-5">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-gray-500">
-          <ChevronLeft size={18} strokeWidth={1.5} />
-          <span className="text-sm">{t('job.back')}</span>
-        </button>
-        {/* 신규 진입 시 타이틀 생략(고객등록 → AS접수 흐름이라 중복 표시 불필요), 편집 모드에선 표시 */}
         {isNew ? <div /> : <h2 className="text-base font-semibold text-gray-900">{t('job.editTitle')}</h2>}
         <button
           onClick={handleSave}
           disabled={saving}
-          className={`px-3 py-1.5 text-white text-sm font-bold rounded-lg shadow-sm ${saving ? 'bg-gray-400 cursor-not-allowed' : 'bg-emerald-600 active:bg-emerald-700'}`}
+          className={`ml-auto px-3 py-1.5 text-white text-sm font-bold rounded-lg shadow-sm ${saving ? 'bg-gray-400 cursor-not-allowed' : 'bg-emerald-600 active:bg-emerald-700'}`}
         >
           {saving ? t('common.saving') : (isNew ? t('job.newTitle') : t('job.save'))}
         </button>
@@ -413,12 +423,7 @@ export default function JobFormPage() {
                   if (v && !alarmTime && job.visitTime) setAlarmTime(job.visitTime)
                 }}
               />
-              <input
-                type="time"
-                value={alarmTime}
-                onChange={(e) => setAlarmTime(e.target.value)}
-                className="text-sm border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-400"
-              />
+              <TimeInput value={alarmTime} onChange={setAlarmTime} className="flex-1" />
             </div>
             {alarmDate && job.visitDate && alarmDate !== job.visitDate && (
               <p className="text-xs text-amber-600 mt-1">{t('job.visitPrefix')}: {job.visitDate}</p>
@@ -462,7 +467,7 @@ export default function JobFormPage() {
             </Section>
 
             <Section title={t('job.sectionPhotos')}>
-              <input ref={fileRef} type="file" accept="image/*" capture="environment" multiple className="hidden" onChange={handlePhoto} />
+              <input ref={fileRef} type="file" accept="image/*" {...captureAttr()} multiple className="hidden" onChange={handlePhoto} />
               <div className="flex gap-2 flex-wrap">
                 {photos.map((p, i) => (
                   <div key={i} className="relative w-24 h-24">
@@ -565,37 +570,13 @@ function Textarea({ label, value, onChange, placeholder, rows = 3 }) {
   )
 }
 
-function TimeSelect({ label, optionalLabel, hourLabel, minLabel, hourUnit, minUnit, value, onChange }) {
-  const [h, m] = value ? value.split(':') : ['', '']
-
-  function update(newH, newM) {
-    if (!newH && !newM) { onChange(''); return }
-    onChange(`${newH || '09'}:${newM || '00'}`)
-  }
-
+function TimeSelect({ label, optionalLabel, value, onChange }) {
   return (
     <div>
       <label className="text-xs font-semibold text-gray-500 block mb-1">
-        {label} <span className="text-gray-400 font-normal">{optionalLabel}</span>
+        {label} {optionalLabel && <span className="text-gray-400 font-normal">{optionalLabel}</span>}
       </label>
-      <div className="flex gap-2">
-        <select
-          value={h ?? ''}
-          onChange={(e) => update(e.target.value, m)}
-          className="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-400 bg-white"
-        >
-          <option value="">{hourLabel}</option>
-          {HOURS.map((hh) => <option key={hh} value={hh}>{hh}{hourUnit}</option>)}
-        </select>
-        <select
-          value={m ?? ''}
-          onChange={(e) => update(h, e.target.value)}
-          className="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-blue-400 bg-white"
-        >
-          <option value="">{minLabel}</option>
-          {MINS.map((mm) => <option key={mm} value={mm}>{mm}{minUnit}</option>)}
-        </select>
-      </div>
+      <TimeInput value={value} onChange={onChange} />
     </div>
   )
 }

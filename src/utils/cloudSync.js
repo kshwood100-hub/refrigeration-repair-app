@@ -5,7 +5,7 @@
 
 import {
   collection, doc, getDocs, setDoc, deleteDoc,
-  query, where, serverTimestamp, writeBatch,
+  query, where, serverTimestamp, writeBatch, documentId,
 } from 'firebase/firestore'
 import { ref as sref, uploadString, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
 import { firestore, storage, auth } from '../firebase'
@@ -63,9 +63,39 @@ export async function pushCollection(collectionName) {
   const CHUNK = 200
   for (let i = 0; i < dirty.length; i += CHUNK) {
     const chunk = dirty.slice(i, i + CHUNK)
-    // 미디어인 경우 Storage 업로드를 먼저 (병렬)
+
+    // soft delete priority — active row 박힌 게 cloud doc 박은 게 deletedAt 박혀있으면 push 박지 X
+    // = "tombstone monotonic" 보장: 한 기기 박은 [삭제] 박힌 후 다른 기기 박은 옛 active push 박은 게 cloud 박힌 deletedAt 박은 거 덮어쓰는 결함 차단.
+    const activeChunk = chunk.filter((r) => !r.deletedAt)
+    const cloudDeletedSet = new Set()
+    const cloudDeletedAtMap = new Map()  // cloudId → cloud 박힌 deletedAt 박은 값
+    if (activeChunk.length > 0) {
+      const activeCloudIds = activeChunk.map((r) => r.cloudId)
+      const colRef = collection(firestore, 'users', email, collectionName)
+      // Firestore documentId() in [...] = 30개씩 limit 박힘
+      for (let j = 0; j < activeCloudIds.length; j += 30) {
+        const slice = activeCloudIds.slice(j, j + 30)
+        if (slice.length === 0) continue
+        try {
+          const q = query(colRef, where(documentId(), 'in', slice))
+          const snap = await getDocs(q)
+          snap.forEach((d) => {
+            const data = d.data()
+            if (data.deletedAt) {
+              cloudDeletedSet.add(d.id)
+              cloudDeletedAtMap.set(d.id, data)
+            }
+          })
+        } catch (e) {
+          console.warn(`[push] tombstone check failed for ${collectionName}:`, e?.message)
+          // 안전 fallback: cloud get 박힘 X 박혔으면 정상 push 박는 흐름 박을 길
+        }
+      }
+    }
+
+    // 미디어인 경우 Storage 업로드를 먼저 (병렬). 단 tombstone 박힌 row 박힌 게 Storage 업로드 박지 X
     const prepared = isMedia
-      ? await Promise.all(chunk.map((row) => externalizeMedia(collectionName, row, email)))
+      ? await Promise.all(chunk.map((row) => cloudDeletedSet.has(row.cloudId) ? row : externalizeMedia(collectionName, row, email)))
       : chunk
     const batch = writeBatch(firestore)
     const fks = FK_MAP[collectionName] || []
@@ -89,6 +119,8 @@ export async function pushCollection(collectionName) {
 
     for (let k = 0; k < chunk.length; k++) {
       const original = chunk[k]
+      // tombstone monotonic — cloud 박힌 게 [삭제] 박힌 doc 박은 게 박은 active push 박지 X
+      if (!original.deletedAt && cloudDeletedSet.has(original.cloudId)) continue
       const cleaned = prepared[k]
       const ref = doc(firestore, 'users', email, collectionName, original.cloudId)
       // 로컬 integer id 및 모든 integer 외래 키 제거 (다른 기기에서 의미 없음)
@@ -110,6 +142,25 @@ export async function pushCollection(collectionName) {
       if (updated > maxUpdated) maxUpdated = updated
     }
     await batch.commit()
+
+    // tombstone 박힌 row 박은 게 local 박힌 게 deletedAt 박기 (= cloud 박힌 게 우선)
+    // 다음 sync 박힐 때 또 active push 박지 X 박는 안전망 박힌 거
+    for (const original of chunk) {
+      if (!original.deletedAt && cloudDeletedSet.has(original.cloudId)) {
+        const cloudData = cloudDeletedAtMap.get(original.cloudId)
+        if (cloudData?.deletedAt) {
+          try {
+            await db.table(collectionName).update(original.id, {
+              deletedAt: cloudData.deletedAt,
+              updatedAt: cloudData.updatedAt || cloudData.deletedAt,
+              _synced: true,
+            })
+          } catch (e) {
+            console.warn(`[push] tombstone catchup failed for ${collectionName}/${original.id}:`, e?.message)
+          }
+        }
+      }
+    }
     // 청크 commit 성공 후 _synced=true 박음.
     // race 안전: push 시점 updatedAt과 현재 IDB의 updatedAt 일치할 때만 박음 (중간 변경 보존)
     // updatedAt도 명시적으로 같이 전달 → updating hook의 자동 갱신 우회
@@ -173,7 +224,24 @@ export async function pullCollection(collectionName) {
     const local = await db.table(collectionName).where('cloudId').equals(cloudId).first()
     const localUpdatedMs = local ? new Date(local.updatedAt || 0).getTime() : 0
 
-    if (remoteUpdatedMs > localUpdatedMs) {
+    // soft delete priority: 한 번 deletedAt 박힌 doc = tombstone = monotonic 보장.
+    // last-write-wins 박힌 게 옛 active updatedAt 박힌 게 새 deletedAt 박은 거 덮어쓰는 결함 차단.
+    // - cloud 박힌 게 deletedAt 박혔는데 local active 박혀있으면 = local에 deletedAt 강제 (last-write-wins 무시)
+    // - cloud 박힌 게 active 박힌 거더라도 local 박힌 게 deletedAt 박혀있으면 = local 박힌 deletedAt 보존 (active로 부활 X)
+    const remoteDeleted = !!remote.deletedAt
+    const localDeleted = !!local?.deletedAt
+
+    if (remoteDeleted && local && !localDeleted) {
+      // cloud 박힌 게 [삭제] 박힌 게 다른 기기 박은 거 → local active 박은 게 강제 정리
+      const { _serverUpdatedAt, ...clean } = remote
+      await resolveLocalForeignKeys(clean)
+      clean._synced = true
+      await db.table(collectionName).update(local.id, clean)
+      pulled++
+    } else if (!remoteDeleted && localDeleted) {
+      // cloud 박힌 게 active 박힌 거 = 다른 기기 박은 게 옛 active push 박은 거. local 박힌 deletedAt 박은 거 보존 (skip pull)
+      // 단 local 박힌 게 _synced=false 박혀있으면 다음 push에서 cloud 박힌 active 박은 거 덮어씀
+    } else if (remoteUpdatedMs > localUpdatedMs) {
       const { _serverUpdatedAt, ...clean } = remote
       // 외래 키 cloudId → 로컬 integer 매핑 (해당 기기 기준)
       await resolveLocalForeignKeys(clean)
@@ -197,6 +265,8 @@ export async function pullCollection(collectionName) {
 
 // === Tombstone: 로컬 삭제 시 호출 (실제 row 삭제 대신 deletedAt 마크) ===
 // 단일 row 삭제 (locId = Dexie integer id)
+// 라이브 검증 (2026-05-05): softDelete 후 visibility/5분 안 발화하면 _synced=false 그대로 → 다른 기기에 안 도달.
+// fire-and-forget으로 즉시 sync 발화. syncInFlight 가드 있어 폭주 0.
 export async function softDelete(collectionName, locId) {
   if (locId == null) return
   const ts = new Date().toISOString()
@@ -204,6 +274,7 @@ export async function softDelete(collectionName, locId) {
     deletedAt: ts,
     updatedAt: ts,
   })
+  safeSyncAll().catch(() => {})
 }
 
 // 다수 row 삭제 (Dexie WhereClause)
@@ -328,12 +399,13 @@ export async function softDeleteCustomerCascade(localCustomerId) {
   await softDelete('customers', cid)
 }
 
-// AS 작업 삭제: photos/expenses/alarms cascade
+// AS 작업 삭제: photos/expenses/alarms/voice_recordings cascade
 export async function softDeleteJobCascade(localJobId) {
   const jid = localJobId
   const ts = new Date().toISOString()
   await softDeleteWhere('job_photos', (t) => t.where('jobId').equals(jid))
   await softDeleteWhere('expenses', (t) => t.where('jobId').equals(jid))
+  await softDeleteWhere('voice_recordings', (t) => t.where('jobId').equals(jid))
   const alarms = await db.user_alarms.filter((a) => a.jobId === jid).toArray()
   if (alarms.length) {
     await db.user_alarms.bulkPut(alarms.map((a) => ({ ...a, deletedAt: ts, updatedAt: ts })))
@@ -478,10 +550,16 @@ export async function syncAll() {
   return { ok: true, results }
 }
 
-// 트리거: 앱 시작, visibilitychange visible, 5분 인터벌
+// 트리거: 앱 시작, visibilitychange visible, 5분 인터벌, online 복구, focus
 // 5분: Firestore 무료 한도 여유 + 모바일 활성 시간 기준 사용자당 ~2K read/day로 안전
+// online: 비행기 모드 해제·네트워크 복구 시 즉시 push (라이브 검증 2026-05-05)
+// focus: 데스크톱 창 다시 포커스 시 visibility 트리거 보강
 let syncInFlight = false
 let syncIntervalId = null
+// 리스너 핸들러 모듈 스코프 보존 — stop 시 정확히 제거 (메모리 leak 차단)
+let visibilityHandler = null
+let onlineHandler = null
+let focusHandler = null
 
 export async function safeSyncAll() {
   if (syncInFlight) return
@@ -497,17 +575,36 @@ export function startAutoSync() {
   if (syncIntervalId) return
   // 즉시 한 번
   safeSyncAll()
-  // 5분 인터벌 (이전 30초 → 비용 1/10로 절감)
+  // 5분 인터벌
   syncIntervalId = setInterval(safeSyncAll, 5 * 60 * 1000)
-  // visibility 변경 시 즉시 sync (포그라운드 복귀 시 최신화)
-  document.addEventListener('visibilitychange', () => {
+  // visibility 변경 시 즉시 sync (포그라운드 복귀)
+  visibilityHandler = () => {
     if (document.visibilityState === 'visible') safeSyncAll()
-  })
+  }
+  document.addEventListener('visibilitychange', visibilityHandler)
+  // online 이벤트 — 네트워크 복구 시 즉시 push (휴지통 누른 후 끊긴 케이스 회복)
+  onlineHandler = () => safeSyncAll()
+  window.addEventListener('online', onlineHandler)
+  // focus — 데스크톱 창 다시 포커스 (visibility 보강)
+  focusHandler = () => safeSyncAll()
+  window.addEventListener('focus', focusHandler)
 }
 
 export function stopAutoSync() {
   if (syncIntervalId) {
     clearInterval(syncIntervalId)
     syncIntervalId = null
+  }
+  if (visibilityHandler) {
+    document.removeEventListener('visibilitychange', visibilityHandler)
+    visibilityHandler = null
+  }
+  if (onlineHandler) {
+    window.removeEventListener('online', onlineHandler)
+    onlineHandler = null
+  }
+  if (focusHandler) {
+    window.removeEventListener('focus', focusHandler)
+    focusHandler = null
   }
 }

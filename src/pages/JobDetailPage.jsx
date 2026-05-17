@@ -3,29 +3,29 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
   ChevronLeft, Pencil, Phone, Calendar, MapPin,
-  Trash2, Sparkles, ClipboardList, Camera, X, Bell,
+  Trash2, ClipboardList, Camera, X, Bell, Save, Printer,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { db } from '../db'
-import { softDelete, softDeleteJobCascade } from '../utils/cloudSync'
-import { extractKnowhow } from '../utils/aiKnowhow'
+import { softDelete, softDeleteJobCascade, pushCollection } from '../utils/cloudSync'
 import { requestNotificationPermission } from '../utils/alarmManager'
 import { showToast } from '../utils/toast'
 import { compressImage } from '../utils/image'
 import { todayLocal, toLocalISO } from '../utils/date'
 import KnowhowFormBody, { EMPTY_KNOWHOW } from '../components/KnowhowFormBody'
 import DateInput from '../components/DateInput'
+import TimeInput from '../components/TimeInput'
 import MediaImage from '../components/MediaImage'
-
-const HOURS = Array.from({ length: 17 }, (_, i) => String(i + 6).padStart(2, '0'))
-const MINS  = ['00', '10', '20', '30', '40', '50']
+import { printJobReport } from '../utils/printJobReport'
+import { captureAttr } from '../utils/deviceCapture'
+import { scanEquipment } from '../utils/scanEquipment'
+import { Sparkles } from 'lucide-react'
 
 export default function JobDetailPage() {
   const navigate = useNavigate()
   const { id } = useParams()
   const { t } = useTranslation()
   const [showDelete, setShowDelete] = useState(false)
-  const [aiLoading, setAiLoading] = useState(false)
   const [alarmOpen, setAlarmOpen] = useState(false)
   const [alarmTime, setAlarmTime] = useState('')
   const [alarmDate, setAlarmDate] = useState('')
@@ -35,7 +35,13 @@ export default function JobDetailPage() {
   const [savingAlarm, setSavingAlarm] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(null)
   const [equipLightboxIdx, setEquipLightboxIdx] = useState(null)
+  const [scanningIdxs, setScanningIdxs] = useState(() => new Set())  // 완료 의뢰 카드별 분석 진행 표시
   const fileRef = useRef()
+  const stageTopRef = useRef(null)
+  const [completing, setCompleting] = useState(false)
+  const [tempSaving, setTempSaving] = useState(false)
+  // 1차/2차 단계 선택 (진행 중에만 사용, 통합 폼 X)
+  const [stage, setStage] = useState(null)
 
   const job      = useLiveQuery(async () => {
     const j = await db.service_jobs.get(Number(id))
@@ -96,7 +102,14 @@ export default function JobDetailPage() {
     })
   }
 
-  const totalCost  = (job.partsCost || 0) + (job.laborCost || 0) + (job.travelCost || 0) + (job.taxAmount || 0) + (job.otherCost || 0)
+  // 13종 비용 합계 (BillingPage 자동 계산 결과 우선 사용, 없으면 즉석 합산)
+  // job.cost가 BillingPage에서 자동 갱신됨 (양수합 - 할인 + 세금)
+  const totalCost = job.cost ?? (
+    (job.generalRevenue || 0) + (job.diagnosisFee || 0) + (job.emergencyFee || 0) +
+    (job.maintenanceFee || 0) + (job.demolitionFee || 0) + (job.rentalFee || 0) +
+    (job.deliveryFee || 0) + (job.partsCost || 0) + (job.laborCost || 0) +
+    (job.travelCost || 0) + (job.otherCost || 0) - (job.discount || 0) + (job.taxAmount || 0)
+  )
   const isProgress = job.status === 'inprogress'
   const isDone     = job.status === 'completed'
   const visitH     = job.visitTime ? job.visitTime.split(':')[0] : ''
@@ -104,32 +117,129 @@ export default function JobDetailPage() {
 
   async function patch(data) {
     await db.service_jobs.update(Number(id), { ...data, updatedAt: new Date().toISOString() })
+    // 모든 status·필드 변경 즉시 클라우드 push — 백그라운드 sync 트리거 누락 안전망
+    pushCollection('service_jobs').catch(() => {})
+  }
+
+  // 완료 의뢰의 분석 안 박힌 카드 / 또는 [재분석] 박힌 카드 = 사무실에서 사진 보고 직접 분석
+  // 결과 박힌 후 IDB update + cloud push 안전망 (재진입해도 박혀있음)
+  async function handleEquipScanInDone(realIdx) {
+    const target = (job.equipments ?? [])[realIdx]
+    if (!target?.photo) return
+    if (scanningIdxs.has(realIdx)) return
+    setScanningIdxs((prev) => {
+      const next = new Set(prev)
+      next.add(realIdx)
+      return next
+    })
+    try {
+      const r = await scanEquipment(target.photo)
+      const newEquips = (job.equipments ?? []).map((eq, i) =>
+        i === realIdx
+          ? {
+              ...eq,
+              kind:        r.kind        || '',
+              brand:       r.brand       || '',
+              model:       r.model       || '',
+              serial:      r.serial      || '',
+              capacity:    r.capacity    || '',
+              refrigerant: r.refrigerant || '',
+              tempClass:   r.tempClass   || '',
+              compStage:   r.stage       || '',
+              confidence:  r.confidence  || '',
+              notes:       r.notes       || '',
+            }
+          : eq
+      )
+      await patch({ equipments: newEquips })
+    } catch (e) {
+      showToast(t('knowhow.errAi') + (e.message || ''))
+    } finally {
+      setScanningIdxs((prev) => {
+        const next = new Set(prev)
+        next.delete(realIdx)
+        return next
+      })
+    }
   }
 
   async function handleComplete() {
+    if (completing) return
+    setCompleting(true)
     try {
+      // 1차/2차 분기 후엔 폼이 즉시 IDB 저장이라 별도 처리 없음. 상태만 완료로.
       await patch({ status: 'completed', completedAt: new Date().toISOString() })
-
-      const jid = Number(id)
-      const all = await db.knowhow.toArray()
-      const existing = all.find((k) => k.sourceJobId === jid)
-      const now = new Date().toISOString()
-      const baseTitle = (knowhow.title || knowhow.symptoms || customer?.name || '').trim()
-      const knowhowData = {
-        ...knowhow,
-        customerId:  job.customerId,
-        title:       baseTitle || t('job.sectionReceipt'),
-        sourceJobId: jid,
-        updatedAt:   now,
-      }
-      if (existing) {
-        await db.knowhow.update(existing.id, knowhowData)
-      } else {
-        await db.knowhow.add({ ...knowhowData, createdAt: now })
-      }
-      showToast(t('job.knowhowExtracted') + ': ' + knowhowData.title)
+      showToast(t('job.completedToast'))
     } catch (e) {
       showToast(t('job.aiError', { message: e.message }))
+    } finally {
+      setCompleting(false)
+    }
+  }
+
+  // [임시저장] — IDB 저장은 입력 즉시 이미 반영됨. 토스트 + 1차 → 2차 자동 전환 (현장 흐름에 맞춤)
+  async function handleTempSave() {
+    if (tempSaving) return
+    setTempSaving(true)
+    try {
+      if (job.status !== 'inprogress' && !isDone) {
+        await patch({ status: 'inprogress' })
+      }
+      const counts = {
+        photos: (photos ?? []).length,
+        equips: (knowhow.equipments ?? []).length,
+      }
+      showToast(t('job.tempSavedToast', counts))
+      // 1차 → 2차 자동 전환 + 2차 카드 상단(토글 버튼 위치)으로 스크롤
+      setStage(2)
+      // 다음 프레임에서 스크롤 (state 적용 후 DOM 갱신 대기)
+      setTimeout(() => {
+        stageTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 0)
+    } finally {
+      setTempSaving(false)
+    }
+  }
+
+  async function handleCreateKnowhow() {
+    if (!job?.customerId) {
+      showToast(t('job.knowhowNeedCustomer'))
+      return
+    }
+    // 이미 이 AS로 만든 설비기록이 있으면 거기로 이동
+    if ((linkedKnowhow ?? []).length > 0) {
+      showToast(t('job.knowhowAlreadyAdded'))
+      navigate(`/knowhow/${linkedKnowhow[0].id}`)
+      return
+    }
+    const now = new Date().toISOString()
+    try {
+      const newId = await db.knowhow.add({
+        sourceJobId:    Number(id),
+        customerId:     job.customerId,
+        title:          knowhow.title          || job.title          || (job.symptoms ?? job.symptom ?? '').slice(0, 30) || t('job.knowhowDefaultTitle'),
+        category:       knowhow.category       || job.category       || '기타',
+        location:       knowhow.location       || job.location       || '기타',
+        compressorType: knowhow.compressorType || job.compressorType || '',
+        compressorStr:  knowhow.compressorStr  || job.compressorStr  || '',
+        coolingMethod:  knowhow.coolingMethod  || job.coolingMethod  || '',
+        tempRange:      knowhow.tempRange      || job.tempRange      || '',
+        refrigerant:    knowhow.refrigerant    || job.refrigerant    || '',
+        systemType:     knowhow.systemType     || job.systemType     || '',
+        symptoms:       knowhow.symptoms       || job.symptoms       || job.symptom   || '',
+        cause:          knowhow.cause          || job.cause          || job.diagnosis || '',
+        checkSteps:     knowhow.checkSteps     || job.checkSteps     || '',
+        solution:       knowhow.solution       || job.solution       || job.workDone  || '',
+        parts:          knowhow.parts          || job.parts          || job.materials || '',
+        notes:          knowhow.notes          || job.notes          || '',
+        equipments:     Array.isArray(knowhow.equipments) ? knowhow.equipments : (Array.isArray(job.equipments) ? job.equipments : []),
+        createdAt:      now,
+        updatedAt:      now,
+      })
+      showToast(t('job.savedToKnowhowToast'))
+      navigate(`/knowhow/${newId}`)
+    } catch (e) {
+      showToast(t('job.knowhowSaveError') + (e.message || ''))
     }
   }
 
@@ -144,29 +254,6 @@ export default function JobDetailPage() {
 
   async function deletePhoto(photoId) {
     await softDelete('job_photos', photoId)
-  }
-
-  async function handleExtract() {
-    if (!(job.symptoms ?? job.symptom) && !(job.cause ?? job.diagnosis) && !(job.solution ?? job.workDone)) {
-      showToast(t('job.needContentForKnowhow'))
-      return
-    }
-    setAiLoading(true)
-    try {
-      const result = await extractKnowhow(job, customer)
-      const now = new Date().toISOString()
-      const newId = await db.knowhow.add({
-        title: result.title, category: result.category,
-        content: result.content, tags: result.tags,
-        sourceJobId: job.id, createdAt: now, updatedAt: now,
-      })
-      showToast(`${t('job.knowhowExtracted')}: "${result.title}"`)
-      navigate(`/knowhow/${newId}`)
-    } catch (e) {
-      showToast(t('job.aiError', { message: e.message }))
-    } finally {
-      setAiLoading(false)
-    }
   }
 
   async function handleSaveAlarm() {
@@ -211,6 +298,20 @@ export default function JobDetailPage() {
     navigate('/service', { replace: true })
   }
 
+  // 작업 내역서 출력 — 진행 중이면 임시 출력 (배지 표시), 완료면 정식 출력
+  function handlePrintReport() {
+    // 진행 중 입력값(knowhow state)이 IDB로 즉시 저장되지만 useLiveQuery 한 박자 늦을 수 있어 머지해서 전달
+    const merged = !isDone ? { ...job, ...knowhow } : job
+    const ok = printJobReport({
+      job: merged,
+      customer,
+      photos: photos ?? [],
+      isDraft: !isDone,
+      t,
+    })
+    if (ok === false) showToast(t('print.popupBlocked'))
+  }
+
   return (
     <div className="p-4 pb-10">
       {/* 뒤로가기 */}
@@ -222,6 +323,13 @@ export default function JobDetailPage() {
       <div className="flex items-center justify-end gap-2 mb-5">
         <button onClick={() => setShowDelete(true)} className="p-2 text-gray-400">
           <Trash2 size={16} strokeWidth={1.5} />
+        </button>
+        <button
+          onClick={handlePrintReport}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg text-white bg-violet-600 active:bg-violet-700 shadow-md"
+        >
+          <Printer size={12} strokeWidth={2} />
+          {isDone ? t('print.btnPrint') : t('print.btnPrintDraft')}
         </button>
         <button
           onClick={() => navigate(`/service/${id}/edit`)}
@@ -355,30 +463,10 @@ export default function JobDetailPage() {
           </div>
           <div>
             <label className="text-xs text-gray-400 block mb-1">{t('job.labelVisitTime')} <span className="text-gray-300">{t('job.labelOptional')}</span></label>
-            <div className="flex gap-2">
-              <select
-                defaultValue={visitH}
-                onChange={(e) => {
-                  const newH = e.target.value
-                  patch({ visitTime: newH ? `${newH}:${visitM || '00'}` : '' })
-                }}
-                className="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white outline-none focus:border-blue-400"
-              >
-                <option value="">{t('job.hourLabel')}</option>
-                {HOURS.map((hh) => <option key={hh} value={hh}>{hh}{t('job.hourUnit')}</option>)}
-              </select>
-              <select
-                defaultValue={visitM}
-                onChange={(e) => {
-                  const newM = e.target.value
-                  patch({ visitTime: visitH ? `${visitH}:${newM || '00'}` : '' })
-                }}
-                className="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white outline-none focus:border-blue-400"
-              >
-                <option value="">{t('job.minLabel')}</option>
-                {MINS.map((mm) => <option key={mm} value={mm}>{mm}{t('job.minUnit')}</option>)}
-              </select>
-            </div>
+            <TimeInput
+              value={job.visitTime ?? ''}
+              onChange={(v) => patch({ visitTime: v })}
+            />
           </div>
         </Section>
         )}
@@ -423,9 +511,53 @@ export default function JobDetailPage() {
         {/* 진행 단계 내용 */}
         {(isProgress || isDone) && (
           <>
-            {/* 입력 모드: 통합 폼 (KnowhowFormBody) — knowhow 초기화 완료 후만 렌더 */}
+            {/* 입력 모드: 1차/2차 토글 + 선택된 단계 폼 */}
             {!isDone && knowhowReady && (
-              <KnowhowFormBody form={knowhow} setForm={setKnowhow} hideCustomer />
+              <>
+                {/* 단계 미선택 시 매뉴얼 안내 (다크/라이트 모두 가독) */}
+                {!stage && (
+                  <div className="bg-violet-600/15 border border-violet-500/40 rounded-lg px-4 py-3 text-xs text-gray-200 leading-relaxed space-y-1.5">
+                    <p className="font-semibold text-violet-300">{t('job.stageIntroTitle')}</p>
+                    <p>{t('job.stageIntro1')}</p>
+                    <p>{t('job.stageIntro2')}</p>
+                    <p className="text-[11px] text-gray-400 pt-1">{t('job.stageIntroHint')}</p>
+                  </div>
+                )}
+                <div ref={stageTopRef} className="grid grid-cols-2 gap-2 scroll-mt-4">
+                  <button
+                    onClick={() => setStage(1)}
+                    className={`py-3 rounded-xl text-sm font-semibold text-white transition-all ${
+                      stage === 1
+                        ? 'bg-blue-600 shadow-md ring-2 ring-blue-300'
+                        : 'bg-blue-700/70 active:bg-blue-700'
+                    }`}
+                  >
+                    {t('job.stage1Btn')}
+                  </button>
+                  <button
+                    onClick={() => setStage(2)}
+                    className={`py-3 rounded-xl text-sm font-semibold text-white transition-all ${
+                      stage === 2
+                        ? 'bg-emerald-600 shadow-md ring-2 ring-emerald-300'
+                        : 'bg-emerald-700/70 active:bg-emerald-700'
+                    }`}
+                  >
+                    {t('job.stage2Btn')}
+                  </button>
+                </div>
+
+                {stage && (
+                  <>
+                    <div className={`rounded-lg px-3 py-2.5 text-sm leading-snug font-medium text-white shadow-md ${
+                      stage === 1 ? 'bg-blue-600 border border-blue-500'
+                                  : 'bg-emerald-600 border border-emerald-500'
+                    }`}>
+                      💡 {stage === 1 ? t('job.stage1Guide') : t('job.stage2Guide')}
+                    </div>
+                    <KnowhowFormBody form={knowhow} setForm={setKnowhow} hideCustomer stage={stage} />
+                  </>
+                )}
+              </>
             )}
 
             {/* 완료 모드: 읽기 전용 */}
@@ -445,7 +577,10 @@ export default function JobDetailPage() {
                   <Section title={t('knowhow.equipPhotos')}>
                     {(job.equipments ?? []).length > 0 ? (
                       <div className="space-y-3">
-                        {job.equipments.map((eq, i) => (
+                        {job.equipments.map((eq, i) => {
+                          const isAnalyzed = !!(eq.kind || eq.brand || eq.model)
+                          const isScanning = scanningIdxs.has(i)
+                          return (
                           <div key={i} className="relative w-full bg-white border-2 border-gray-300 rounded-xl p-2 shadow-sm">
                             <div className="grid grid-cols-[96px_1fr] gap-2">
                               <button
@@ -454,20 +589,43 @@ export default function JobDetailPage() {
                               >
                                 {eq.photo && <img src={eq.photo} alt="" className="w-full h-full object-cover" />}
                               </button>
-                              <div className="bg-gray-50 border border-gray-200 rounded-md p-2 text-[11px] leading-tight grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5 content-start overflow-hidden">
-                                {eq.kind && (<><span className="text-gray-400 shrink-0">{t('scan.kind')}</span><span className="text-gray-900 font-medium truncate">{eq.kind}</span></>)}
-                                {eq.brand && (<><span className="text-gray-400 shrink-0">{t('scan.brand')}</span><span className="text-gray-900 font-medium truncate">{eq.brand}</span></>)}
-                                {eq.model && (<><span className="text-gray-400 shrink-0">{t('scan.model')}</span><span className="text-gray-900 font-medium truncate">{eq.model}</span></>)}
-                                {eq.serial && (<><span className="text-gray-400 shrink-0">{t('scan.serial')}</span><span className="text-gray-900 font-medium truncate">{eq.serial}</span></>)}
-                                {eq.capacity && (<><span className="text-gray-400 shrink-0">{t('scan.capacity')}</span><span className="text-gray-900 font-medium truncate">{eq.capacity}</span></>)}
-                                {eq.refrigerant && (<><span className="text-gray-400 shrink-0">{t('scan.refrigerant')}</span><span className="text-gray-900 font-medium truncate">{eq.refrigerant}</span></>)}
-                                {!eq.kind && !eq.brand && !eq.model && (
-                                  <span className="col-span-2 text-gray-400">{t('knowhow.equipNoData')}</span>
+                              <div className="bg-gray-50 border border-gray-200 rounded-md p-2 text-[11px] leading-tight overflow-hidden flex flex-col justify-center">
+                                {isAnalyzed ? (
+                                  <>
+                                    <div className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5 content-start">
+                                      {eq.kind && (<><span className="text-gray-400 shrink-0">{t('scan.kind')}</span><span className="text-gray-900 font-medium truncate">{eq.kind}</span></>)}
+                                      {eq.brand && (<><span className="text-gray-400 shrink-0">{t('scan.brand')}</span><span className="text-gray-900 font-medium truncate">{eq.brand}</span></>)}
+                                      {eq.model && (<><span className="text-gray-400 shrink-0">{t('scan.model')}</span><span className="text-gray-900 font-medium truncate">{eq.model}</span></>)}
+                                      {eq.serial && (<><span className="text-gray-400 shrink-0">{t('scan.serial')}</span><span className="text-gray-900 font-medium truncate">{eq.serial}</span></>)}
+                                      {eq.capacity && (<><span className="text-gray-400 shrink-0">{t('scan.capacity')}</span><span className="text-gray-900 font-medium truncate">{eq.capacity}</span></>)}
+                                      {eq.refrigerant && (<><span className="text-gray-400 shrink-0">{t('scan.refrigerant')}</span><span className="text-gray-900 font-medium truncate">{eq.refrigerant}</span></>)}
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleEquipScanInDone(i)}
+                                      disabled={isScanning}
+                                      className="mt-1.5 self-end py-1 px-2 text-[10px] font-semibold text-blue-700 bg-blue-50 border border-blue-300 rounded active:bg-blue-100 disabled:opacity-60 flex items-center gap-1"
+                                    >
+                                      <Sparkles size={10} strokeWidth={2} />
+                                      {isScanning ? t('scan.analyzing') : t('knowhow.rescanBtn')}
+                                    </button>
+                                  </>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleEquipScanInDone(i)}
+                                    disabled={isScanning}
+                                    className="w-full py-2 px-2 bg-emerald-600 text-white text-xs font-semibold rounded-lg active:bg-emerald-700 disabled:opacity-60 flex items-center justify-center gap-1.5"
+                                  >
+                                    <Sparkles size={12} strokeWidth={2} />
+                                    {isScanning ? t('scan.analyzing') : t('knowhow.scanBtn')}
+                                  </button>
                                 )}
                               </div>
                             </div>
                           </div>
-                        ))}
+                          )
+                        })}
                       </div>
                     ) : (
                       <div className="flex gap-2 flex-wrap">
@@ -481,9 +639,9 @@ export default function JobDetailPage() {
               </>
             )}
 
-            {/* 현장 사진 */}
-            <Section title={t('job.sectionPhotos')}>
-              <input ref={fileRef} type="file" accept="image/*" capture="environment" multiple className="hidden" onChange={handlePhoto} />
+            {/* 현장 사진 — 카운트 명시 */}
+            <Section title={`${t('job.sectionPhotos')} · ${t('job.photoCount', { count: (photos ?? []).length })}`}>
+              <input ref={fileRef} type="file" accept="image/*" {...captureAttr()} multiple className="hidden" onChange={handlePhoto} />
               <div className="flex gap-2 flex-wrap">
                 {(photos ?? []).map((p, idx) => (
                   <div key={p.id} className="relative w-24 h-24">
@@ -515,21 +673,55 @@ export default function JobDetailPage() {
               </Section>
             )}
 
-            {/* 완료 처리 버튼 */}
-            {!isDone && (
-              <button onClick={handleComplete} className="w-full py-3.5 text-sm font-semibold bg-emerald-500 text-white rounded-xl active:opacity-80">
-                {t('job.complete')}
+            {/* 1차 단계: 임시 저장 (단계 선택했을 때만 노출) */}
+            {!isDone && stage === 1 && (
+              <div className="space-y-2">
+                <button
+                  onClick={handleTempSave}
+                  disabled={tempSaving || completing}
+                  className="w-full flex items-center justify-center gap-2 py-3 bg-violet-600 text-white text-sm font-semibold rounded-xl active:bg-violet-700 shadow-md disabled:opacity-50"
+                >
+                  <Save size={15} strokeWidth={2} />
+                  {tempSaving ? t('common.saving') : t('job.tempSave')}
+                </button>
+              </div>
+            )}
+
+            {/* 2차 단계: 완료 처리 (2차 필드 1개라도 채워지면 활성) */}
+            {!isDone && stage === 2 && (() => {
+              const stage2Has = !!(
+                knowhow.cause || knowhow.checkSteps || knowhow.solution ||
+                knowhow.parts || knowhow.notes ||
+                (knowhow.equipments ?? []).length > 0 ||
+                (photos ?? []).length > 0
+              )
+              return (
+                <div className="space-y-2">
+                  <button
+                    onClick={handleComplete}
+                    disabled={completing || tempSaving || !stage2Has}
+                    className="w-full py-3.5 text-sm font-semibold bg-emerald-500 text-white rounded-xl active:opacity-80 disabled:opacity-50"
+                  >
+                    {completing ? t('common.saving') : t('job.complete')}
+                  </button>
+                  {!stage2Has && (
+                    <p className="text-[11px] text-gray-400 text-center px-2 leading-snug">
+                      {t('job.completeNeedStage2')}
+                    </p>
+                  )}
+                </div>
+              )
+            })()}
+
+            {/* 설비 기록 만들기 (AS 데이터 prefill) */}
+            {isDone && (
+              <button onClick={handleCreateKnowhow}
+                className="w-full flex items-center justify-center gap-2 py-3 bg-violet-600 text-white text-sm font-semibold rounded-xl active:bg-violet-700 shadow-md">
+                <ClipboardList size={15} strokeWidth={2} />
+                {t('job.saveAsKnowhow')}
               </button>
             )}
 
-            {/* AI 노하우 추출 */}
-            {isDone && (
-              <button onClick={handleExtract} disabled={aiLoading}
-                className="w-full flex items-center justify-center gap-2 py-3 bg-gray-900 text-white text-sm font-medium rounded-xl disabled:opacity-50">
-                <Sparkles size={15} strokeWidth={1.5} />
-                {aiLoading ? t('job.aiKnowhowLoading') : t('job.aiKnowhow')}
-              </button>
-            )}
           </>
         )}
 
@@ -665,12 +857,7 @@ export default function JobDetailPage() {
               </div>
               <div>
                 <label className="text-xs font-medium text-gray-500 block mb-1">{t('userAlarm.alarmTime')}</label>
-                <input
-                  type="time"
-                  value={alarmTime}
-                  onChange={e => setAlarmTime(e.target.value)}
-                  className="w-full text-sm text-gray-800 border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-blue-400"
-                />
+                <TimeInput value={alarmTime} onChange={setAlarmTime} />
               </div>
             </div>
             <button

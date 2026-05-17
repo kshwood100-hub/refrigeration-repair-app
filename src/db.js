@@ -488,10 +488,38 @@ db.version(24).stores({
   equipment_maintenance: '++id, &cloudId, customerId, customerCloudId, nextDueDate, updatedAt, deletedAt, _synced',
   user_alarms: '++id, &cloudId, customerId, customerCloudId, jobId, jobCloudId, equipmentId, equipmentCloudId, date, fired, updatedAt, deletedAt, _synced',
   voice_recordings: '++id, &cloudId, createdAt, status, updatedAt, deletedAt, _synced',
+})
+
+// v25: voice_recordings에 jobId/jobCloudId 인덱스 추가 (AS 진행 중 다회 녹음 누적 + AS별 조회)
+db.version(25).stores({
+  symptoms: '++id, category, title',
+  checklist_templates: '++id, category, title',
+  repair_logs: '++id, &cloudId, date, symptomId, equipmentName, updatedAt, deletedAt, _synced',
+  flow_categories: '&id',
+  flow_nodes: '&nodeId, categoryId, type',
+  customers: '++id, &cloudId, name, phone, updatedAt, deletedAt, _synced',
+  service_jobs: '++id, &cloudId, customerId, customerCloudId, status, receiptDate, visitDate, updatedAt, deletedAt, _synced',
+  job_photos: '++id, &cloudId, jobId, jobCloudId, updatedAt, deletedAt, _synced',
+  backups: '++id, createdAt',
+  knowhow: '++id, &cloudId, customerId, customerCloudId, category, location, createdAt, updatedAt, deletedAt, _synced',
+  business_cards: '++id, &cloudId, customerId, customerCloudId, createdAt, updatedAt, deletedAt, _synced',
+  expenses: '++id, &cloudId, jobId, jobCloudId, customerId, customerCloudId, date, createdAt, updatedAt, deletedAt, _synced',
+  checklist_results: '++id, &cloudId, templateTitle, createdAt, level, updatedAt, deletedAt, _synced',
+  equipment_maintenance: '++id, &cloudId, customerId, customerCloudId, nextDueDate, updatedAt, deletedAt, _synced',
+  user_alarms: '++id, &cloudId, customerId, customerCloudId, jobId, jobCloudId, equipmentId, equipmentCloudId, date, fired, updatedAt, deletedAt, _synced',
+  voice_recordings: '++id, &cloudId, jobId, jobCloudId, customerId, customerCloudId, createdAt, status, updatedAt, deletedAt, _synced',
   suppliers: '++id, &cloudId, name, createdAt, updatedAt, deletedAt, _synced',
   supplier_transactions: '++id, &cloudId, supplierId, supplierCloudId, date, createdAt, updatedAt, deletedAt, _synced',
   share_queue: '++id, recordType, status, createdAt',
   sync_state: '&key',
+}).upgrade(async (tx) => {
+  // 옛 마이그레이션 — v24 박혀있던 거 그대로
+})
+
+// v26: ai_diagnosis_list 테이블 추가 (= AI 통합 진단 결과)
+// 진단 영역 격리: 다른 collection과 외래 키 연결 X
+db.version(26).stores({
+  ai_diagnosis_list: '++id, &cloudId, createdAt, feedback, language, sharedToCommunityCases, updatedAt, deletedAt, _synced',
 }).upgrade(async (tx) => {
   // 모든 동기화 테이블의 row에 _synced=false 박기
   // 다음 sync에서 dirty filter가 _synced=false 잡고 push 1회 — 옛 row 전부 클라우드 도달 보장
@@ -519,6 +547,7 @@ export const FK_MAP = {
   expenses:               [['jobId', 'jobCloudId', 'service_jobs'], ['customerId', 'customerCloudId', 'customers']],
   equipment_maintenance:  [['customerId', 'customerCloudId', 'customers']],
   user_alarms:            [['customerId', 'customerCloudId', 'customers'], ['jobId', 'jobCloudId', 'service_jobs'], ['equipmentId', 'equipmentCloudId', 'equipment_maintenance']],
+  voice_recordings:       [['jobId', 'jobCloudId', 'service_jobs'], ['customerId', 'customerCloudId', 'customers']],
   supplier_transactions:  [['supplierId', 'supplierCloudId', 'suppliers']],
 }
 
@@ -527,6 +556,7 @@ const SYNC_HOOKS_TABLES = [
   'knowhow', 'business_cards', 'expenses', 'checklist_results',
   'equipment_maintenance', 'user_alarms', 'voice_recordings',
   'suppliers', 'supplier_transactions',
+  'ai_diagnosis_list',
 ]
 
 // (sanitize 함수 제거 — 진짜 원인 찾기 전엔 미봉책 안 둠)
