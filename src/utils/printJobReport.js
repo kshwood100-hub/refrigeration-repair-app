@@ -1,4 +1,5 @@
 import { loadSettings } from './settings'
+import { getMediaUrl } from './cloudSync'
 
 // 안전한 HTML 이스케이프 (XSS 방지)
 function esc(s) {
@@ -22,9 +23,16 @@ function fmtDate(iso) {
 /**
  * AS 작업 내역서 인쇄 — 새 탭에 출력용 HTML 작성 후 window.print() 호출
  * 사용자가 인쇄 메뉴에서 "PDF로 저장" 또는 프린터 인쇄 선택
- * 반환: 팝업 차단 시 false (호출자가 토스트 등으로 안내). 그 외 true.
+ * 반환: 팝업 차단 시 false. 그 외 true.
+ * async — 다른 기기에서 pull로 받은 사진 (storagePath만) 표시 위해 Firebase Storage URL 비동기 다운로드
  */
-export function printJobReport({ job, customer, photos = [], isDraft = false, t }) {
+async function resolvePhotoUrl(dataUrl, storagePath) {
+  if (dataUrl) return dataUrl
+  if (storagePath) return await getMediaUrl(storagePath)
+  return null
+}
+
+export async function printJobReport({ job, customer, photos = [], isDraft = false, t }) {
   const s = loadSettings()
   const win = window.open('', '_blank')
   if (!win) return false
@@ -66,13 +74,23 @@ export function printJobReport({ job, customer, photos = [], isDraft = false, t 
   // 현장 사진
   const sitePhotos = Array.isArray(photos) ? photos : []
 
-  const equipsHtml = equips.length === 0 ? '' : `
+  // 사진 URL 비동기 받음 — dataUrl 우선, 없으면 storagePath에서 Firebase Storage URL 다운로드
+  const equipsResolved = await Promise.all(equips.map(async (eq) => ({
+    ...eq,
+    _url: await resolvePhotoUrl(eq.photo, eq.storagePath),
+  })))
+  const sitePhotosResolved = await Promise.all(sitePhotos.map(async (p) => ({
+    ...p,
+    _url: await resolvePhotoUrl(p.dataUrl, p.storagePath),
+  })))
+
+  const equipsHtml = equipsResolved.length === 0 ? '' : `
     <section class="block">
       <h2>${esc(labels.equipPhotos)}</h2>
       <div class="photo-grid">
-        ${equips.map((eq) => `
+        ${equipsResolved.map((eq) => `
           <div class="photo-card">
-            ${eq.photo ? `<img src="${esc(eq.photo)}" alt="">` : ''}
+            ${eq._url ? `<img src="${esc(eq._url)}" alt="">` : ''}
             <div class="photo-meta">
               ${eq.kind   ? `<div><b>${esc(eq.kind)}</b></div>` : ''}
               ${eq.brand  ? `<div>${esc(eq.brand)}</div>` : ''}
@@ -86,13 +104,13 @@ export function printJobReport({ job, customer, photos = [], isDraft = false, t 
       </div>
     </section>`
 
-  const sitePhotosHtml = sitePhotos.length === 0 ? '' : `
+  const sitePhotosHtml = sitePhotosResolved.length === 0 ? '' : `
     <section class="block">
-      <h2>${esc(labels.sitePhotos)} (${sitePhotos.length})</h2>
+      <h2>${esc(labels.sitePhotos)} (${sitePhotosResolved.length})</h2>
       <div class="photo-grid">
-        ${sitePhotos.map((p) => `
+        ${sitePhotosResolved.map((p) => `
           <div class="photo-card">
-            ${p.dataUrl ? `<img src="${esc(p.dataUrl)}" alt="">` : ''}
+            ${p._url ? `<img src="${esc(p._url)}" alt="">` : ''}
           </div>
         `).join('')}
       </div>

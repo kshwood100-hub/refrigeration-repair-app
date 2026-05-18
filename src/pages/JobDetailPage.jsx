@@ -297,17 +297,22 @@ export default function JobDetailPage() {
   }
 
   // 작업 내역서 출력 — 진행 중이면 임시 출력 (배지 표시), 완료면 정식 출력
-  function handlePrintReport() {
-    // 진행 중 입력값(knowhow state)이 IDB로 즉시 저장되지만 useLiveQuery 한 박자 늦을 수 있어 머지해서 전달
+  // async: Storage 사진 URL 비동기 다운로드 필요
+  async function handlePrintReport() {
+    // 진행 중 입력값(knowhow state)이 IDB로 즉시 저장되지만 useLiveQuery 한 템포 늦을 수 있어 merge해서 전달
     const merged = !isDone ? { ...job, ...knowhow } : job
-    const ok = printJobReport({
-      job: merged,
-      customer,
-      photos: photos ?? [],
-      isDraft: !isDone,
-      t,
-    })
-    if (ok === false) showToast(t('print.popupBlocked'))
+    try {
+      const ok = await printJobReport({
+        job: merged,
+        customer,
+        photos: photos ?? [],
+        isDraft: !isDone,
+        t,
+      })
+      if (ok === false) showToast(t('print.popupBlocked'))
+    } catch (e) {
+      showToast(e?.message || 'Print failed')
+    }
   }
 
   return (
