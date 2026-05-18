@@ -139,7 +139,10 @@ export async function pushCollection(collectionName) {
         delete payload[intKey]
       }
       // 안전망: 1MB 초과 row는 skip — 한 row 결함이 전체 batch 막는 구조 차단
-      const payloadSize = JSON.stringify(payload).length
+      // new Blob().size = UTF-8 인코딩 후 정확한 byte 측정 (JSON.stringify(...).length는 char 수, byte 수 X)
+      // 한국어 1자 = 3 bytes → char 수만 보면 한국어 row의 실제 크기 과소평가 위험
+      const payloadStr = JSON.stringify(payload)
+      const payloadSize = new Blob([payloadStr]).size
       if (payloadSize > MAX_DOC_BYTES) {
         oversizedCloudIds.push(original.cloudId)
         console.warn(`[push] ${collectionName}/${original.cloudId} skipped — size ${payloadSize} > ${MAX_DOC_BYTES} bytes`)
