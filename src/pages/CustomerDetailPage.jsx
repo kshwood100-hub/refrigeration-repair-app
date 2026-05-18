@@ -9,7 +9,7 @@ import {
 import DateInput from '../components/DateInput'
 import TimeInput from '../components/TimeInput'
 import { db } from '../db'
-import { softDelete, softDeleteCustomerCascade, safeSyncAll } from '../utils/cloudSync'
+import { softDelete, softDeleteCustomerCascade } from '../utils/cloudSync'
 import MediaImage from '../components/MediaImage'
 import { requestNotificationPermission } from '../utils/alarmManager'
 import { showToast } from '../utils/toast'
@@ -252,7 +252,6 @@ export default function CustomerDetailPage() {
 
   async function handleDeleteCustomer() {
     await softDeleteCustomerCascade(Number(id))
-    safeSyncAll().catch(() => {})
     navigate('/service', { replace: true })
   }
 

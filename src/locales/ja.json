@@ -337,7 +337,17 @@
       "taxRate": "自国の税率 (%)",
       "taxRateDesc": "売上登録時に税金が自動計算されます (韓国10%、日本10%、米国は州により異なる、英国20% など — ご自身の国の税率を入力)",
       "taxApply": "適用",
-      "taxEdit": "編集"
+      "taxEdit": "編集",
+      "sync": {
+        "title": "同期状態",
+        "checkBtn": "確認",
+        "forceSyncBtn": "強制同期",
+        "syncing": "同期中...",
+        "syncDone": "同期完了",
+        "fetchedAt": "取得時刻",
+        "pending": "待機",
+        "never": "なし"
+      }
     },
     "companyInfo": {
       "title": "会社情報・規約",

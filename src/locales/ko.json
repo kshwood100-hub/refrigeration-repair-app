@@ -354,7 +354,17 @@
       "bizOwnerPh": "대표자 이름",
       "bizPhonePh": "010-0000-0000",
       "bizAddressPh": "사업장 주소",
-      "bizRegNoPh": "000-00-00000"
+      "bizRegNoPh": "000-00-00000",
+      "sync": {
+        "title": "동기화 상태",
+        "checkBtn": "확인",
+        "forceSyncBtn": "강제 동기화",
+        "syncing": "동기화 중...",
+        "syncDone": "동기화 완료",
+        "fetchedAt": "조회",
+        "pending": "대기",
+        "never": "없음"
+      }
     },
     "companyInfo": {
       "title": "회사 정보 · 약관",

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { UNITS } from '../data/refrigerantsData'
 import { loadSettings, saveSettings } from '../utils/settings'
 import { createBackup, listBackups, downloadBackup, restoreBackup, formatSize, importAllData } from '../utils/backup'
-import { Download, RotateCcw, Upload, QrCode, ScanLine, Lock, CreditCard, CheckCircle2, LogOut } from 'lucide-react'
+import { Download, RotateCcw, Upload, QrCode, ScanLine, Lock, CreditCard, CheckCircle2, LogOut, RefreshCw } from 'lucide-react'
 import { doc, updateDoc } from 'firebase/firestore'
 import { firestore } from '../firebase'
 import { apiFetch } from '../utils/apiClient'
@@ -15,6 +15,8 @@ import { showToast } from '../utils/toast'
 import ConfirmModal from '../components/ConfirmModal'
 import { getCheckoutUrl } from '../utils/checkout'
 import { getTrialStatus } from '../utils/trial'
+import { db } from '../db'
+import { SYNC_COLLECTIONS, safeSyncAll, syncAll } from '../utils/cloudSync'
 
 const LANGUAGES = [
   { code: 'en', short: 'EN', label: 'ENGLISH' },
@@ -53,10 +55,70 @@ export default function SettingsPage() {
     return Number(s.taxRate) > 0
   })
 
+  const [syncStatus, setSyncStatus] = useState(null)
+  const [syncLoading, setSyncLoading] = useState(false)
+  const [forceSyncing, setForceSyncing] = useState(false)
+  const [syncResults, setSyncResults] = useState(null)
+
   useEffect(() => {
     // force=true — 결제 직후 진입하는 경우 캐시 무시하고 fresh 조회
     getTrialStatus(true).then(setTrialState).catch(() => {})
   }, [])
+
+  // 동기화 상태 진단 — 컬렉션별 IDB row count + _synced=false 박힌 row 수 + lastPull/lastPush 시점
+  // 출시 의무 도구 — 일회용 디버그 X. 결함 신고 시 사용자 1번 클릭으로 진단
+  async function loadSyncStatus() {
+    setSyncLoading(true)
+    try {
+      const rows = []
+      for (const c of SYNC_COLLECTIONS) {
+        const all = await db.table(c).toArray()
+        const active = all.filter((r) => !r.deletedAt)
+        const tombstone = all.length - active.length
+        const pending = all.filter((r) => r._synced === false).length
+        const pushState = await db.sync_state.get(`lastPush:${c}`)
+        const pullState = await db.sync_state.get(`lastPull:${c}`)
+        rows.push({
+          name: c,
+          total: all.length,
+          active: active.length,
+          tombstone,
+          pending,
+          lastPushAt: pushState?.value || 0,
+          lastPullAt: pullState?.value || 0,
+        })
+      }
+      setSyncStatus({ rows, fetchedAt: Date.now() })
+    } catch (e) {
+      showToast(e?.message || 'Load failed')
+    } finally {
+      setSyncLoading(false)
+    }
+  }
+
+  async function handleForceSync() {
+    setForceSyncing(true)
+    setSyncResults(null)
+    try {
+      // syncAll 직접 호출 — 컬렉션별 push/pull/error 결과 받음 (safeSyncAll은 결과 X)
+      const out = await syncAll()
+      setSyncResults({ ok: out.ok, results: out.results || {}, reason: out.reason || null, ranAt: Date.now() })
+      await loadSyncStatus()
+      if (out.ok) showToast(t('settings.sync.syncDone'))
+      else showToast(`Sync skipped: ${out.reason || 'unknown'}`)
+    } catch (e) {
+      setSyncResults({ ok: false, error: e?.message || String(e), ranAt: Date.now() })
+      showToast(e?.message || 'Sync failed')
+    } finally {
+      setForceSyncing(false)
+    }
+  }
+
+  function formatTs(ms) {
+    if (!ms) return t('settings.sync.never')
+    const d = new Date(ms)
+    return d.toLocaleString()
+  }
 
   function update(patch) {
     const next = { ...settings, ...patch }
@@ -620,6 +682,82 @@ export default function SettingsPage() {
             <span className="text-gray-600">{t('settings.ptData')}</span>
             <span className="font-medium text-gray-800">NIST WebBook</span>
           </div>
+        </div>
+      </section>
+
+      {/* 동기화 상태 진단 — 결함 신고 시 1번 클릭으로 검증 */}
+      <section className="mt-6 mb-4">
+        <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">{t('settings.sync.title')}</div>
+        <div className="bg-white border border-gray-300 rounded-lg p-3 space-y-2">
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={loadSyncStatus}
+              disabled={syncLoading}
+              className="flex-1 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg shadow-sm active:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-1.5"
+            >
+              <RefreshCw size={14} strokeWidth={2} className={syncLoading ? 'animate-spin' : ''} />
+              {t('settings.sync.checkBtn')}
+            </button>
+            <button
+              type="button"
+              onClick={handleForceSync}
+              disabled={forceSyncing}
+              className="flex-1 py-2 bg-emerald-600 text-white text-sm font-bold rounded-lg shadow-sm active:bg-emerald-700 disabled:opacity-50 flex items-center justify-center gap-1.5"
+            >
+              <RefreshCw size={14} strokeWidth={2} className={forceSyncing ? 'animate-spin' : ''} />
+              {forceSyncing ? t('settings.sync.syncing') : t('settings.sync.forceSyncBtn')}
+            </button>
+          </div>
+
+          {syncResults && (
+            <div className="mt-2 p-2 bg-purple-50 border border-purple-200 rounded text-[11px]">
+              <div className="font-semibold text-purple-900 mb-1">
+                Sync run @ {new Date(syncResults.ranAt).toLocaleTimeString()}
+                {syncResults.ok === false && <span className="ml-1.5 text-red-600">FAILED</span>}
+              </div>
+              {syncResults.reason && <div className="text-red-700">reason: {syncResults.reason}</div>}
+              {syncResults.error && <div className="text-red-700 break-all">error: {syncResults.error}</div>}
+              {syncResults.results && Object.keys(syncResults.results).length > 0 && (
+                <div className="space-y-0.5 mt-1">
+                  {Object.entries(syncResults.results).map(([c, r]) => (
+                    <div key={c} className="flex justify-between gap-2">
+                      <span className="font-medium text-gray-700">{c}</span>
+                      <span className={r.error ? 'text-red-700 font-bold' : 'text-gray-600'}>
+                        {r.error ? `❌ ${r.error}` : `↑${r.pushed ?? 0} ↓${r.pulled ?? 0}`}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {syncStatus && (
+            <div className="mt-2 space-y-1.5">
+              <div className="text-[10px] text-gray-400 text-right">
+                {t('settings.sync.fetchedAt')}: {new Date(syncStatus.fetchedAt).toLocaleTimeString()}
+              </div>
+              {syncStatus.rows.map((r) => {
+                const warn = r.pending > 0
+                return (
+                  <div key={r.name} className={`text-[11px] border rounded px-2 py-1.5 ${warn ? 'bg-yellow-50 border-yellow-300' : 'bg-gray-50 border-gray-200'}`}>
+                    <div className="flex justify-between items-center mb-0.5">
+                      <span className="font-semibold text-gray-800">{r.name}</span>
+                      <span className="text-gray-600">
+                        {r.active}/{r.total}
+                        {r.pending > 0 && <span className="ml-1.5 text-yellow-700 font-bold">⚠ {r.pending} {t('settings.sync.pending')}</span>}
+                      </span>
+                    </div>
+                    <div className="flex gap-3 text-[10px] text-gray-500">
+                      <span>↑ {formatTs(r.lastPushAt)}</span>
+                      <span>↓ {formatTs(r.lastPullAt)}</span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
       </section>
 

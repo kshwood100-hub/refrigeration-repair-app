@@ -337,7 +337,17 @@
       "taxRate": "Thuế suất nước tôi (%)",
       "taxRateDesc": "Thuế được tính tự động khi ghi nhận doanh thu (KR 10%, JP 10%, US tùy bang, UK 20% — nhập thuế suất nước bạn)",
       "taxApply": "Áp dụng",
-      "taxEdit": "Sửa"
+      "taxEdit": "Sửa",
+      "sync": {
+        "title": "Trạng thái Đồng bộ",
+        "checkBtn": "Kiểm tra",
+        "forceSyncBtn": "Buộc Đồng bộ",
+        "syncing": "Đang đồng bộ...",
+        "syncDone": "Hoàn tất đồng bộ",
+        "fetchedAt": "Đã kiểm tra",
+        "pending": "chờ",
+        "never": "chưa bao giờ"
+      }
     },
     "companyInfo": {
       "title": "Thông tin công ty · Pháp lý",

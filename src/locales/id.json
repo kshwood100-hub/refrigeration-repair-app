@@ -337,7 +337,17 @@
       "taxRate": "Tarif Pajak Negara Saya (%)",
       "taxRateDesc": "Pajak otomatis dihitung saat mencatat pendapatan (KR 10%, JP 10%, AS berbeda per negara bagian, UK 20% — masukkan tarif negara Anda)",
       "taxApply": "Terapkan",
-      "taxEdit": "Edit"
+      "taxEdit": "Edit",
+      "sync": {
+        "title": "Status Sinkronisasi",
+        "checkBtn": "Periksa",
+        "forceSyncBtn": "Paksa Sinkronisasi",
+        "syncing": "Menyinkronkan...",
+        "syncDone": "Sinkronisasi selesai",
+        "fetchedAt": "Diperiksa",
+        "pending": "tertunda",
+        "never": "tidak pernah"
+      }
     },
     "companyInfo": {
       "title": "Info Perusahaan · Legal",

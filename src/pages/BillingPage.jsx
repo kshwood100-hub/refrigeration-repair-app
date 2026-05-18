@@ -7,7 +7,6 @@ import { db } from '../db'
 import { showToast } from '../utils/toast'
 import { loadSettings } from '../utils/settings'
 import { todayLocal } from '../utils/date'
-import { pushCollection } from '../utils/cloudSync'
 
 const LOCALE_MAP = {
   ko: { locale: 'ko-KR', currency: 'KRW', suffix: '원' },
@@ -165,13 +164,11 @@ export default function BillingPage() {
           completedAt: now,
           createdAt: now,
         })
-        pushCollection('service_jobs').catch(() => {})
         showToast(t('billing.saved'))
         navigate(`/service/${newJobId}/receipt`, { replace: true })
       } else {
         // 기존 모드: AS의 cost 업데이트
         await db.service_jobs.update(Number(id), update)
-        pushCollection('service_jobs').catch(() => {})
         showToast(t('billing.saved'))
       }
     } catch (e) {

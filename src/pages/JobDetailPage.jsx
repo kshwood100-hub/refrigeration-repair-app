@@ -7,7 +7,7 @@ import {
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { db } from '../db'
-import { softDelete, softDeleteJobCascade, pushCollection } from '../utils/cloudSync'
+import { softDelete, softDeleteJobCascade } from '../utils/cloudSync'
 import { requestNotificationPermission } from '../utils/alarmManager'
 import { showToast } from '../utils/toast'
 import { compressImage } from '../utils/image'
@@ -117,8 +117,6 @@ export default function JobDetailPage() {
 
   async function patch(data) {
     await db.service_jobs.update(Number(id), { ...data, updatedAt: new Date().toISOString() })
-    // 모든 status·필드 변경 즉시 클라우드 push — 백그라운드 sync 트리거 누락 안전망
-    pushCollection('service_jobs').catch(() => {})
   }
 
   // 완료 의뢰의 분석 안 박힌 카드 / 또는 [재분석] 박힌 카드 = 사무실에서 사진 보고 직접 분석
@@ -587,7 +585,13 @@ export default function JobDetailPage() {
                                 onClick={() => setEquipLightboxIdx(i)}
                                 className="w-24 h-24 bg-gray-100 border border-gray-300 rounded-md overflow-hidden block"
                               >
-                                {eq.photo && <img src={eq.photo} alt="" className="w-full h-full object-cover" />}
+                                {(eq.photo || eq.storagePath) && (
+                                  <MediaImage
+                                    dataUrl={eq.photo}
+                                    storagePath={eq.storagePath}
+                                    className="w-full h-full object-cover"
+                                  />
+                                )}
                               </button>
                               <div className="bg-gray-50 border border-gray-200 rounded-md p-2 text-[11px] leading-tight overflow-hidden flex flex-col justify-center">
                                 {isAnalyzed ? (
@@ -629,9 +633,19 @@ export default function JobDetailPage() {
                       </div>
                     ) : (
                       <div className="flex gap-2 flex-wrap">
-                        {job.equipPhotos.map((url, i) => (
-                          <img key={i} src={url} alt="" className="w-20 h-20 object-cover rounded-lg border border-gray-200" />
-                        ))}
+                        {(() => {
+                          const photos = job.equipPhotos ?? []
+                          const paths = job.equipPhotoPaths ?? []
+                          const len = Math.max(photos.length, paths.length)
+                          return Array.from({ length: len }).map((_, i) => (
+                            <MediaImage
+                              key={i}
+                              dataUrl={photos[i]}
+                              storagePath={paths[i]}
+                              className="w-20 h-20 object-cover rounded-lg border border-gray-200"
+                            />
+                          ))
+                        })()}
                       </div>
                     )}
                   </Section>
@@ -775,7 +789,10 @@ export default function JobDetailPage() {
       )}
 
       {/* 장비 사진 라이트박스 (완료 모드) */}
-      {equipLightboxIdx != null && (job.equipments ?? [])[equipLightboxIdx]?.photo && (
+      {equipLightboxIdx != null && (() => {
+        const eq = (job.equipments ?? [])[equipLightboxIdx]
+        return eq && (eq.photo || eq.storagePath)
+      })() && (
         <div
           className="fixed inset-0 bg-black/90 z-[70] flex items-center justify-center"
           onClick={() => setEquipLightboxIdx(null)}
@@ -802,8 +819,9 @@ export default function JobDetailPage() {
               ›
             </button>
           )}
-          <img
-            src={(job.equipments ?? [])[equipLightboxIdx]?.photo}
+          <MediaImage
+            dataUrl={(job.equipments ?? [])[equipLightboxIdx]?.photo}
+            storagePath={(job.equipments ?? [])[equipLightboxIdx]?.storagePath}
             alt=""
             className="max-w-full max-h-full object-contain"
             onClick={(e) => e.stopPropagation()}

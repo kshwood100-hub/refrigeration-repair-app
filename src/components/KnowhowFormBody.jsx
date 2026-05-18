@@ -11,6 +11,7 @@ import {
 import { showToast } from '../utils/toast'
 import { scanEquipment } from '../utils/scanEquipment'
 import { apiFetch } from '../utils/apiClient'
+import MediaImage from './MediaImage'
 import { captureAttr } from '../utils/deviceCapture'
 
 // 한국어 DB값 → i18n 키 매핑 (표시용)
@@ -467,8 +468,9 @@ export default function KnowhowFormBody({ form, setForm, hideCustomer = false, s
                       onClick={() => setEquipLightboxIdx(eq.realIdx)}
                       className="w-24 h-24 bg-gray-100 border border-gray-300 rounded-md overflow-hidden block"
                     >
-                      <img
-                        src={eq.photo}
+                      <MediaImage
+                        dataUrl={eq.photo}
+                        storagePath={eq.storagePath}
                         alt=""
                         className="w-full h-full object-cover"
                       />
@@ -714,8 +716,9 @@ export default function KnowhowFormBody({ form, setForm, hideCustomer = false, s
                 ›
               </button>
             )}
-            <img
-              src={cur.photo}
+            <MediaImage
+              dataUrl={cur.photo}
+              storagePath={cur.storagePath}
               alt=""
               className="max-w-full max-h-full object-contain"
               onClick={(e) => e.stopPropagation()}

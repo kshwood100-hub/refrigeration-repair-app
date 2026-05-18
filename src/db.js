@@ -559,28 +559,58 @@ const SYNC_HOOKS_TABLES = [
   'ai_diagnosis_list',
 ]
 
-// (sanitize 함수 제거 — 진짜 원인 찾기 전엔 미봉책 안 둠)
+// 자동 cloud push 대상 — ai_diagnosis_list 제외 (격리 의도 유지)
+// 페이지 코드는 IDB write만 책임짐. push는 시스템(hook) 자동 처리.
+const AUTO_PUSH_TABLES = new Set([
+  'customers', 'service_jobs', 'job_photos',
+  'knowhow', 'business_cards', 'expenses', 'checklist_results',
+  'equipment_maintenance', 'user_alarms', 'voice_recordings',
+  'suppliers', 'supplier_transactions',
+])
 
-// hook은 동기 단순 처리만 — 외래 키 cloudId 채움은 페이지 코드가 명시적으로 책임짐
-// (이전: 비동기 Promise.all 반환으로 인한 IDB add 충돌 의심 → 단순화)
+// schedulePush — debounce 50ms로 짧은 시간 다회 write 흡수 (bulkPut 등)
+// dynamic import = circular import 회피 (cloudSync.js가 db.js의 db/FK_MAP 사용)
+const _pendingPush = new Set()
+let _pushTimer = null
+function schedulePush(tableName) {
+  _pendingPush.add(tableName)
+  if (_pushTimer) return
+  _pushTimer = setTimeout(async () => {
+    const tables = [..._pendingPush]
+    _pendingPush.clear()
+    _pushTimer = null
+    try {
+      const { pushCollection } = await import('./utils/cloudSync')
+      for (const t of tables) {
+        pushCollection(t).catch(() => {})
+      }
+    } catch (_) { /* silent — 오프라인·로그아웃 시 정상 */ }
+  }, 50)
+}
+
+// hook은 동기·즉시 반환 — push는 schedulePush로 다음 tick 백그라운드 (fire-and-forget)
 //
 // _synced 처리 규칙:
-//  - creating: 새 row는 항상 _synced=false (다음 sync에서 push 대상)
-//  - updating: 변경 시 _synced=false 자동 박기 — 단 modifications에 _synced가 명시되면 그 값 그대로 (push 성공 후 cloudSync가 true로 박는 케이스)
+//  - creating/updating: 변경 시 _synced=false 자동 (다음 sync 대상)
+//  - 명시적 _synced=true는 그대로 보존 → cloudSync(push/pull 성공 후 마크) 회귀 차단
+//  - _synced=true로 명시된 write는 schedulePush 트리거 X (무한 루프 차단)
 for (const tableName of SYNC_HOOKS_TABLES) {
   db.table(tableName).hook('creating', (_primKey, obj) => {
     if (!obj.cloudId) obj.cloudId = crypto.randomUUID()
     if (!obj.updatedAt) obj.updatedAt = new Date().toISOString()
     if (!('_synced' in obj)) obj._synced = false
+    if (AUTO_PUSH_TABLES.has(tableName) && obj._synced !== true) {
+      schedulePush(tableName)
+    }
   })
   db.table(tableName).hook('updating', (modifications, _primKey, _obj) => {
     if (!modifications || typeof modifications !== 'object') return
     const next = { ...modifications }
-    // updatedAt이 명시되지 않았으면 자동 갱신 (변경 발생 표시)
     if (!('updatedAt' in next)) next.updatedAt = new Date().toISOString()
-    // _synced가 명시되지 않았으면 false (변경 발생 = 다음 sync에서 push 대상)
-    // 명시된 경우는 그대로 (cloudSync가 push 성공 후 true 박는 케이스 보존)
     if (!('_synced' in next)) next._synced = false
+    if (AUTO_PUSH_TABLES.has(tableName) && next._synced !== true) {
+      schedulePush(tableName)
+    }
     return next
   })
 }

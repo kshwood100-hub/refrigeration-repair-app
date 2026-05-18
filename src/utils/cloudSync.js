@@ -58,7 +58,11 @@ export async function pushCollection(collectionName) {
 
   let maxUpdated = lastPushAt
   // 미디어 컬렉션은 Storage 분리 (큰 dataUrl/blob을 Firestore에 안 올림)
-  const isMedia = ['job_photos', 'business_cards', 'voice_recordings'].includes(collectionName)
+  // service_jobs도 equipments[].photo + equipPhotos[]가 row에 직접 포함되어 1MB 초과 가능 → Storage 분리 대상
+  const isMedia = ['job_photos', 'business_cards', 'voice_recordings', 'service_jobs'].includes(collectionName)
+  // Firestore 문서 크기 제한 안전 마진 (실제 한도 1,048,576 미만)
+  const MAX_DOC_BYTES = 1000000
+  const oversizedCloudIds = []
   // Firestore writeBatch는 500개 제한 — 안전하게 200개씩 청크
   const CHUNK = 200
   for (let i = 0; i < dirty.length; i += CHUNK) {
@@ -134,6 +138,13 @@ export async function pushCollection(collectionName) {
         }
         delete payload[intKey]
       }
+      // 안전망: 1MB 초과 row는 skip — 한 row 결함이 전체 batch 막는 구조 차단
+      const payloadSize = JSON.stringify(payload).length
+      if (payloadSize > MAX_DOC_BYTES) {
+        oversizedCloudIds.push(original.cloudId)
+        console.warn(`[push] ${collectionName}/${original.cloudId} skipped — size ${payloadSize} > ${MAX_DOC_BYTES} bytes`)
+        continue
+      }
       batch.set(ref, {
         ...payload,
         _serverUpdatedAt: serverTimestamp(),
@@ -161,10 +172,13 @@ export async function pushCollection(collectionName) {
         }
       }
     }
-    // 청크 commit 성공 후 _synced=true 박음.
-    // race 안전: push 시점 updatedAt과 현재 IDB의 updatedAt 일치할 때만 박음 (중간 변경 보존)
+    // 청크 commit 성공 후 _synced=true 마크.
+    // race 안전: push 시점 updatedAt과 현재 IDB의 updatedAt 일치할 때만 마크 (중간 변경 보존)
     // updatedAt도 명시적으로 같이 전달 → updating hook의 자동 갱신 우회
+    // 단 1MB 초과로 skip된 row는 _synced 마크 X (다음 sync에서 재시도 가능)
+    const oversizedSet = new Set(oversizedCloudIds)
     for (const original of chunk) {
+      if (oversizedSet.has(original.cloudId)) continue
       try {
         const current = await db.table(collectionName).get(original.id)
         if (current && current.updatedAt === original.updatedAt) {
@@ -458,7 +472,7 @@ async function externalizeMedia(collectionName, row, email) {
   const cloudId = row.cloudId
   if (!cloudId) return out
 
-  // 주: storagePath 박을 때 updatedAt 명시 → hook 자동 갱신 우회 (push 후 race-safe 비교 보존)
+  // 주: storagePath 채울 때 updatedAt 명시 → hook 자동 갱신 우회 (push 후 race-safe 비교 보존)
   if (collectionName === 'job_photos' && row.dataUrl && !row.storagePath) {
     const path = `users/${email}/photos/${cloudId}.jpg`
     await uploadDataUrlToStorage(path, row.dataUrl)
@@ -481,6 +495,73 @@ async function externalizeMedia(collectionName, row, email) {
     out.storagePath = path
     delete out.blob
     await db.voice_recordings.update(row.id, { storagePath: path, updatedAt: row.updatedAt })
+  } else if (collectionName === 'service_jobs') {
+    // service_jobs.equipments[].photo + service_jobs.equipPhotos[] = base64 dataURL이 row에 직접 들어가
+    // Firestore 1MB 문서 제한 초과 → push 영구 실패 결함 차단
+    // 정책: dataURL을 Storage 업로드 후 storagePath 별도 필드로 추가. 로컬 IDB에는 dataURL 유지 (빠른 표시).
+    // push 시 cloud에는 dataURL 제외하고 storagePath만 송신.
+
+    // equipments[].photo 처리
+    const equipments = Array.isArray(row.equipments) ? row.equipments : []
+    let equipmentsChanged = false
+    const newEquipmentsLocal = await Promise.all(equipments.map(async (eq, idx) => {
+      if (eq && typeof eq.photo === 'string' && eq.photo.startsWith('data:') && !eq.storagePath) {
+        const path = `users/${email}/equip/${cloudId}-${idx}.jpg`
+        try {
+          await uploadDataUrlToStorage(path, eq.photo)
+          equipmentsChanged = true
+          return { ...eq, storagePath: path }
+        } catch (e) {
+          console.warn(`[push] equipment photo upload failed for ${cloudId}-${idx}:`, e?.message)
+          return eq
+        }
+      }
+      return eq
+    }))
+
+    // equipPhotos[] (string dataURL 배열) 처리
+    const equipPhotos = Array.isArray(row.equipPhotos) ? row.equipPhotos : []
+    const existingPaths = Array.isArray(row.equipPhotoPaths) ? row.equipPhotoPaths : []
+    let equipPhotosChanged = false
+    const newEquipPhotoPaths = await Promise.all(equipPhotos.map(async (p, idx) => {
+      const existing = existingPaths[idx]
+      if (existing) return existing
+      if (typeof p === 'string' && p.startsWith('data:')) {
+        const path = `users/${email}/equipPhotos/${cloudId}-${idx}.jpg`
+        try {
+          await uploadDataUrlToStorage(path, p)
+          equipPhotosChanged = true
+          return path
+        } catch (e) {
+          console.warn(`[push] equipPhoto upload failed for ${cloudId}-${idx}:`, e?.message)
+          return null
+        }
+      }
+      return null
+    }))
+
+    // 로컬 IDB 업데이트 (다음 push에 같은 dataURL 재업로드 차단). dataURL은 그대로 유지.
+    if (equipmentsChanged || equipPhotosChanged) {
+      const patch = { updatedAt: row.updatedAt }
+      if (equipmentsChanged) patch.equipments = newEquipmentsLocal
+      if (equipPhotosChanged) patch.equipPhotoPaths = newEquipPhotoPaths
+      try {
+        await db.service_jobs.update(row.id, patch)
+      } catch (e) {
+        console.warn(`[push] service_jobs local patch failed for ${row.id}:`, e?.message)
+      }
+    }
+
+    // push 페이로드 = storagePath만, dataURL 제외 (Firestore 1MB 차단)
+    out.equipments = newEquipmentsLocal.map((eq) => {
+      if (eq && eq.storagePath) {
+        const { photo, ...rest } = eq
+        return rest
+      }
+      return eq
+    })
+    out.equipPhotoPaths = newEquipPhotoPaths.filter(Boolean)
+    out.equipPhotos = []  // dataURL strings 제외
   } else {
     // 미디어 컬렉션이라도 이미 storagePath 있으면 dataUrl/blob은 push에서 제외
     delete out.dataUrl

@@ -337,7 +337,17 @@
       "taxRate": "Tasa de mi país (%)",
       "taxRateDesc": "El impuesto se calcula automáticamente al registrar ingresos (KR 10%, JP 10%, EE.UU. varía por estado, UK 20% — ingrese la tasa de su país)",
       "taxApply": "Aplicar",
-      "taxEdit": "Editar"
+      "taxEdit": "Editar",
+      "sync": {
+        "title": "Estado de Sincronización",
+        "checkBtn": "Verificar",
+        "forceSyncBtn": "Forzar Sincronización",
+        "syncing": "Sincronizando...",
+        "syncDone": "Sincronización completa",
+        "fetchedAt": "Verificado",
+        "pending": "pendientes",
+        "never": "nunca"
+      }
     },
     "companyInfo": {
       "title": "Empresa · Legal",

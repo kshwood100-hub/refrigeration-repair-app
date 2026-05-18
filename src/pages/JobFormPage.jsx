@@ -6,7 +6,6 @@ import { useTranslation } from 'react-i18next'
 import { db } from '../db'
 import { showToast } from '../utils/toast'
 import { requestNotificationPermission } from '../utils/alarmManager'
-import { pushCollection } from '../utils/cloudSync'
 import KnowhowFormBody, { EMPTY_KNOWHOW } from '../components/KnowhowFormBody'
 import DateInput from '../components/DateInput'
 import TimeInput from '../components/TimeInput'
@@ -253,12 +252,10 @@ export default function JobFormPage() {
       await db.service_jobs.update(Number(id), jobData)
       jobId = Number(id)
     }
-    pushCollection('service_jobs').catch(() => {})
 
     for (const photo of photos) {
       await db.job_photos.add({ jobId, dataUrl: photo.dataUrl, caption: photo.caption, takenAt: new Date().toISOString() })
     }
-    if (photos.length) pushCollection('job_photos').catch(() => {})
 
     if (alarmDate && alarmTime) {
       const granted = await requestNotificationPermission()

@@ -354,7 +354,17 @@
       "taxRate": "My Country Tax Rate (%)",
       "taxRateDesc": "Tax is auto-calculated when recording revenue (KR 10%, JP 10%, US varies by state, UK 20% — enter your country rate)",
       "taxApply": "Apply",
-      "taxEdit": "Edit"
+      "taxEdit": "Edit",
+      "sync": {
+        "title": "Sync Status",
+        "checkBtn": "Check",
+        "forceSyncBtn": "Force Sync",
+        "syncing": "Syncing...",
+        "syncDone": "Sync complete",
+        "fetchedAt": "Checked",
+        "pending": "pending",
+        "never": "never"
+      }
     },
     "companyInfo": {
       "title": "Company Info · Legal",

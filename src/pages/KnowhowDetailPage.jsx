@@ -4,6 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useTranslation } from 'react-i18next'
 import { ChevronLeft, Pencil, MapPin, Tag, X } from 'lucide-react'
 import { db } from '../db'
+import MediaImage from '../components/MediaImage'
 
 export default function KnowhowDetailPage() {
   const navigate = useNavigate()
@@ -65,7 +66,13 @@ export default function KnowhowDetailPage() {
                         onClick={() => setEquipLightboxIdx(i)}
                         className="w-24 h-24 bg-gray-100 border border-gray-300 rounded-md overflow-hidden block"
                       >
-                        {eq.photo && <img src={eq.photo} alt="" className="w-full h-full object-cover" />}
+                        {(eq.photo || eq.storagePath) && (
+                          <MediaImage
+                            dataUrl={eq.photo}
+                            storagePath={eq.storagePath}
+                            className="w-full h-full object-cover"
+                          />
+                        )}
                       </button>
                       <div className="bg-gray-50 border border-gray-200 rounded-md p-2 text-[11px] leading-tight grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5 content-start overflow-hidden">
                         {eq.kind && (<><span className="text-gray-400 shrink-0">{t('scan.kind')}</span><span className="text-gray-900 font-medium truncate">{eq.kind}</span></>)}
@@ -85,14 +92,20 @@ export default function KnowhowDetailPage() {
             ) : (
               // 옛 데이터 호환: equipPhotos만 있는 경우 사진만 표시
               <div className="flex gap-2 flex-wrap">
-                {item.equipPhotos.map((url, i) => (
-                  <img
-                    key={i}
-                    src={url}
-                    alt=""
-                    className="w-24 h-24 object-cover rounded-lg border border-gray-200"
-                  />
-                ))}
+                {(() => {
+                  const photos = item.equipPhotos ?? []
+                  const paths = item.equipPhotoPaths ?? []
+                  const len = Math.max(photos.length, paths.length)
+                  return Array.from({ length: len }).map((_, i) => (
+                    <MediaImage
+                      key={i}
+                      dataUrl={photos[i]}
+                      storagePath={paths[i]}
+                      alt=""
+                      className="w-24 h-24 object-cover rounded-lg border border-gray-200"
+                    />
+                  ))
+                })()}
               </div>
             )}
           </Card>
