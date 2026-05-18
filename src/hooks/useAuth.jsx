@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react'
-import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth'
+import { onAuthStateChanged, signInWithRedirect, getRedirectResult, signOut } from 'firebase/auth'
 import { doc, getDoc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore'
 import { auth, googleProvider, firestore } from '../firebase'
 import { clearTrialCache } from '../utils/trial'
@@ -71,10 +71,44 @@ async function claimSession(email) {
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(undefined) // undefined = 로딩중
+  const [loginError, setLoginError] = useState(null)
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, setUser)
     return unsubscribe
+  }, [])
+
+  // signInWithRedirect 흐름: Google 페이지에서 복귀 시 1회 결과 처리
+  // popup 흐름 (signInWithPopup) = COOP 정책으로 cross-origin window.opener 차단 → 두 번 로그인 결함
+  // redirect 흐름 = 같은 origin으로 복귀 → COOP 무관. 단 복귀 시점에 getRedirectResult로 결과 받음
+  useEffect(() => {
+    let canceled = false
+    ;(async () => {
+      try {
+        const result = await getRedirectResult(auth)
+        if (canceled) return
+        if (!result?.user?.email) return
+        const access = await checkEmailAccess(result.user.email)
+        if (!access.allowed) {
+          try { await signOut(auth) } catch (e) { console.warn('Reject signOut failed:', e?.message) }
+          if (access.reason === 'cancelled') {
+            const dateStr = access.purgeAt
+              ? toLocalISO(new Date(access.purgeAt))
+              : ''
+            setLoginError(i18n.t('error.subscriptionCancelled', { date: dateStr }))
+          } else {
+            setLoginError(i18n.t('error.accessDenied'))
+          }
+          return
+        }
+        await claimSession(result.user.email)
+      } catch (e) {
+        if (canceled) return
+        console.warn('Redirect result handling failed:', e?.message)
+        setLoginError(e?.message || 'Login failed')
+      }
+    })()
+    return () => { canceled = true }
   }, [])
 
   // 자동 복원된 세션도 claim — Firebase auth 세션은 살아있는데 로컬 토큰 없으면
@@ -122,20 +156,9 @@ export function AuthProvider({ children }) {
   }, [user?.email])
 
   const loginWithGoogle = async () => {
-    const result = await signInWithPopup(auth, googleProvider)
-    const access = await checkEmailAccess(result.user.email)
-    if (!access.allowed) {
-      try { await signOut(auth) } catch (e) { console.warn('Reject signOut failed:', e?.message) }
-      if (access.reason === 'cancelled') {
-        const dateStr = access.purgeAt
-          ? toLocalISO(new Date(access.purgeAt))
-          : ''
-        throw new Error(i18n.t('error.subscriptionCancelled', { date: dateStr }))
-      }
-      throw new Error(i18n.t('error.accessDenied'))
-    }
-    await claimSession(result.user.email)
-    return result
+    setLoginError(null)
+    // signInWithRedirect = 페이지 전환됨. 즉시 반환 X. 결과 처리는 위 useEffect의 getRedirectResult에서
+    await signInWithRedirect(auth, googleProvider)
   }
   const logout = async () => {
     localStorage.removeItem(SESSION_TOKEN_KEY)
@@ -144,7 +167,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loginWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, loginWithGoogle, logout, loginError, clearLoginError: () => setLoginError(null) }}>
       {children}
     </AuthContext.Provider>
   )

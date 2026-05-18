@@ -11,17 +11,18 @@ function isInAppBrowser() {
 
 export default function LoginPage() {
   const { t } = useTranslation()
-  const { loginWithGoogle } = useAuth()
-  const [error, setError] = useState('')
+  const { loginWithGoogle, loginError, clearLoginError } = useAuth()
   const [copied, setCopied] = useState(false)
   const inApp = isInAppBrowser()
 
   const handleLogin = async () => {
-    setError('')
+    if (clearLoginError) clearLoginError()
     try {
       await loginWithGoogle()
+      // signInWithRedirect 사용 시 즉시 페이지 전환됨. 아래 코드 도달 X (정상)
     } catch (e) {
-      setError(e.message)
+      // signInWithRedirect 자체 실패 (네트워크·차단 등)는 매우 드물지만 처리
+      console.warn('Login start failed:', e?.message)
     }
   }
 
@@ -98,8 +99,8 @@ export default function LoginPage() {
         {t('login.google')}
       </button>
 
-      {error && (
-        <p className="mt-4 text-sm text-red-500 text-center">{error}</p>
+      {loginError && (
+        <p className="mt-4 text-sm text-red-500 text-center">{loginError}</p>
       )}
     </div>
   )
