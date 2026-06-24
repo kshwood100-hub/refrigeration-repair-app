@@ -955,7 +955,7 @@
       "dailyTotal": "Daily total:",
       "periodTotal": "{{period}} Total",
       "periodEmpty": "No expenses in this period",
-      "wonUnit": "₩",
+      "wonUnit": "$",
       "itemTravel": "Travel",
       "itemMaterial": "Materials",
       "itemLabor": "Labor",
@@ -1179,17 +1179,17 @@
       "open": "Camera",
       "title": "What would you like to scan?",
       "close": "Close",
-      "equipment": "Equipment Analysis",
+      "equipment": "Capture & Analyze",
       "equipmentDesc": "Auto-identify type, brand, model",
       "card": "Business Card",
       "cardDesc": "Auto-save contact info"
     },
     "scan": {
-      "title": "Equipment Analysis",
+      "title": "Capture & Analyze",
       "analyzing": "Analyzing equipment...",
       "err": "Analysis failed: ",
       "emptyDesc": "Take a photo of the equipment\nto auto-analyze type and model",
-      "takePhoto": "Take Photo",
+      "takePhoto": "Capture & Analyze",
       "notes": "Notes",
       "retry": "Retake",
       "close": "Close",
@@ -1224,7 +1224,8 @@
       "kindPiping": "Piping",
       "kindOther": "Other",
       "saveToCustomer": "Save to customer",
-      "savedToast": "Saved to {{name}}"
+      "savedToast": "Saved to {{name}}",
+      "btnAnalyze": "Analyze"
     },
     "finance": {
       "tabAs": "Revenue",
@@ -1245,8 +1246,8 @@
       "balance": "Balance",
       "back": "Back",
       "list": "List",
-      "scanCard": "Scan Card",
-      "scanCardHint": "Take a photo of the business card and AI will fill in the info",
+      "scanCard": "Scan",
+      "scanCardHint": "Snap a business card or receipt — supplier info and transaction details fill in automatically",
       "aiAnalyzing": "AI analyzing...",
       "retake": "Retake",
       "save": "Save",
@@ -1284,7 +1285,10 @@
         "email": "Email",
         "memo": "Memo",
         "memoPlaceholder": "Additional memo (optional)"
-      }
+      },
+      "txSection": "Transaction (from receipt)",
+      "txHint": "Saved together as this supplier's first transaction. You can edit it.",
+      "txRemove": "Remove"
     },
     "tx": {
       "addTitle": "Add Transaction",
@@ -1382,5 +1386,9 @@
   "error": {
     "accessDenied": "Access denied.",
     "subscriptionCancelled": "Subscription cancelled. Re-subscribe before {{date}} to recover your data."
+  },
+  "settings": {
+    "currency": "Currency",
+    "currencyDesc": "Enter your currency symbol for amount display (e.g. ₩, $, €)."
   }
 }

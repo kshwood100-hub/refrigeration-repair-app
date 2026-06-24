@@ -13,6 +13,7 @@ const DEFAULTS = {
   userTier: 'free', // free | paid | group
   shareConsent: false, // 결제 후 ShareConsentModal에서 동의 시 true. 설정에서 언제든 변경 가능.
   taxRate: 0, // 매출 등록 시 세금 자동 계산용 세율 (%) — 사용자가 자기 나라 세율 직접 입력
+  currency: '₩', // 자국 통화 기호 — 사용자가 설정에서 변경 (금액 표시에 사용)
 }
 
 export function loadSettings() {

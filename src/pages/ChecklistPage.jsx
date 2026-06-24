@@ -72,7 +72,7 @@ export default function ChecklistPage() {
     } catch (e) { console.error(e) }
   }
 
-  const dateStr   = new Date().toLocaleDateString()
+  const dateStr   = new Date().toLocaleDateString(i18n.language)
   const shareText = selected ? [
     t('checklist.shareTitle'),
     `${t('checklist.shareItemLabel')}: ${lf(selected, 'title')}`,

@@ -1,11 +1,13 @@
 import { useState, useRef } from 'react'
+import { money } from '../utils/money'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useTranslation } from 'react-i18next'
 import {
   ChevronLeft, Phone, MapPin, Plus, ChevronRight,
-  Calendar, CreditCard, Trash2, Wrench, CheckCircle2, X, Bell, Camera, Mail,
+  Calendar, CreditCard, Trash2, Wrench, CheckCircle2, X, Bell, Camera, Mail, Sparkles, Loader,
 } from 'lucide-react'
+import { scanEquipment } from '../utils/scanEquipment'
 import DateInput from '../components/DateInput'
 import TimeInput from '../components/TimeInput'
 import { db } from '../db'
@@ -53,6 +55,7 @@ export default function CustomerDetailPage() {
   const [analyzedLightboxIdx, setAnalyzedLightboxIdx] = useState(null)
   const [showEquipForm, setShowEquipForm] = useState(false)
   const [equipName, setEquipName] = useState('')
+  const [analyzing, setAnalyzing] = useState(false)  // [분석] 클릭 시 = AI 호출 진행 표시
   const [equipInterval, setEquipInterval] = useState(null)
   const [equipPhoto, setEquipPhoto] = useState('')
   const [previewEquip, setPreviewEquip] = useState(null)
@@ -157,6 +160,21 @@ export default function CustomerDetailPage() {
     const dataUrl = await compressImage(file)
     setEquipPhoto(dataUrl)
     e.target.value = ''
+  }
+
+  // [분석] 클릭 시 = AI 호출 + equipName 자동 채움 (사용자 안 누르면 = 수동 입력 박힘)
+  async function handleAnalyzeEquip() {
+    if (!equipPhoto || analyzing) return
+    setAnalyzing(true)
+    try {
+      const r = await scanEquipment(equipPhoto)
+      const autoName = [r.brand, r.model].filter(Boolean).join(' ') || t('scan.kindOther')
+      setEquipName(autoName)
+    } catch (err) {
+      showToast(t('scan.err') + (err.message || ''))
+    } finally {
+      setAnalyzing(false)
+    }
   }
 
   async function handleCheckDone(equip) {
@@ -337,7 +355,7 @@ export default function CustomerDetailPage() {
               {totalRevenue > 0 && (
                 <div className="text-right">
                   <p className="text-[10px] text-gray-400">{t('customer.totalRevenue')}</p>
-                  <p className="text-sm font-semibold text-gray-800">{totalRevenue.toLocaleString()}</p>
+                  <p className="text-sm font-semibold text-gray-800">{money(totalRevenue)}</p>
                 </div>
               )}
             </div>
@@ -406,7 +424,7 @@ export default function CustomerDetailPage() {
                           </span>
                           {job.cost > 0 && (
                             <span className="font-medium text-gray-700">
-                              {Number(job.cost).toLocaleString()}
+                              {money(Number(job.cost))}
                             </span>
                           )}
                         </div>
@@ -453,19 +471,29 @@ export default function CustomerDetailPage() {
                 onChange={handleEquipCapture}
               />
               {equipPhoto ? (
-                <div className="relative">
-                  <img
-                    src={equipPhoto}
-                    alt="equipment"
-                    className="w-full rounded-lg border border-gray-200 object-cover max-h-32"
-                  />
+                <>
+                  <div className="relative">
+                    <img
+                      src={equipPhoto}
+                      alt="equipment"
+                      className="w-full rounded-lg border border-gray-200 object-cover max-h-32"
+                    />
+                    <button
+                      onClick={() => setEquipPhoto('')}
+                      className="absolute top-1.5 right-1.5 w-7 h-7 flex items-center justify-center bg-black/60 rounded-full text-white"
+                    >
+                      <X size={14} strokeWidth={2} />
+                    </button>
+                  </div>
                   <button
-                    onClick={() => setEquipPhoto('')}
-                    className="absolute top-1.5 right-1.5 w-7 h-7 flex items-center justify-center bg-black/60 rounded-full text-white"
+                    onClick={handleAnalyzeEquip}
+                    disabled={analyzing}
+                    className="w-full py-2 text-xs font-bold bg-violet-600 text-white rounded-lg flex items-center justify-center gap-1.5 active:bg-violet-700 disabled:opacity-50"
                   >
-                    <X size={14} strokeWidth={2} />
+                    {analyzing ? <Loader size={13} strokeWidth={2} className="animate-spin" /> : <Sparkles size={13} strokeWidth={2} />}
+                    {t('scan.btnAnalyze')}
                   </button>
-                </div>
+                </>
               ) : (
                 <button
                   onClick={() => equipFileRef.current?.click()}
@@ -590,7 +618,7 @@ export default function CustomerDetailPage() {
               {t('customer.unpaid')}
             </p>
             {unpaidTotal > 0 && (
-              <span className="text-xs font-semibold text-yellow-600">{unpaidTotal.toLocaleString()}</span>
+              <span className="text-xs font-semibold text-yellow-600">{money(unpaidTotal)}</span>
             )}
           </div>
           {unpaidJobs.length === 0 ? (
@@ -624,7 +652,7 @@ export default function CustomerDetailPage() {
                         </div>
                       </div>
                       <span className="text-sm font-semibold text-red-600 shrink-0">
-                        {Number(job.cost).toLocaleString()}
+                        {money(Number(job.cost))}
                       </span>
                     </div>
                   </button>
@@ -633,7 +661,7 @@ export default function CustomerDetailPage() {
               {unpaidJobs.length > 1 && (
                 <div className="flex items-center justify-between px-3 py-2.5 bg-red-600 rounded-xl">
                   <span className="text-xs text-white font-medium">{t('customer.unpaidTotal')}</span>
-                  <span className="text-sm font-bold text-white">{unpaidTotal.toLocaleString()}</span>
+                  <span className="text-sm font-bold text-white">{money(unpaidTotal)}</span>
                 </div>
               )}
             </div>

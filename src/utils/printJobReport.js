@@ -72,7 +72,8 @@ export async function printJobReport({ job, customer, photos = [], isDraft = fal
   // 장비 사진(명판) — equipments 배열에서 stage 무시하고 모두 표시
   const equips = Array.isArray(job.equipments) ? job.equipments : []
   // 현장 사진
-  const sitePhotos = Array.isArray(photos) ? photos : []
+  // 현장 사진 영역 제거 (UI 측 제거 = 인쇄 측도 출력 X. 옛 데이터 손실 X = sitePhotos 측 항상 빈 배열 = sitePhotosHtml = '')
+  const sitePhotos = []
 
   // 사진 URL 비동기 받음 — dataUrl 우선, 없으면 storagePath에서 Firebase Storage URL 다운로드
   const equipsResolved = await Promise.all(equips.map(async (eq) => ({

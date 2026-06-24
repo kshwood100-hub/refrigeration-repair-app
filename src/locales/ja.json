@@ -910,7 +910,7 @@
       "dailyTotal": "当日合計：",
       "periodTotal": "{{period}}合計",
       "periodEmpty": "該当期間の経費なし",
-      "wonUnit": "₩",
+      "wonUnit": "円",
       "itemTravel": "出張費",
       "itemMaterial": "材料費",
       "itemLabor": "人件費",
@@ -1162,17 +1162,17 @@
       "open": "撮影",
       "title": "何を撮影しますか？",
       "close": "閉じる",
-      "equipment": "機器分析",
+      "equipment": "撮影と分析",
       "equipmentDesc": "種類・ブランド・モデルを自動認識",
       "card": "名刺スキャン",
       "cardDesc": "連絡先を自動保存"
     },
     "scan": {
-      "title": "機器分析",
+      "title": "撮影と分析",
       "analyzing": "機器を分析中...",
       "err": "分析失敗: ",
       "emptyDesc": "機器の写真を撮ると\n種類とモデルを自動分析します",
-      "takePhoto": "写真撮影",
+      "takePhoto": "撮影と分析",
       "notes": "説明",
       "retry": "再撮影",
       "close": "閉じる",
@@ -1207,7 +1207,8 @@
       "kindPiping": "配管",
       "kindOther": "その他",
       "saveToCustomer": "取引先に保存",
-      "savedToast": "{{name}}に保存しました"
+      "savedToast": "{{name}}に保存しました",
+      "btnAnalyze": "分析"
     },
     "finance": {
       "tabAs": "売上",
@@ -1228,8 +1229,8 @@
       "balance": "残高",
       "back": "戻る",
       "list": "一覧",
-      "scanCard": "名刺スキャン",
-      "scanCardHint": "名刺を撮影するとAIが情報を入力します",
+      "scanCard": "スキャン入力",
+      "scanCardHint": "名刺や領収書を撮ると、取引先情報と取引内容を自動で入力します",
       "aiAnalyzing": "AI解析中...",
       "retake": "再撮影",
       "save": "保存",
@@ -1267,7 +1268,10 @@
         "email": "メール",
         "memo": "メモ",
         "memoPlaceholder": "追加メモ (任意)"
-      }
+      },
+      "txSection": "取引内容（領収書から）",
+      "txHint": "保存するとこの取引先の最初の取引として一緒に登録されます。編集できます。",
+      "txRemove": "削除"
     },
     "tx": {
       "addTitle": "取引追加",
@@ -1382,5 +1386,9 @@
   "error": {
     "accessDenied": "アクセスが拒否されました。",
     "subscriptionCancelled": "サブスクリプションがキャンセルされました。{{date}} までに再登録するとデータを復元できます。"
+  },
+  "settings": {
+    "currency": "通貨",
+    "currencyDesc": "金額表示に使う自国通貨記号を入力（例: ₩, $, €）。"
   }
 }

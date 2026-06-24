@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { money } from '../utils/money'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { ChevronLeft, Download, Share2 } from 'lucide-react'
@@ -187,13 +188,13 @@ export default function ReceiptPage() {
                     job[key] > 0 ? (
                       <div key={key} className="flex justify-between text-gray-600">
                         <span>{label}</span>
-                        <span>{sign < 0 ? '-' : ''}{Number(job[key]).toLocaleString()} {t('common.currencyUnit')}</span>
+                        <span>{sign < 0 ? '-' : ''}{money(Number(job[key]))}</span>
                       </div>
                     ) : null
                   )}
                   <div className="flex justify-between font-bold text-gray-900 border-t border-gray-300 pt-2 mt-1">
                     <span>{t('receipt.total')}</span>
-                    <span>{totalCost.toLocaleString()} {t('common.currencyUnit')}</span>
+                    <span>{money(totalCost)}</span>
                   </div>
                 </div>
               </div>

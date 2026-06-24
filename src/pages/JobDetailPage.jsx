@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { money } from '../utils/money'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
@@ -423,7 +424,7 @@ export default function JobDetailPage() {
             >
               <span className="text-sm font-medium text-white">{t('job.sectionCost')}</span>
               <span className="text-sm font-bold text-white">
-                {totalCost > 0 ? `${totalCost.toLocaleString()} ${t('common.currencyUnit')}` : t('job.notEntered')}
+                {totalCost > 0 ? `${money(totalCost)}` : t('job.notEntered')}
               </span>
             </button>
           </>
@@ -443,7 +444,7 @@ export default function JobDetailPage() {
               {job.paid ? t('job.paidYes') : t('job.paidNo')}
             </span>
             <span className="text-sm">
-              {(job.cost || 0).toLocaleString()}
+              {money((job.cost || 0))}
             </span>
           </button>
         )}
@@ -657,33 +658,6 @@ export default function JobDetailPage() {
                 )}
               </>
             )}
-
-            {/* 현장 사진 — 카운트 명시 */}
-            <Section title={`${t('job.sectionPhotos')} · ${t('job.photoCount', { count: (photos ?? []).length })}`}>
-              <input ref={fileRef} type="file" accept="image/*" {...captureAttr()} multiple className="hidden" onChange={handlePhoto} />
-              <div className="flex gap-2 flex-wrap">
-                {(photos ?? []).map((p, idx) => (
-                  <div key={p.id} className="relative w-24 h-24">
-                    <button onClick={() => setLightboxIndex(idx)} className="block w-full h-full">
-                      <MediaImage dataUrl={p.dataUrl} storagePath={p.storagePath} alt="" className="w-full h-full object-cover rounded-xl" />
-                    </button>
-                    {!isDone && (
-                      <button onClick={() => deletePhoto(p.id)}
-                        className="absolute -top-1 -right-1 w-5 h-5 bg-gray-800 text-white rounded-full flex items-center justify-center">
-                        <X size={10} strokeWidth={2.5} />
-                      </button>
-                    )}
-                  </div>
-                ))}
-                {!isDone && (
-                  <button onClick={() => fileRef.current?.click()}
-                    className="w-24 h-24 border border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-400 active:bg-gray-50">
-                    <Camera size={20} strokeWidth={1.5} />
-                    <span className="text-xs">{t('job.photoCapture')}</span>
-                  </button>
-                )}
-              </div>
-            </Section>
 
             {/* 완료 모드: 메모 (입력 모드는 KnowhowFormBody 안) */}
             {isDone && (

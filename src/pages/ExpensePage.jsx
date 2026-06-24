@@ -5,12 +5,15 @@ import { useTranslation } from 'react-i18next'
 import { Plus, ChevronRight, Calendar, ChevronLeft } from 'lucide-react'
 import { db } from '../db'
 import { softDelete } from '../utils/cloudSync'
-import { toLocalISO } from '../utils/date'
+import { toLocalISO, getWeekStart } from '../utils/date'
+import { money } from '../utils/money'
 
 // ── 날짜 유틸 ──────────────────────────────────────────
 const toISO = toLocalISO
-function startOfWeek(d) {
-  const r = new Date(d); r.setDate(d.getDate() - d.getDay()); return r
+function startOfWeek(d, weekStart = 0) {
+  const r = new Date(d)
+  const diff = (d.getDay() - weekStart + 7) % 7
+  r.setDate(d.getDate() - diff); return r
 }
 function startOfMonth(d) { return new Date(d.getFullYear(), d.getMonth(), 1) }
 function endOfMonth(d) { return new Date(d.getFullYear(), d.getMonth() + 1, 0) }
@@ -25,10 +28,10 @@ function endOfQuarter(d) {
 function startOfYear(d) { return new Date(d.getFullYear(), 0, 1) }
 function endOfYear(d)   { return new Date(d.getFullYear(), 11, 31) }
 
-function getRange(base, period) {
+function getRange(base, period, weekStart = 0) {
   const d = new Date(base)
   if (period === 'week') {
-    const s = startOfWeek(d)
+    const s = startOfWeek(d, weekStart)
     const e = new Date(s); e.setDate(s.getDate() + 6)
     return [toISO(s), toISO(e)]
   }
@@ -40,14 +43,17 @@ function getRange(base, period) {
 
 // ── 미니 캘린더 ────────────────────────────────────────
 function MiniCalendar({ selected, onSelect, expenseDates }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [view, setView] = useState(() => {
     const d = new Date(selected); return { y: d.getFullYear(), m: d.getMonth() }
   })
 
+  const weekStart   = getWeekStart(i18n.language)
   const daysInMonth = new Date(view.y, view.m + 1, 0).getDate()
-  const firstDay    = new Date(view.y, view.m, 1).getDay()
-  const weeks       = t('expense.weekdays').split(',')
+  const firstDow    = new Date(view.y, view.m, 1).getDay()  // 1일의 실제 요일(0=일)
+  const firstDay    = (firstDow - weekStart + 7) % 7         // 격자 시작 빈칸 수
+  const rawWeeks    = t('expense.weekdays').split(',')       // 번역은 일~토 순서
+  const weeks       = [...rawWeeks.slice(weekStart), ...rawWeeks.slice(0, weekStart)]
 
   function prevMonth() {
     setView(v => v.m === 0 ? { y: v.y - 1, m: 11 } : { y: v.y, m: v.m - 1 })
@@ -75,7 +81,7 @@ function MiniCalendar({ selected, onSelect, expenseDates }) {
       {/* 요일 */}
       <div className="grid grid-cols-7 mb-1">
         {weeks.map((w, i) => (
-          <div key={w} className={`text-center text-[10px] font-medium pb-1 ${i === 0 ? 'text-red-400' : i === 6 ? 'text-blue-400' : 'text-gray-400'}`}>{w}</div>
+          <div key={w} className={`text-center text-[10px] font-medium pb-1 ${(i + weekStart) % 7 === 0 ? 'text-red-400' : (i + weekStart) % 7 === 6 ? 'text-blue-400' : 'text-gray-400'}`}>{w}</div>
         ))}
       </div>
       {/* 날짜 */}
@@ -85,7 +91,7 @@ function MiniCalendar({ selected, onSelect, expenseDates }) {
           const iso = `${view.y}-${String(view.m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
           const isSelected = iso === selected
           const hasExp = expenseDates.has(iso)
-          const dow = (firstDay + d - 1) % 7
+          const dow = (firstDow + d - 1) % 7
           return (
             <button
               key={d}
@@ -112,7 +118,7 @@ function MiniCalendar({ selected, onSelect, expenseDates }) {
 // ── 메인 페이지 ────────────────────────────────────────
 export default function ExpensePage({ hideTitle = false }) {
   const navigate = useNavigate()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [mainTab, setMainTab] = useState('revenue')  // 'revenue' | 'list' | 'summary'
   const [period, setPeriod] = useState('month')      // week/month/quarter/year
   const [selectedDate, setSelectedDate] = useState(toISO(new Date()))
@@ -145,7 +151,7 @@ export default function ExpensePage({ hideTitle = false }) {
   }
 
   // 합계 탭 필터
-  const [rangeStart, rangeEnd] = getRange(selectedDate, period)
+  const [rangeStart, rangeEnd] = getRange(selectedDate, period, getWeekStart(i18n.language))
   const rangeExpenses = expenses.filter((e) => e.date >= rangeStart && e.date <= rangeEnd)
   const rangeTotal = rangeExpenses.reduce((s, e) => s + (e.items ?? []).reduce((ss, i) => ss + (Number(i.amount) || 0), 0), 0)
   const rangeJobs = jobs.filter((j) => (j.cost || 0) > 0 && j.receiptDate >= rangeStart && j.receiptDate <= rangeEnd)
@@ -241,7 +247,7 @@ export default function ExpensePage({ hideTitle = false }) {
               </button>
               <div className="flex items-center justify-between px-3 py-2.5 bg-emerald-600 rounded-xl mb-2">
                 <span className="text-xs text-white font-medium">{t('expense.revenueTotal')}</span>
-                <span className="text-sm font-bold text-white">{totalRevenue.toLocaleString()}{t('expense.wonUnit')}</span>
+                <span className="text-sm font-bold text-white">{money(totalRevenue)}</span>
               </div>
               {revenueJobs.map((job) => {
                 const customer = customerMap[job.customerId]
@@ -270,7 +276,7 @@ export default function ExpensePage({ hideTitle = false }) {
                         </div>
                       </div>
                       <span className={`text-sm font-semibold shrink-0 ${job.paid ? 'text-emerald-600' : 'text-red-600'}`}>
-                        {(job.cost || 0).toLocaleString()}
+                        {money((job.cost || 0))}
                       </span>
                     </div>
                   </button>
@@ -314,7 +320,7 @@ export default function ExpensePage({ hideTitle = false }) {
                           <Calendar size={10} strokeWidth={1.5} />
                           {exp.date}
                         </span>
-                        <span className="ml-auto font-semibold text-gray-700 text-xs">{total.toLocaleString()}</span>
+                        <span className="ml-auto font-semibold text-gray-700 text-xs">{money(total)}</span>
                       </div>
                     </div>
                     <ChevronRight size={12} strokeWidth={1.5} className="text-gray-300 shrink-0 mt-1" />
@@ -365,19 +371,19 @@ export default function ExpensePage({ hideTitle = false }) {
                   <div className="space-y-1.5 mb-2">
                     <div className="flex items-center justify-between px-3 py-2.5 bg-emerald-600 rounded-xl">
                       <span className="text-xs text-white font-medium">{t('expense.revenueTotal')}</span>
-                      <span className="text-sm font-bold text-white">{rangeRevenue.toLocaleString()}{t('expense.wonUnit')}</span>
+                      <span className="text-sm font-bold text-white">{money(rangeRevenue)}</span>
                     </div>
                     <div className="flex items-center justify-between px-3 py-2.5 bg-red-600 rounded-xl">
                       <span className="text-xs text-white font-medium">{t('expense.expenseTotal')}</span>
-                      <span className="text-sm font-bold text-white">−{rangeTotal.toLocaleString()}{t('expense.wonUnit')}</span>
+                      <span className="text-sm font-bold text-white">−{money(rangeTotal)}</span>
                     </div>
                     <div className="flex items-center justify-between px-3 py-2.5 bg-amber-600 rounded-xl">
                       <span className="text-xs text-white font-medium">{t('expense.purchaseTotal')}</span>
-                      <span className="text-sm font-bold text-white">−{rangePurchaseTotal.toLocaleString()}{t('expense.wonUnit')}</span>
+                      <span className="text-sm font-bold text-white">−{money(rangePurchaseTotal)}</span>
                     </div>
                     <div className={`flex items-center justify-between px-3 py-2.5 rounded-xl ${rangeNet >= 0 ? 'bg-blue-600' : 'bg-gray-700'}`}>
                       <span className="text-xs text-white font-medium">{t('expense.netProfit')}</span>
-                      <span className="text-sm font-bold text-white">{rangeNet.toLocaleString()}{t('expense.wonUnit')}</span>
+                      <span className="text-sm font-bold text-white">{money(rangeNet)}</span>
                     </div>
                   </div>
                   <button
@@ -411,7 +417,7 @@ export default function ExpensePage({ hideTitle = false }) {
                                     {exp.date}
                                   </div>
                                 </div>
-                                <span className="text-xs font-semibold text-gray-700 shrink-0">{total.toLocaleString()}{t('expense.wonUnit')}</span>
+                                <span className="text-xs font-semibold text-gray-700 shrink-0">{money(total)}</span>
                               </div>
                             </button>
                           )
@@ -429,7 +435,7 @@ export default function ExpensePage({ hideTitle = false }) {
                     className="w-full bg-gray-100 border border-gray-300 rounded-xl px-4 py-3 flex items-center justify-between active:bg-gray-200"
                   >
                     <span className="text-xs text-gray-500">{selectedDate}</span>
-                    <span className="text-sm font-bold text-gray-800">{dayTotal.toLocaleString()}{t('expense.wonUnit')}</span>
+                    <span className="text-sm font-bold text-gray-800">{money(dayTotal)}</span>
                   </button>
                   {showDaily && (
                     dayExp.length === 0 ? (
@@ -449,7 +455,7 @@ export default function ExpensePage({ hideTitle = false }) {
                               <p className="text-xs font-medium text-gray-900 truncate">
                                 {exp.title || customer?.name || t('expense.noTitle')}
                               </p>
-                              <span className="text-xs font-semibold text-gray-700 shrink-0">{total.toLocaleString()}{t('expense.wonUnit')}</span>
+                              <span className="text-xs font-semibold text-gray-700 shrink-0">{money(total)}</span>
                             </button>
                           )
                         })}

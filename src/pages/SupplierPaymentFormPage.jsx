@@ -7,6 +7,7 @@ import DateInput from '../components/DateInput'
 import { todayLocal } from '../utils/date'
 import { consumeTrial } from '../utils/trial'
 import { showToast } from '../utils/toast'
+import { fmtNumInput, parseNumInput, parseNum } from '../utils/money'
 
 export default function SupplierPaymentFormPage() {
   const { t } = useTranslation()
@@ -36,7 +37,7 @@ export default function SupplierPaymentFormPage() {
         supplierId,
         type: 'payment',
         date,
-        total: amount ? Number(amount) : null,
+        total: amount ? parseNum(amount) : null,
         memo,
         createdAt: new Date().toISOString(),
       })
@@ -47,7 +48,7 @@ export default function SupplierPaymentFormPage() {
     }
   }
 
-  const display = amount ? Number(amount).toLocaleString() : ''
+  const display = fmtNumInput(amount)
 
   return (
     <div className="p-4 pb-20">
@@ -71,9 +72,9 @@ export default function SupplierPaymentFormPage() {
           <label className="text-xs text-gray-500 mb-1 block">{t('tx.totalLabelPayment')}</label>
           <input
             type="text"
-            inputMode="numeric"
+            inputMode="decimal"
             value={display}
-            onChange={(e) => setAmount(e.target.value.replace(/[^\d]/g, ''))}
+            onChange={(e) => setAmount(parseNumInput(e.target.value))}
             placeholder="0"
             className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2.5 text-base text-emerald-600 font-semibold outline-none focus:border-blue-500 text-right"
           />

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { money } from '../utils/money'
 import { Link } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useTranslation } from 'react-i18next'
@@ -142,16 +143,16 @@ export default function SuppliersPage({ hideTitle = false }) {
           <div className="bg-white border border-gray-300 rounded-xl px-3 py-2 shadow-lg">
             <div className="flex justify-between items-center text-[11px] text-gray-500 mb-0.5">
               <span>{t('supplier.totalPurchase')}</span>
-              <span className="font-semibold text-gray-800 text-xs">{purchaseTotal.toLocaleString()}{t('expense.wonUnit')}</span>
+              <span className="font-semibold text-gray-800 text-xs">{money(purchaseTotal)}</span>
             </div>
             <div className="flex justify-between items-center text-[11px] text-gray-500 mb-1.5">
               <span>{t('supplier.totalPayment')}</span>
-              <span className="font-semibold text-emerald-600 text-xs">- {paymentTotal.toLocaleString()}{t('expense.wonUnit')}</span>
+              <span className="font-semibold text-emerald-600 text-xs">- {money(paymentTotal)}</span>
             </div>
             <div className="flex justify-between items-center pt-1.5 border-t border-gray-200">
               <span className="text-xs font-bold text-gray-900">{t('supplier.balance')}</span>
               <span className={`text-sm font-bold ${balance > 0 ? 'text-red-600' : 'text-gray-800'}`}>
-                {balance.toLocaleString()}{t('expense.wonUnit')}
+                {money(balance)}
               </span>
             </div>
           </div>

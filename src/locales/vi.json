@@ -938,7 +938,7 @@
       "dailyTotal": "Tổng ngày:",
       "periodTotal": "Tổng {{period}}",
       "periodEmpty": "Không có chi phí trong kỳ này",
-      "wonUnit": "₩",
+      "wonUnit": "$",
       "itemTravel": "Đi lại",
       "itemMaterial": "Vật tư",
       "itemLabor": "Nhân công",
@@ -1162,17 +1162,17 @@
       "open": "Camera",
       "title": "Bạn muốn quét gì?",
       "close": "Đóng",
-      "equipment": "Phân tích Thiết bị",
+      "equipment": "Chụp và phân tích",
       "equipmentDesc": "Tự động nhận diện loại, thương hiệu, model",
       "card": "Danh thiếp",
       "cardDesc": "Tự động lưu thông tin liên hệ"
     },
     "scan": {
-      "title": "Phân tích Thiết bị",
+      "title": "Chụp và phân tích",
       "analyzing": "Đang phân tích thiết bị...",
       "err": "Phân tích thất bại: ",
       "emptyDesc": "Chụp ảnh thiết bị\nđể tự động phân tích loại và model",
-      "takePhoto": "Chụp Ảnh",
+      "takePhoto": "Chụp và phân tích",
       "notes": "Ghi chú",
       "retry": "Chụp lại",
       "close": "Đóng",
@@ -1207,7 +1207,8 @@
       "kindPiping": "Đường ống",
       "kindOther": "Khác",
       "saveToCustomer": "Lưu vào khách hàng",
-      "savedToast": "Đã lưu vào {{name}}"
+      "savedToast": "Đã lưu vào {{name}}",
+      "btnAnalyze": "Phân tích"
     },
     "finance": {
       "tabAs": "Doanh thu",
@@ -1228,8 +1229,8 @@
       "balance": "Số dư",
       "back": "Quay lại",
       "list": "Danh sách",
-      "scanCard": "Quét Danh thiếp",
-      "scanCardHint": "Chụp ảnh danh thiếp và AI sẽ điền thông tin",
+      "scanCard": "Quét nhập",
+      "scanCardHint": "Chụp danh thiếp hoặc hóa đơn — thông tin nhà cung cấp và chi tiết giao dịch tự động điền",
       "aiAnalyzing": "AI đang phân tích...",
       "retake": "Chụp lại",
       "save": "Lưu",
@@ -1267,7 +1268,10 @@
         "email": "Email",
         "memo": "Ghi chú",
         "memoPlaceholder": "Ghi chú thêm (tùy chọn)"
-      }
+      },
+      "txSection": "Giao dịch (từ hóa đơn)",
+      "txHint": "Sẽ được lưu cùng làm giao dịch đầu tiên của nhà cung cấp này. Bạn có thể chỉnh sửa.",
+      "txRemove": "Xóa"
     },
     "tx": {
       "addTitle": "Thêm Giao dịch",
@@ -1382,5 +1386,9 @@
   "error": {
     "accessDenied": "Truy cập bị từ chối.",
     "subscriptionCancelled": "Đăng ký đã bị hủy. Đăng ký lại trước {{date}} để khôi phục dữ liệu."
+  },
+  "settings": {
+    "currency": "Tiền tệ",
+    "currencyDesc": "Nhập ký hiệu tiền tệ để hiển thị số tiền (vd: ₫, $)."
   }
 }

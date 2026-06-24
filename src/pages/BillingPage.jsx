@@ -7,6 +7,7 @@ import { db } from '../db'
 import { showToast } from '../utils/toast'
 import { loadSettings } from '../utils/settings'
 import { todayLocal } from '../utils/date'
+import { money, roundCurrency } from '../utils/money'
 
 const LOCALE_MAP = {
   ko: { locale: 'ko-KR', currency: 'KRW', suffix: '원' },
@@ -15,16 +16,12 @@ const LOCALE_MAP = {
   ja: { locale: 'ja-JP', currency: 'JPY', suffix: '' },
   es: { locale: 'es-ES', currency: 'EUR', suffix: '' },
   hi: { locale: 'hi-IN', currency: 'INR', suffix: '' },
+  pt: { locale: 'pt-BR', currency: 'BRL', suffix: '' },
 }
 
-function formatAmount(amount, lang) {
-  const { locale, currency, suffix } = LOCALE_MAP[lang] ?? LOCALE_MAP['ko']
-  const formatted = new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: currency === 'KRW' || currency === 'JPY' ? 0 : 2,
-  }).format(amount)
-  return suffix ? `${new Intl.NumberFormat(locale).format(amount)} ${suffix}` : formatted
+function formatAmount(amount) {
+  // 자국통화 통일 (settings.currency + 자국식 숫자) — 다른 매출/비용 화면과 일관
+  return money(amount)
 }
 
 // 13종 비용 항목 키 (사용자 명시 순서)
@@ -55,7 +52,7 @@ function calcAmounts(values, taxRate) {
   const posSum = POSITIVE_KEYS.reduce((s, k) => s + (Number(values[k]) || 0), 0)
   const discount = Number(values.discount) || 0
   const subtotal = Math.max(0, posSum - discount)
-  const taxAmount = Math.round(subtotal * ((Number(taxRate) || 0) / 100))
+  const taxAmount = roundCurrency(subtotal * ((Number(taxRate) || 0) / 100))
   const cost = posSum - discount + taxAmount
   return { posSum, discount, subtotal, taxAmount, cost }
 }

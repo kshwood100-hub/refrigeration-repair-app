@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { money } from '../utils/money'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useTranslation } from 'react-i18next'
@@ -88,14 +89,14 @@ export default function ExpenseDetailPage() {
                   )}
                 </div>
                 <span className="text-sm font-semibold text-gray-800 shrink-0">
-                  {Number(item.amount).toLocaleString()}
+                  {money(Number(item.amount))}
                 </span>
               </div>
             ))}
           </div>
           <div className="mt-3 pt-3 border-t border-gray-300 flex justify-between items-center">
             <span className="text-sm font-semibold text-gray-600">{t('expense.total')}</span>
-            <span className="text-xl font-bold text-gray-900">{total.toLocaleString()}</span>
+            <span className="text-xl font-bold text-gray-900">{money(total)}</span>
           </div>
         </div>
 

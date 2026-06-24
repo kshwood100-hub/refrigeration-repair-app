@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { money, fmtNumInput, parseNumInput } from '../utils/money'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useTranslation } from 'react-i18next'
@@ -13,14 +14,11 @@ import { captureAttr } from '../utils/deviceCapture'
 const today = todayLocal
 
 function formatAmount(val) {
-  if (val === '' || val == null) return ''
-  const [int, dec] = String(val).split('.')
-  const intFormatted = int.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-  return dec !== undefined ? `${intFormatted}.${dec}` : intFormatted
+  return fmtNumInput(val)
 }
 
 function parseAmount(val) {
-  return val.replace(/,/g, '').replace(/[^\d.]/g, '').replace(/(\..*?)\..*/g, '$1')
+  return parseNumInput(val)
 }
 
 const CATEGORIES = [
@@ -363,7 +361,7 @@ export default function ExpenseFormPage() {
 
           <div className="mt-4 pt-3 border-t border-gray-300 flex justify-between items-center">
             <span className="text-sm font-semibold text-gray-600">{t('expense.total')}</span>
-            <span className="text-lg font-bold text-gray-900">{total.toLocaleString()}</span>
+            <span className="text-lg font-bold text-gray-900">{money(total)}</span>
           </div>
         </div>
 

@@ -13,6 +13,11 @@ service firebase.storage {
                     && request.auth.token.email_verified == true
                     && request.auth.token.email == email
                     && request.resource.size < 20 * 1024 * 1024;
+      // delete: 본인 파일 삭제 허용 (ERP 로고·도장 교체 시 옛 파일 정리용).
+      // write 조건의 request.resource.size 는 삭제 시 null이라 별도 delete 규칙 필요.
+      allow delete: if request.auth != null
+                     && request.auth.token.email_verified == true
+                     && request.auth.token.email == email;
     }
 
     // 그 외 차단

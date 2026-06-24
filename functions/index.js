@@ -231,7 +231,7 @@ exports.scanCard = onRequest(fnOpts({ timeoutSeconds: 120 }), async (req, res) =
   if (!apiKey) return res.status(500).json({ error: 'OPENAI_API_KEY not configured' })
 
   const dataUrl = `data:${mediaType || 'image/jpeg'};base64,${base64}`
-  const promptText = 'Extract all text from this business card image and return JSON only.\nFormat: {"name":"","company":"","title":"","phone":"","mobile":"","email":"","address":"","memo":""}\nEmpty string for missing fields. For phone numbers include country code if shown.'
+  const promptText = 'This image is EITHER a business card OR a receipt/invoice/transaction statement (e.g. a simple receipt that contains both the seller info and the purchased items). Extract everything and return JSON only.\nFormat: {"name":"","company":"","title":"","phone":"","mobile":"","email":"","address":"","memo":"","date":"","items":[{"name":"","qty":"","price":""}],"subtotal":"","tax":"","total":""}\n- name/company/title/phone/mobile/email/address: the supplier (seller/shop) contact info shown on the card or receipt header. company = business or shop name.\n- If the image is a receipt/invoice that lists purchased goods, also fill: date (transaction date YYYY-MM-DD), items (one entry per line: name = item name + spec, qty = quantity + unit, price = that line total amount, digits only), subtotal / tax / total (digits only, no comma or currency symbol).\n- If it is just a business card with no transaction, leave date empty, items as [], and subtotal/tax/total empty.\n- Use empty string for any missing field. For phone numbers include the country code if shown.'
 
   try {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -247,7 +247,7 @@ exports.scanCard = onRequest(fnOpts({ timeoutSeconds: 120 }), async (req, res) =
           ],
         }],
         response_format: { type: 'json_object' },
-        max_tokens: 500,
+        max_tokens: 2000,
       }),
     })
 
@@ -1874,6 +1874,89 @@ exports.partnersApply = onRequest(
     }
 
     res.status(200).json({ ok: true, id: docRef.id, coupon: couponCode || null, mail: mailStatus })
+  }
+)
+
+// =====================================================================
+// submitFeedback — 마케팅 홈 비공개 피드백 설문
+// 응답은 운영자(support@r-pro.app)에게만 알림 + Firestore 비공개 저장.
+// 공개 노출 0 (별점·후기 없음, 클라는 feedback 컬렉션 read 불가 = rules deny).
+// =====================================================================
+exports.submitFeedback = onRequest(
+  { region: 'us-central1', timeoutSeconds: 30, secrets: [hiworksSmtpPass], cors: false, invoker: 'public' },
+  async (req, res) => {
+    if (applyCors(req, res)) return
+    if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
+
+    const body = req.body || {}
+    // honeypot — 봇은 이 필드를 채움. 사람은 비움. 조용히 통과(저장·메일 안 함).
+    if (body.website) return res.status(200).json({ ok: true })
+
+    const job = String(body.job || '').trim()
+    const features = Array.isArray(body.features)
+      ? body.features.slice(0, 12).map((f) => String(f).slice(0, 60)) : []
+    const painPoint = String(body.painPoint || '').trim()
+    const price = String(body.price || '').trim()
+    const trial = String(body.trial || '').trim()
+    const email = String(body.email || '').toLowerCase().trim()
+    const comment = String(body.comment || '').trim()
+    const lang = String(body.lang || '').slice(0, 8)
+
+    // 크기 검증 (스팸·과대입력 차단)
+    if (job.length > 50) return res.status(400).json({ error: 'job too long' })
+    if (price.length > 30 || trial.length > 30) return res.status(400).json({ error: 'field too long' })
+    if (painPoint.length > 1000) return res.status(400).json({ error: 'painPoint too long' })
+    if (comment.length > 2000) return res.status(400).json({ error: 'comment too long' })
+    if (email && (email.length > 100 || !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email))) {
+      return res.status(400).json({ error: 'invalid email' })
+    }
+    // 전부 비면 거부 (빈 제출 차단)
+    if (!job && !features.length && !painPoint && !price && !comment) {
+      return res.status(400).json({ error: 'empty feedback' })
+    }
+
+    // Firestore 비공개 저장 (rules deny로 클라 접근 차단, admin SDK만 write)
+    let docRef
+    try {
+      docRef = await admin.firestore().collection('feedback').add({
+        job, features, painPoint, price, trial, email, comment, lang,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        ip: req.ip || '',
+      })
+    } catch (err) {
+      console.error('[submitFeedback] firestore save failed:', err)
+      return res.status(500).json({ error: 'Save failed' })
+    }
+
+    // 운영자 알림 메일 → support@r-pro.app (형만 봄, 공개 X)
+    let mailStatus = 'sent'
+    try {
+      const transporter = getSmtpTransporter()
+      const esc = (s) => String(s || '').replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]))
+      await transporter.sendMail({
+        from: '"R-Pro Feedback" <support@r-pro.app>',
+        to: 'support@r-pro.app',
+        subject: `[R-Pro 피드백] ${esc(job) || '응답'} · ${esc(price) || '-'}`,
+        html: `
+          <h3 style="margin:0 0 10px">새 피드백 설문 응답</h3>
+          <ul style="line-height:1.7;font-size:14px">
+            <li><b>직군:</b> ${esc(job) || '-'}</li>
+            <li><b>끌리는 기능:</b> ${features.map(esc).join(', ') || '-'}</li>
+            <li><b>개선되면 좋겠는 점:</b> ${esc(painPoint) || '-'}</li>
+            <li><b>적정 구독료:</b> ${esc(price) || '-'}</li>
+            <li><b>무료체험 의향:</b> ${esc(trial) || '-'}</li>
+            <li><b>이메일:</b> ${esc(email) || '-'}</li>
+            <li><b>자유 의견:</b> ${esc(comment) || '-'}</li>
+            <li><b>언어:</b> ${esc(lang) || '-'}</li>
+          </ul>
+          <p style="color:#94a3b8;font-size:12px">문서 ID: ${docRef.id}</p>`,
+      })
+    } catch (err) {
+      console.error('[submitFeedback] mail failed:', err)
+      mailStatus = 'mail_failed'
+    }
+
+    res.status(200).json({ ok: true, id: docRef.id, mail: mailStatus })
   }
 )
 

@@ -910,7 +910,7 @@
       "dailyTotal": "Total del día:",
       "periodTotal": "Total {{period}}",
       "periodEmpty": "Sin gastos en este período",
-      "wonUnit": "₩",
+      "wonUnit": "€",
       "itemTravel": "Viaje",
       "itemMaterial": "Materiales",
       "itemLabor": "Mano de obra",
@@ -1162,17 +1162,17 @@
       "open": "Cámara",
       "title": "¿Qué desea escanear?",
       "close": "Cerrar",
-      "equipment": "Análisis de Equipo",
+      "equipment": "Capturar y analizar",
       "equipmentDesc": "Identifica tipo, marca y modelo",
       "card": "Escanear Tarjeta",
       "cardDesc": "Guarda contactos automáticamente"
     },
     "scan": {
-      "title": "Análisis de Equipo",
+      "title": "Capturar y analizar",
       "analyzing": "Analizando equipo...",
       "err": "Error de análisis: ",
       "emptyDesc": "Tome una foto del equipo\npara analizar tipo y modelo",
-      "takePhoto": "Tomar Foto",
+      "takePhoto": "Capturar y analizar",
       "notes": "Notas",
       "retry": "Reintentar",
       "close": "Cerrar",
@@ -1207,7 +1207,8 @@
       "kindPiping": "Tubería",
       "kindOther": "Otro",
       "saveToCustomer": "Guardar en cliente",
-      "savedToast": "Guardado en {{name}}"
+      "savedToast": "Guardado en {{name}}",
+      "btnAnalyze": "Analizar"
     },
     "finance": {
       "tabAs": "Ingresos",
@@ -1228,8 +1229,8 @@
       "balance": "Saldo",
       "back": "Atrás",
       "list": "Lista",
-      "scanCard": "Escanear Tarjeta",
-      "scanCardHint": "Tome una foto de la tarjeta y la IA rellenará la info",
+      "scanCard": "Escanear",
+      "scanCardHint": "Fotografía una tarjeta o un recibo: los datos del proveedor y de la transacción se rellenan solos",
       "aiAnalyzing": "Analizando IA...",
       "retake": "Volver a tomar",
       "save": "Guardar",
@@ -1267,7 +1268,10 @@
         "email": "Correo",
         "memo": "Nota",
         "memoPlaceholder": "Nota adicional (opcional)"
-      }
+      },
+      "txSection": "Transacción (del recibo)",
+      "txHint": "Se guardará como la primera transacción de este proveedor. Puedes editarla.",
+      "txRemove": "Quitar"
     },
     "tx": {
       "addTitle": "Añadir Transacción",
@@ -1382,5 +1386,9 @@
   "error": {
     "accessDenied": "Acceso denegado.",
     "subscriptionCancelled": "Suscripción cancelada. Vuelva a suscribirse antes del {{date}} para recuperar sus datos."
+  },
+  "settings": {
+    "currency": "Moneda",
+    "currencyDesc": "Introduce el símbolo de tu moneda para los importes (p. ej. €, $)."
   }
 }

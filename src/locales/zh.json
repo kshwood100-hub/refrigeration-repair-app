@@ -910,7 +910,7 @@
       "dailyTotal": "当日合计：",
       "periodTotal": "{{period}}合计",
       "periodEmpty": "该期间无费用",
-      "wonUnit": "₩",
+      "wonUnit": "元",
       "itemTravel": "出差费",
       "itemMaterial": "材料费",
       "itemLabor": "人工费",
@@ -1162,17 +1162,17 @@
       "open": "拍摄",
       "title": "您要扫描什么？",
       "close": "关闭",
-      "equipment": "设备分析",
+      "equipment": "拍照及分析",
       "equipmentDesc": "自动识别类型、品牌、型号",
       "card": "名片扫描",
       "cardDesc": "自动保存联系信息"
     },
     "scan": {
-      "title": "设备分析",
+      "title": "拍照及分析",
       "analyzing": "正在分析设备...",
       "err": "分析失败: ",
       "emptyDesc": "拍摄设备照片\n自动分析类型和型号",
-      "takePhoto": "拍摄照片",
+      "takePhoto": "拍照及分析",
       "notes": "说明",
       "retry": "重新拍摄",
       "close": "关闭",
@@ -1207,7 +1207,8 @@
       "kindPiping": "管道",
       "kindOther": "其他",
       "saveToCustomer": "保存到客户",
-      "savedToast": "已保存到 {{name}}"
+      "savedToast": "已保存到 {{name}}",
+      "btnAnalyze": "分析"
     },
     "finance": {
       "tabAs": "营收",
@@ -1228,8 +1229,8 @@
       "balance": "余额",
       "back": "返回",
       "list": "列表",
-      "scanCard": "扫描名片",
-      "scanCardHint": "拍摄名片，AI将自动填入信息",
+      "scanCard": "扫描录入",
+      "scanCardHint": "拍摄名片或收据，自动填入供应商信息和交易明细",
       "aiAnalyzing": "AI分析中...",
       "retake": "重拍",
       "save": "保存",
@@ -1267,7 +1268,10 @@
         "email": "邮箱",
         "memo": "备注",
         "memoPlaceholder": "其他备注 (可选)"
-      }
+      },
+      "txSection": "交易明细（来自收据）",
+      "txHint": "保存后将作为该供应商的首笔交易一并登记，可修改。",
+      "txRemove": "删除"
     },
     "tx": {
       "addTitle": "添加交易",
@@ -1382,5 +1386,9 @@
   "error": {
     "accessDenied": "访问被拒绝。",
     "subscriptionCancelled": "订阅已取消。在 {{date}} 之前重新订阅即可恢复数据。"
+  },
+  "settings": {
+    "currency": "货币",
+    "currencyDesc": "输入用于金额显示的本国货币符号（如 ₩、$、€）。"
   }
 }

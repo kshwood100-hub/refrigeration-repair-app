@@ -938,7 +938,7 @@
       "dailyTotal": "Total harian:",
       "periodTotal": "Total {{period}}",
       "periodEmpty": "Tidak ada pengeluaran pada periode ini",
-      "wonUnit": "₩",
+      "wonUnit": "$",
       "itemTravel": "Perjalanan",
       "itemMaterial": "Material",
       "itemLabor": "Tenaga Kerja",
@@ -1162,17 +1162,17 @@
       "open": "Kamera",
       "title": "Apa yang ingin Anda pindai?",
       "close": "Tutup",
-      "equipment": "Analisis Peralatan",
+      "equipment": "Foto & Analisis",
       "equipmentDesc": "Identifikasi otomatis jenis, merek, model",
       "card": "Kartu Nama",
       "cardDesc": "Simpan info kontak otomatis"
     },
     "scan": {
-      "title": "Analisis Peralatan",
+      "title": "Foto & Analisis",
       "analyzing": "Menganalisis peralatan...",
       "err": "Gagal menganalisis: ",
       "emptyDesc": "Ambil foto peralatan\nuntuk analisis otomatis jenis dan model",
-      "takePhoto": "Ambil Foto",
+      "takePhoto": "Foto & Analisis",
       "notes": "Catatan",
       "retry": "Ulangi",
       "close": "Tutup",
@@ -1207,7 +1207,8 @@
       "kindPiping": "Perpipaan",
       "kindOther": "Lainnya",
       "saveToCustomer": "Simpan ke pelanggan",
-      "savedToast": "Disimpan di {{name}}"
+      "savedToast": "Disimpan di {{name}}",
+      "btnAnalyze": "Analisis"
     },
     "finance": {
       "tabAs": "Pendapatan",
@@ -1228,8 +1229,8 @@
       "balance": "Saldo",
       "back": "Kembali",
       "list": "Daftar",
-      "scanCard": "Pindai Kartu",
-      "scanCardHint": "Ambil foto kartu nama dan AI akan mengisi info",
+      "scanCard": "Pindai",
+      "scanCardHint": "Foto kartu nama atau struk — info pemasok dan rincian transaksi terisi otomatis",
       "aiAnalyzing": "AI menganalisis...",
       "retake": "Ulangi",
       "save": "Simpan",
@@ -1267,7 +1268,10 @@
         "email": "Email",
         "memo": "Memo",
         "memoPlaceholder": "Memo tambahan (opsional)"
-      }
+      },
+      "txSection": "Transaksi (dari struk)",
+      "txHint": "Disimpan sebagai transaksi pertama pemasok ini. Bisa diedit.",
+      "txRemove": "Hapus"
     },
     "tx": {
       "addTitle": "Tambah Transaksi",
@@ -1382,5 +1386,9 @@
   "error": {
     "accessDenied": "Akses ditolak.",
     "subscriptionCancelled": "Langganan dibatalkan. Berlangganan ulang sebelum {{date}} untuk memulihkan data Anda."
+  },
+  "settings": {
+    "currency": "Mata uang",
+    "currencyDesc": "Masukkan simbol mata uang untuk jumlah (mis. Rp, $)."
   }
 }

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { money } from '../utils/money'
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { ChevronLeft, Camera, X, Users, Bell } from 'lucide-react'
@@ -458,29 +459,9 @@ export default function JobFormPage() {
               {(job.partsCost || job.laborCost) && (
                 <div className="mt-1 px-3 py-2 bg-gray-50 rounded-lg flex justify-between text-sm font-semibold">
                   <span className="text-gray-500">{t('job.labelTotal')}</span>
-                  <span className="text-gray-900">{totalCost.toLocaleString()}</span>
+                  <span className="text-gray-900">{money(totalCost)}</span>
                 </div>
               )}
-            </Section>
-
-            <Section title={t('job.sectionPhotos')}>
-              <input ref={fileRef} type="file" accept="image/*" {...captureAttr()} multiple className="hidden" onChange={handlePhoto} />
-              <div className="flex gap-2 flex-wrap">
-                {photos.map((p, i) => (
-                  <div key={i} className="relative w-24 h-24">
-                    <img src={p.dataUrl} alt="" className="w-full h-full object-cover rounded-xl" />
-                    <button onClick={() => setPhotos((prev) => prev.filter((_, idx) => idx !== i))}
-                      className="absolute -top-1 -right-1 w-5 h-5 bg-gray-800 text-white rounded-full flex items-center justify-center">
-                      <X size={10} strokeWidth={2.5} />
-                    </button>
-                  </div>
-                ))}
-                <button onClick={() => fileRef.current?.click()}
-                  className="w-24 h-24 border border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-400 active:bg-gray-50">
-                  <Camera size={20} strokeWidth={1.5} />
-                  <span className="text-xs">{t('job.photoCapture')}</span>
-                </button>
-              </div>
             </Section>
 
             <button

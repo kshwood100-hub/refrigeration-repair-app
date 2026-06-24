@@ -11,7 +11,7 @@ import ConfirmModal from '../components/ConfirmModal'
 // 격리: 일반 설비기록·거래처·AS와 데이터 흐름 없음
 export default function AiDiagnosisListPage() {
   const navigate = useNavigate()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState(null)
   const [pendingDeleteId, setPendingDeleteId] = useState(null)
@@ -117,7 +117,7 @@ export default function AiDiagnosisListPage() {
                   </span>
                 </div>
                 <p className="text-[11px] text-gray-400">
-                  {new Date(it.createdAt).toLocaleDateString()}
+                  {new Date(it.createdAt).toLocaleDateString(i18n.language)}
                   {it.photoData && <span className="ml-2">📷</span>}
                   {it.userMemo && <span className="ml-2">📝</span>}
                 </p>

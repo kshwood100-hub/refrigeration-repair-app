@@ -17,7 +17,7 @@
 - [ ] Firebase Console → Firestore Rules 배포 (`firebase deploy --only firestore:rules`)
 - [ ] GCP Console → Web API 키에 HTTP referrer 제한 (`https://www.r-pro.app/*`, `https://r-pro-6cb33.web.app/*`)
 - [ ] Sentry → Allowed Domains를 `r-pro.app`만 허용
-- [ ] Paddle webhook 붙일 때 시그니처 검증 + allowed_users 등록은 서버에서만
+- [ ] FastSpring webhook 붙일 때 시그니처 검증 + allowed_users 등록은 서버에서만
 
 상세 내역: `~/.claude/projects/c--rpro/memory/security_rules.md`
 
@@ -57,7 +57,7 @@
 - 베타 없이 바로 상용 판매 예정
 - 판매 대상: 현장 냉동기 수리 기사
 - 마케팅 채널: 해외 블로거/커뮤니티 검토 중
-- 결제: Paddle 심사 대기 중 (Lemon Squeezy는 거부됨)
+- 결제: FastSpring 연동 완료
 
 ## 로그인/접근 제어 현황
 - Firebase Auth (Google 로그인) 구현 완료
@@ -66,7 +66,7 @@
   1. 1차: Firestore `allowed_users` 컬렉션 조회 → 재배포 없이 추가/삭제 가능
   2. 2차 폴백: 하드코딩된 FALLBACK_ALLOWED_EMAILS 4개 (지인 테스트용, 유지)
 - **상용 전환 시 남은 작업:**
-  - Paddle 결제 webhook → Firestore `allowed_users` 자동 등록
+  - FastSpring 결제 webhook → Firestore `allowed_users` 자동 등록
   - 환불 webhook → Firestore `allowed_users` 자동 삭제
 
 ## 현재 완료된 작업
@@ -74,9 +74,9 @@
 - 모든 locale 파일 완성: src/locales/{ko,en,zh,ja,es,hi}.json
 
 ## 출시 전 체크리스트
-- [ ] 결제 연동 (Paddle 심사 대기 — Lemon Squeezy 거부됨)
+- [x] 결제 연동 (FastSpring 연동 완료)
 - [ ] 구매 링크 앱에 연결
-- [ ] Paddle 결제 webhook → Firestore `allowed_users` 자동 등록/삭제
+- [ ] FastSpring 결제 webhook → Firestore `allowed_users` 자동 등록/삭제
 - [x] Sentry 에러 트래킹 도입 (@sentry/react) — main.jsx PROD 자동 활성, Allowed Domains 4개 화이트리스트 적용
 - [x] 자동 백업 기능 (IndexedDB 데이터 보호) — 폰 내부 24h 자동 백업(롤링 3개) + navigator.share 외부 공유 완료
 - [ ] 현장 기사 실기기 테스트
@@ -92,10 +92,9 @@
 - flowchart.json result 노드 필드: title, conclusion, causes, steps, warning (5종 × 6개 언어)
 
 ## 다음 할 일 (우선순위 순)
-1. Paddle 결제 webhook → Firestore allowed_users 자동 등록/삭제
-2. 결제 연동 (Paddle 승인 대기 중)
-3. Sentry 에러 트래킹
-4. 자동 백업 기능
-5. 현장 기사 실기기 테스트
-6. SEO 태그 (출시 직전)
-7. 마케팅 계획 수립
+1. FastSpring 결제 webhook → Firestore allowed_users 자동 등록/삭제
+2. Sentry 에러 트래킹
+3. 자동 백업 기능
+4. 현장 기사 실기기 테스트
+5. SEO 태그 (출시 직전)
+6. 마케팅 계획 수립

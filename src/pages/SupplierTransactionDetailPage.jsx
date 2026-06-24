@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { ChevronLeft, Trash2, AlertTriangle } from 'lucide-react'
 import { db } from '../db'
 import { softDelete } from '../utils/cloudSync'
+import { money } from '../utils/money'
 
 export default function SupplierTransactionDetailPage() {
   const { t } = useTranslation()
@@ -23,7 +24,7 @@ export default function SupplierTransactionDetailPage() {
     navigate(`/suppliers/${tx.supplierId}`)
   }
 
-  const fmt = (n) => (n == null || n === '' ? '-' : Number(n).toLocaleString() + t('common.currencyUnit'))
+  const fmt = (n) => (n == null || n === '' ? '-' : money(n))
   const items = tx.items ?? []
   const isPayment = tx.type === 'payment'
 
@@ -67,7 +68,7 @@ export default function SupplierTransactionDetailPage() {
               <div key={i} className="grid grid-cols-[1fr_60px_90px] gap-1 text-xs px-1 py-1.5 border-b border-gray-100">
                 <span className="text-gray-700 break-all">{it.name || '-'}</span>
                 <span className="text-right text-gray-600">{it.qty || '-'}</span>
-                <span className="text-right text-amber-700 font-medium">{it.price ? Number(it.price).toLocaleString() : '-'}</span>
+                <span className="text-right text-amber-700 font-medium">{fmt(it.price)}</span>
               </div>
             ))}
           </div>

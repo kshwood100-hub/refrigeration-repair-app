@@ -12,7 +12,7 @@ const ADMIN_EMAIL = 'kshwood100@gmail.com'
 
 export default function AdminCurationPage() {
   const navigate = useNavigate()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(false)
   const [selected, setSelected] = useState(null)
@@ -125,7 +125,7 @@ export default function AdminCurationPage() {
             <div className="flex items-center gap-2 text-[11px] text-gray-400">
               <span>{it.language?.toUpperCase()}</span>
               <span>•</span>
-              <span>{it.createdAt ? new Date(it.createdAt).toLocaleString() : ''}</span>
+              <span>{it.createdAt ? new Date(it.createdAt).toLocaleString(i18n.language) : ''}</span>
             </div>
           </button>
         ))}

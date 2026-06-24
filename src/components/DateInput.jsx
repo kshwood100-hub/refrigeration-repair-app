@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { getWeekStart } from '../utils/date'
 
 function pad(n) { return String(n).padStart(2, '0') }
 function toISO(d) { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` }
@@ -86,7 +87,10 @@ export default function DateInput({ value, onChange, placeholder, className }) {
     else setViewMonth(viewMonth + 1)
   }
 
-  const firstDay = new Date(viewYear, viewMonth, 1).getDay()
+  // 자국 주 시작 요일 (0=일..6=토) — 유럽 월요일, 미국·한국 일요일 등
+  const weekStart = getWeekStart(i18n.language)
+
+  const firstDay = (new Date(viewYear, viewMonth, 1).getDay() - weekStart + 7) % 7
   const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate()
   const cells = Array.from({ length: 42 }, (_, i) => {
     const d = i - firstDay + 1
@@ -97,8 +101,8 @@ export default function DateInput({ value, onChange, placeholder, className }) {
   const weekday = (() => {
     try {
       const fmt = new Intl.DateTimeFormat(i18n.language, { weekday: 'short' })
-      // 일요일 시작 기준 7일 (2024-01-07이 일요일)
-      const base = new Date(2024, 0, 7)
+      // 주 시작 요일부터 7일 (2024-01-07이 일요일 → weekStart만큼 이동)
+      const base = new Date(2024, 0, 7 + weekStart)
       return Array.from({ length: 7 }, (_, i) => {
         const d = new Date(base)
         d.setDate(base.getDate() + i)
@@ -154,7 +158,7 @@ export default function DateInput({ value, onChange, placeholder, className }) {
           </div>
           <div className="grid grid-cols-7 gap-px mb-0.5">
             {weekday.map((w, i) => (
-              <div key={i} className={`text-center text-[9px] font-medium py-0.5 ${i === 0 ? 'text-red-400' : i === 6 ? 'text-blue-400' : 'text-gray-400'}`}>
+              <div key={i} className={`text-center text-[9px] font-medium py-0.5 ${(i + weekStart) % 7 === 0 ? 'text-red-400' : (i + weekStart) % 7 === 6 ? 'text-blue-400' : 'text-gray-400'}`}>
                 {w}
               </div>
             ))}
@@ -174,8 +178,8 @@ export default function DateInput({ value, onChange, placeholder, className }) {
                   className={`text-xs h-7 rounded flex items-center justify-center font-medium transition-colors ${
                     isSelected ? 'bg-blue-600 text-white'
                     : isToday ? 'bg-blue-50 text-blue-700 border border-blue-300'
-                    : dow === 0 ? 'text-red-500 active:bg-gray-100'
-                    : dow === 6 ? 'text-blue-500 active:bg-gray-100'
+                    : (dow + weekStart) % 7 === 0 ? 'text-red-500 active:bg-gray-100'
+                    : (dow + weekStart) % 7 === 6 ? 'text-blue-500 active:bg-gray-100'
                     : 'text-gray-700 active:bg-gray-100'
                   }`}
                 >

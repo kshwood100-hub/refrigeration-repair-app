@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useTranslation } from 'react-i18next'
-import { ChevronLeft, Camera, Loader, RotateCw, AlertCircle, Save, Building2 } from 'lucide-react'
+import { ChevronLeft, Camera, Loader, RotateCw, AlertCircle, Sparkles, Building2 } from 'lucide-react'
 import { scanEquipment } from '../utils/scanEquipment'
 import { showToast } from '../utils/toast'
 import { db } from '../db'
@@ -47,7 +47,7 @@ export default function EquipmentScanPage() {
   const [scanning, setScanning] = useState(false)
   const [result, setResult] = useState(null)
   const [errMsg, setErrMsg] = useState('')
-  const [saving, setSaving] = useState(false)
+  const [savedRowId, setSavedRowId] = useState(null)  // 사진 박힌 직후 자동 저장 박힌 row id (분석 통과 후 update 박힘)
 
   // 거래처 선택 (필수) — knowhow / 음성메모 패턴과 통일.
   // AI 비용 발생 전에 거래처 결정 + 분석 후 저장 흐름 명확화.
@@ -60,10 +60,12 @@ export default function EquipmentScanPage() {
     []
   )
 
+  // 사진 박힘 → 자동 저장 박힘 (분석 X 박힌 채 = name 측 일반 라벨). 분석 X 박을지 = 사용자 선택.
   async function handleCapture(e) {
     const file = e.target.files?.[0]
     if (!file) return
     e.target.value = ''
+    if (!customerId) return
 
     const reader = new FileReader()
     reader.onload = async (ev) => {
@@ -71,15 +73,32 @@ export default function EquipmentScanPage() {
       setPhotoUrl(dataUrl)
       setResult(null)
       setErrMsg('')
-      setScanning(true)
+      const customer = customers?.find((c) => c.id === customerId)
+      if (!customer) return
+      // 자동 저장 (분석 X 박힌 채 = name 측 일반 라벨)
       try {
-        const r = await scanEquipment(dataUrl)
-        setResult(r)
+        const newId = await db.equipment_maintenance.add({
+          customerId: customer.id,
+          name: t('scan.kindOther'),
+          photoUrl: dataUrl,
+          intervalMonths: null,
+          lastCheckedDate: null,
+          nextDueDate: null,
+          kind: null,
+          brand: null,
+          model: null,
+          serial: null,
+          capacity: null,
+          refrigerant: null,
+          tempClass: null,
+          stage: null,
+          notes: null,
+        })
+        setSavedRowId(newId)
+        showToast(t('scan.savedToast', { name: customer.name }))
       } catch (err) {
         setErrMsg(err.message || String(err))
         showToast(t('scan.err') + (err.message || ''))
-      } finally {
-        setScanning(false)
       }
     }
     reader.readAsDataURL(file)
@@ -89,39 +108,36 @@ export default function EquipmentScanPage() {
     setPhotoUrl('')
     setResult(null)
     setErrMsg('')
+    setSavedRowId(null)
     fileRef.current?.click()
   }
 
-  // 거래처에 저장 — 진입 시점에 이미 customerId 박혀있어 모달 X
-  async function handleSave() {
-    if (!result || !customerId || saving) return
-    const customer = customers?.find((c) => c.id === customerId)
-    if (!customer) return
-    setSaving(true)
+  // [분석] 클릭 시 = AI 분석 박힘 + 저장된 row update (= brand / model 등 자동 채움)
+  async function handleAnalyze() {
+    if (!photoUrl || !savedRowId || scanning) return
+    setScanning(true)
+    setErrMsg('')
     try {
-      const equipName = [result.brand, result.model].filter(Boolean).join(' ') || t('scan.kindOther')
-      await db.equipment_maintenance.add({
-        customerId: customer.id,
+      const r = await scanEquipment(photoUrl)
+      setResult(r)
+      const equipName = [r.brand, r.model].filter(Boolean).join(' ') || t('scan.kindOther')
+      await db.equipment_maintenance.update(savedRowId, {
         name: equipName,
-        photoUrl: photoUrl,
-        intervalMonths: null,
-        lastCheckedDate: null,
-        nextDueDate: null,
-        kind: result.kind ?? null,
-        brand: result.brand ?? null,
-        model: result.model ?? null,
-        serial: result.serial ?? null,
-        capacity: result.capacity ?? null,
-        refrigerant: result.refrigerant ?? null,
-        tempClass: result.tempClass ?? null,
-        stage: result.stage ?? null,
-        notes: result.notes ?? null,
+        kind: r.kind ?? null,
+        brand: r.brand ?? null,
+        model: r.model ?? null,
+        serial: r.serial ?? null,
+        capacity: r.capacity ?? null,
+        refrigerant: r.refrigerant ?? null,
+        tempClass: r.tempClass ?? null,
+        stage: r.stage ?? null,
+        notes: r.notes ?? null,
       })
-      showToast(t('scan.savedToast', { name: customer.name }))
-      navigate(`/customers/${customer.id}`)
-    } catch (e) {
-      showToast(t('scan.err') + (e?.message || ''))
-      setSaving(false)
+    } catch (err) {
+      setErrMsg(err.message || String(err))
+      showToast(t('scan.err') + (err.message || ''))
+    } finally {
+      setScanning(false)
     }
   }
 
@@ -290,17 +306,17 @@ export default function EquipmentScanPage() {
         </div>
       )}
 
-      {/* 액션 */}
-      {(result || errMsg) && !scanning && (
+      {/* 액션 — 사진 박힌 후 항상 표시 (result X 박힌 채도 [분석] 버튼 박힘) */}
+      {photoUrl && !scanning && (
         <>
-          {result && (
+          {!result && (
             <button
-              onClick={handleSave}
-              disabled={saving || !customerId}
-              className="w-full py-3 mb-2 text-sm font-bold bg-blue-600 text-white rounded-xl flex items-center justify-center gap-1.5 active:bg-blue-700 disabled:opacity-50"
+              onClick={handleAnalyze}
+              disabled={!savedRowId}
+              className="w-full py-3 mb-2 text-sm font-bold bg-violet-600 text-white rounded-xl flex items-center justify-center gap-1.5 active:bg-violet-700 disabled:opacity-50"
             >
-              <Save size={15} strokeWidth={2} />
-              {t('scan.saveToCustomer')}
+              <Sparkles size={15} strokeWidth={2} />
+              {t('scan.btnAnalyze')}
             </button>
           )}
           <div className="flex gap-2">

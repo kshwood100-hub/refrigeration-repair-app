@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { money } from '../utils/money'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useTranslation } from 'react-i18next'
@@ -201,7 +202,7 @@ export default function SupplierDetailPage() {
                         )}
                       </div>
                       <p className={`text-sm font-semibold shrink-0 ${isPayment ? 'text-emerald-600' : 'text-amber-700'}`}>
-                        {isPayment && tr.total ? '-' : ''}{tr.total ? Number(tr.total).toLocaleString() + t('common.currencyUnit') : '-'}
+                        {isPayment && tr.total ? '-' : ''}{tr.total ? money(tr.total) : '-'}
                       </p>
                     </div>
                   </Link>
@@ -211,16 +212,16 @@ export default function SupplierDetailPage() {
             <div className="mt-3 pt-3 border-t border-gray-200 space-y-1.5 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-500">{t('supplier.purchaseSum')}</span>
-                <span className="text-amber-700 font-medium">{purchaseSum.toLocaleString()}{t('common.currencyUnit')}</span>
+                <span className="text-amber-700 font-medium">{money(purchaseSum)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">{t('supplier.paymentSum')}</span>
-                <span className="text-emerald-600 font-medium">-{paymentSum.toLocaleString()}{t('common.currencyUnit')}</span>
+                <span className="text-emerald-600 font-medium">-{money(paymentSum)}</span>
               </div>
               <div className="flex justify-between pt-1.5 border-t border-gray-200">
                 <span className="text-gray-700 font-semibold">{t('supplier.balance')}</span>
                 <span className={`font-bold ${balance > 0 ? 'text-amber-600' : balance < 0 ? 'text-emerald-600' : 'text-gray-700'}`}>
-                  {balance.toLocaleString()}{t('common.currencyUnit')}
+                  {money(balance)}
                 </span>
               </div>
             </div>

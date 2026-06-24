@@ -2,6 +2,15 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    // ★ 구독 활성 여부 = 서버 차원 진짜 제어.
+    // allowed_users에 문서가 있고 + 구독 취소 표시(cancelledAt)가 없을 때만 활성.
+    // 구독 취소되는 순간 cancelledAt가 붙으면 → 데이터 read/write 서버가 원천 차단(화면 우회해도 데이터 0).
+    // 데이터는 보존되어 재구독(cancelledAt 제거) 시 자동 복구. 출시 R-Pro·ERP 공통 적용.
+    function isSubscribed(email) {
+      return exists(/databases/$(database)/documents/allowed_users/$(email))
+             && !('cancelledAt' in get(/databases/$(database)/documents/allowed_users/$(email)).data);
+    }
+
     // allowed_users: 본인 이메일 doc 읽기 허용. 쓰기는 서버(FastSpring webhook)에서만.
     // 예외: 본인이 데이터 공유 동의 토글(shareConsent + shareModalShown)만 update 가능.
     match /allowed_users/{email} {
@@ -38,7 +47,7 @@ service cloud.firestore {
       allow read, write: if request.auth != null
                           && request.auth.token.email_verified == true
                           && request.auth.token.email == email
-                          && exists(/databases/$(database)/documents/allowed_users/$(email));
+                          && isSubscribed(email);
     }
 
     // users/{email} 자체 doc (메타데이터 보관용, 옵션)
@@ -46,7 +55,7 @@ service cloud.firestore {
       allow read, write: if request.auth != null
                           && request.auth.token.email_verified == true
                           && request.auth.token.email == email
-                          && exists(/databases/$(database)/documents/allowed_users/$(email));
+                          && isSubscribed(email);
     }
 
     // community_cases: AI 진단 [도움됨] + 공유 동의 사용자 데이터.
@@ -55,7 +64,7 @@ service cloud.firestore {
       allow read, write: if request.auth != null
                           && request.auth.token.email_verified == true
                           && request.auth.token.email == email
-                          && exists(/databases/$(database)/documents/allowed_users/$(email));
+                          && isSubscribed(email);
       allow read: if request.auth != null
                   && request.auth.token.email_verified == true
                   && request.auth.token.email == 'kshwood100@gmail.com';

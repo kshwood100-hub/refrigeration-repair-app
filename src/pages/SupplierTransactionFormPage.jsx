@@ -9,6 +9,7 @@ import { todayLocal } from '../utils/date'
 import { consumeTrial } from '../utils/trial'
 import { showToast } from '../utils/toast'
 import { captureAttr } from '../utils/deviceCapture'
+import { fmtNumInput, parseNumInput } from '../utils/money'
 
 const EMPTY_ROW = { name: '', qty: '', price: '' }
 
@@ -22,7 +23,8 @@ const EMPTY = {
   invoicePhoto: '',
 }
 
-const num = (v) => String(v ?? '').replace(/[^\d]/g, '')
+// 스캔 결과(OpenAI 표준형식: 점=소수점) 정리 — 콤마 천단위 제거, 소수점 보존
+const num = (v) => String(v ?? '').replace(/,/g, '').replace(/[^\d.]/g, '').replace(/(\..*?)\..*/g, '$1')
 
 function compressImage(file) {
   return new Promise((resolve) => {
@@ -291,9 +293,9 @@ export default function SupplierTransactionFormPage() {
                     className="w-16 bg-white border border-gray-300 rounded px-2 py-1.5 text-xs text-gray-900 outline-none focus:border-blue-500"
                   />
                   <input
-                    value={it.price ? Number(it.price).toLocaleString() : ''}
-                    onChange={(e) => updateRow(i, 'price', e.target.value.replace(/[^\d]/g, ''))}
-                    inputMode="numeric"
+                    value={fmtNumInput(it.price)}
+                    onChange={(e) => updateRow(i, 'price', parseNumInput(e.target.value))}
+                    inputMode="decimal"
                     placeholder={t('tx.field.itemPrice')}
                     className="w-24 bg-white border border-gray-300 rounded px-2 py-1.5 text-xs text-amber-700 outline-none focus:border-blue-500 text-right"
                   />
@@ -330,15 +332,15 @@ export default function SupplierTransactionFormPage() {
 }
 
 function NumField({ label, value, onChange }) {
-  const display = value === '' || value == null ? '' : Number(String(value).replace(/[^\d]/g, '')).toLocaleString()
+  const display = fmtNumInput(value)
   return (
     <div>
       <label className="text-xs text-gray-500 mb-1 block">{label}</label>
       <input
         type="text"
-        inputMode="numeric"
+        inputMode="decimal"
         value={display}
-        onChange={(e) => onChange(e.target.value.replace(/[^\d]/g, ''))}
+        onChange={(e) => onChange(parseNumInput(e.target.value))}
         placeholder="0"
         className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-blue-500"
       />

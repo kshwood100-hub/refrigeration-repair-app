@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { UNITS } from '../data/refrigerantsData'
 import { loadSettings, saveSettings } from '../utils/settings'
 import { createBackup, listBackups, downloadBackup, restoreBackup, formatSize, importAllData } from '../utils/backup'
-import { Download, RotateCcw, Upload, QrCode, ScanLine, Lock, CreditCard, CheckCircle2, LogOut, RefreshCw } from 'lucide-react'
+import { Download, RotateCcw, Upload, QrCode, ScanLine, Lock, CreditCard, CheckCircle2, LogOut, RefreshCw, ChevronDown, Check } from 'lucide-react'
 import { doc, updateDoc } from 'firebase/firestore'
 import { firestore } from '../firebase'
 import { apiFetch } from '../utils/apiClient'
@@ -29,6 +29,7 @@ const LANGUAGES = [
   { code: 'th', short: 'TH', label: 'ไทย'      },
   { code: 'id', short: 'ID', label: 'Indonesia' },
   { code: 'ar', short: 'AR', label: 'العربية'  },
+  { code: 'pt', short: 'PT', label: 'Português' },
 ]
 
 export default function SettingsPage() {
@@ -42,6 +43,8 @@ export default function SettingsPage() {
   const importRef = useRef()
   const [qrExportOpen, setQrExportOpen] = useState(false)
   const [qrImportOpen, setQrImportOpen] = useState(false)
+  const [langOpen, setLangOpen] = useState(false)
+  const langRef = useRef(null)
   const [confirmAction, setConfirmAction] = useState(null)
   const [confirmMsg, setConfirmMsg] = useState('')
   const [trialState, setTrialState] = useState(null)
@@ -64,6 +67,16 @@ export default function SettingsPage() {
     // force=true — 결제 직후 진입하는 경우 캐시 무시하고 fresh 조회
     getTrialStatus(true).then(setTrialState).catch(() => {})
   }, [])
+
+  // 언어 드롭다운 — 바깥 클릭 시 닫기
+  useEffect(() => {
+    if (!langOpen) return
+    function onDown(e) {
+      if (langRef.current && !langRef.current.contains(e.target)) setLangOpen(false)
+    }
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [langOpen])
 
   // 동기화 상태 진단 — 컬렉션별 IDB row count + _synced=false 박힌 row 수 + lastPull/lastPush 시점
   // 출시 의무 도구 — 일회용 디버그 X. 결함 신고 시 사용자 1번 클릭으로 진단
@@ -117,7 +130,7 @@ export default function SettingsPage() {
   function formatTs(ms) {
     if (!ms) return t('settings.sync.never')
     const d = new Date(ms)
-    return d.toLocaleString()
+    return d.toLocaleString(i18n.language)
   }
 
   function update(patch) {
@@ -202,27 +215,47 @@ export default function SettingsPage() {
     <div className="p-4 pb-8">
       <h2 className="text-lg font-bold mb-5">{t('settings.title')}</h2>
 
-      {/* 언어 선택 */}
+      {/* 언어 선택 — 커스텀 드롭다운 (언어 수가 늘어도 항상 1줄) */}
       <section className="mb-6">
         <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{t('settings.language')}</div>
-        <div className="grid grid-cols-3 gap-2">
-          {LANGUAGES.map(({ code, short, label }) => {
-            const active = (LANGUAGES.find(l => i18n.language.startsWith(l.code))?.code ?? 'ko') === code
+        <div ref={langRef} className="relative">
+          {(() => {
+            const cur = LANGUAGES.find(l => i18n.language.startsWith(l.code)) ?? LANGUAGES.find(l => l.code === 'ko')
             return (
               <button
-                key={code}
-                onClick={() => { i18n.changeLanguage(code); localStorage.setItem('i18nextLng', code); localStorage.setItem('rfg_lang', code) }}
-                className={`flex flex-col items-center justify-center gap-0.5 py-2 rounded-lg border transition-colors ${
-                  active
-                    ? 'bg-blue-600 text-white border-blue-600 font-bold shadow-sm'
-                    : 'bg-white text-gray-700 border-gray-300 font-medium active:bg-gray-50'
-                }`}
+                type="button"
+                onClick={() => setLangOpen(o => !o)}
+                className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg border border-gray-300 bg-white active:bg-gray-50"
               >
-                <span className="text-[11px] opacity-80">{short}</span>
-                <span className="text-sm">{label}</span>
+                <span className="flex items-center gap-2 min-w-0">
+                  <span className="text-[10px] font-bold text-gray-400 w-6 text-left shrink-0">{cur?.short}</span>
+                  <span className="text-sm font-semibold text-gray-800 truncate">{cur?.label}</span>
+                </span>
+                <ChevronDown size={16} strokeWidth={2} className={`text-gray-400 shrink-0 transition-transform ${langOpen ? 'rotate-180' : ''}`} />
               </button>
             )
-          })}
+          })()}
+          {langOpen && (
+            <div className="absolute z-30 mt-1 w-full max-h-64 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-xl">
+              {LANGUAGES.map(({ code, short, label }) => {
+                const active = (LANGUAGES.find(l => i18n.language.startsWith(l.code))?.code ?? 'ko') === code
+                return (
+                  <button
+                    key={code}
+                    type="button"
+                    onClick={() => { i18n.changeLanguage(code); localStorage.setItem('i18nextLng', code); localStorage.setItem('rfg_lang', code); setLangOpen(false) }}
+                    className={`w-full flex items-center gap-2 px-3 py-2.5 text-left border-b border-gray-50 last:border-0 ${
+                      active ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700 active:bg-gray-50'
+                    }`}
+                  >
+                    <span className="text-[10px] font-bold text-gray-400 w-6 shrink-0">{short}</span>
+                    <span className="text-sm">{label}</span>
+                    {active && <Check size={15} strokeWidth={2.5} className="ml-auto text-blue-600 shrink-0" />}
+                  </button>
+                )
+              })}
+            </div>
+          )}
         </div>
       </section>
 
@@ -446,6 +479,14 @@ export default function SettingsPage() {
           </button>
         </div>
         <div className="bg-white border border-gray-300 rounded-lg px-3 py-2.5">
+          <label className="text-[11px] font-medium text-gray-500 block mb-0.5">{t('settings.currency')}</label>
+          <input
+            value={settings.currency || ''}
+            onChange={(e) => update({ currency: e.target.value })}
+            placeholder="₩ / $ / € / ¥ / ₫ / ฿ / Rp / ₹"
+            className="w-full text-xs border border-gray-200 rounded-md px-2.5 py-1.5 outline-none text-gray-800 focus:border-blue-400 mb-1"
+          />
+          <p className="text-[10px] text-gray-400 mb-3">{t('settings.currencyDesc')}</p>
           <label className="text-[11px] font-medium text-gray-500 block mb-0.5">{t('settings.taxRate')}</label>
           <div className="flex items-center gap-2">
             <input
@@ -685,8 +726,8 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      {/* 동기화 상태 진단 — 결함 신고 시 1번 클릭으로 검증 */}
-      <section className="mt-6 mb-4">
+      {/* 동기화 상태 진단 — 사용자 측 노출 X (= 형 본인 결함 진단 측 필요 시 = 'false' → 'true' 정정 박는 게 정석) */}
+      <section className="mt-6 mb-4" style={{ display: 'none' }}>
         <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">{t('settings.sync.title')}</div>
         <div className="bg-white border border-gray-300 rounded-lg p-3 space-y-2">
           <div className="flex gap-2">
@@ -713,7 +754,7 @@ export default function SettingsPage() {
           {syncResults && (
             <div className="mt-2 p-2 bg-purple-50 border border-purple-200 rounded text-[11px]">
               <div className="font-semibold text-purple-900 mb-1">
-                Sync run @ {new Date(syncResults.ranAt).toLocaleTimeString()}
+                Sync run @ {new Date(syncResults.ranAt).toLocaleTimeString(i18n.language)}
                 {syncResults.ok === false && <span className="ml-1.5 text-red-600">FAILED</span>}
               </div>
               {syncResults.reason && <div className="text-red-700">reason: {syncResults.reason}</div>}
@@ -736,7 +777,7 @@ export default function SettingsPage() {
           {syncStatus && (
             <div className="mt-2 space-y-1.5">
               <div className="text-[10px] text-gray-400 text-right">
-                {t('settings.sync.fetchedAt')}: {new Date(syncStatus.fetchedAt).toLocaleTimeString()}
+                {t('settings.sync.fetchedAt')}: {new Date(syncStatus.fetchedAt).toLocaleTimeString(i18n.language)}
               </div>
               {syncStatus.rows.map((r) => {
                 const warn = r.pending > 0

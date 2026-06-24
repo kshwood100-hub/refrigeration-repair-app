@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { db } from '../db'
 import { softDelete, softDeleteCustomerCascade, pushCollection } from '../utils/cloudSync'
 import { toLocalISO } from '../utils/date'
+import { money } from '../utils/money'
 
 export default function ServicePage() {
   const { t } = useTranslation()
@@ -282,7 +283,7 @@ export default function ServicePage() {
                         )}
                         {job.cost > 0 && (
                           <span className="ml-auto font-medium text-gray-600">
-                            {Number(job.cost).toLocaleString()}
+                            {money(job.cost)}
                           </span>
                         )}
                       </div>

@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react'
-import { onAuthStateChanged, signInWithRedirect, getRedirectResult, signOut } from 'firebase/auth'
+import { onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut } from 'firebase/auth'
 import { doc, getDoc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore'
 import { auth, googleProvider, firestore } from '../firebase'
 import { clearTrialCache } from '../utils/trial'
@@ -157,8 +157,33 @@ export function AuthProvider({ children }) {
 
   const loginWithGoogle = async () => {
     setLoginError(null)
-    // signInWithRedirect = 페이지 전환됨. 즉시 반환 X. 결과 처리는 위 useEffect의 getRedirectResult에서
-    await signInWithRedirect(auth, googleProvider)
+    // 안드로이드 Chrome 측 third-party cookie 차단 = signInWithRedirect 측 sessionStorage 손실 → getRedirectResult null
+    // = popup 측 되돌림 (= COOP 'same-origin-allow-popups' 박혀있어 = 안전)
+    try {
+      const result = await signInWithPopup(auth, googleProvider)
+      if (!result?.user?.email) {
+        setLoginError(i18n.t('error.accessDenied'))
+        return
+      }
+      const access = await checkEmailAccess(result.user.email)
+      if (!access.allowed) {
+        try { await signOut(auth) } catch (e) { console.warn('Reject signOut failed:', e?.message) }
+        if (access.reason === 'cancelled') {
+          const dateStr = access.purgeAt ? toLocalISO(new Date(access.purgeAt)) : ''
+          setLoginError(i18n.t('error.subscriptionCancelled', { date: dateStr }))
+        } else {
+          setLoginError(i18n.t('error.accessDenied'))
+        }
+        return
+      }
+      await claimSession(result.user.email)
+    } catch (e) {
+      console.warn('Login failed:', e?.message)
+      // popup 박힌 채 = 사용자 측 취소 (= auth/popup-closed-by-user) = 에러 표시 X
+      if (e?.code !== 'auth/popup-closed-by-user' && e?.code !== 'auth/cancelled-popup-request') {
+        setLoginError(e?.message || 'Login failed')
+      }
+    }
   }
   const logout = async () => {
     localStorage.removeItem(SESSION_TOKEN_KEY)
